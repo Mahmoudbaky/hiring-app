@@ -192,6 +192,9 @@
     .public-header-bg {
         background: linear-gradient(180deg, oklch(0.985 0.002 250) 0%, #fff 100%);
     }
+    .dark .public-header-bg {
+        background: linear-gradient(180deg, var(--card) 0%, var(--background) 100%);
+    }
 
     /* Pagination active button */
     .page-active {
@@ -229,7 +232,7 @@
 *::-webkit-scrollbar-thumb:hover { background: oklch(0.82 0.008 260); }
 
 /* ── Table row hover ──────────────────────────────────────────────── */
-tr.row:hover td { background: oklch(0.98 0.004 260); }
+tr.row:hover td { background: var(--accent); }
 
 /* ── Toggle switch ────────────────────────────────────────────────── */
 .switch {

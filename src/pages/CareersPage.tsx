@@ -14,7 +14,7 @@ function PublicHeader({
   onGoApply: (id: number | null) => void;
 }) {
   return (
-    <header className="bg-white border-b border-[var(--border)] sticky top-0 z-30">
+    <header className="bg-[var(--background)] border-b border-[var(--border)] sticky top-0 z-30">
       <div className="max-w-[1120px] mx-auto px-6 h-16 flex items-center justify-between">
         <button onClick={onHome} className="flex items-center gap-3">
           <BrandLogo size={36} />

@@ -110,7 +110,7 @@ export function ApplyPage({ jobs, preselectedJobId, onSubmitted }: Props) {
                       onChange={(e) => setYears(+e.target.value)}
                       className="flex-1 accent-[var(--primary)]"
                     />
-                    <div className="h-10 min-w-[64px] px-3 rounded-md border border-[var(--border)] bg-white text-[13.5px] tabular font-medium flex items-center justify-center">
+                    <div className="h-10 min-w-[64px] px-3 rounded-md border border-[var(--border)] bg-[var(--background)] text-[13.5px] tabular font-medium flex items-center justify-center">
                       {years} سنة
                     </div>
                   </div>
