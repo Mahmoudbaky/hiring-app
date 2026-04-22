@@ -99,15 +99,15 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
         }
       />
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard tone="tone-sky"     icon="users"    label="إجمالي الطلبات"   value="1,284" sub="هذا الشهر" trend="12%↑" />
         <StatCard tone="tone-amber"   icon="clock"    label="قيد المراجعة"      value="42"    sub="بانتظار الرد" />
         <StatCard tone="tone-emerald" icon="calendar" label="مقابلات مجدولة"    value="18"    sub="هذا الأسبوع" />
         <StatCard tone="tone-rose"    icon="ban"      label="طلبات مرفوضة"      value="156"   sub="إجمالي الرفض" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <div>
               <CardTitle>توزيع الطلبات حسب الحالة</CardTitle>
@@ -174,7 +174,8 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
             <DInput placeholder="بحث…" icon={<Icon name="search" size={14} />} onChange={(e) => setQ(e.target.value)} />
           </div>
         </CardHeader>
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[580px]">
           <thead>
             <tr>
               <Th>المتقدم</Th>
@@ -219,6 +220,7 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
     </div>
   );

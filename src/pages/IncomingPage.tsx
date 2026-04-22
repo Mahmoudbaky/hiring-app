@@ -39,7 +39,7 @@ export function IncomingPage({ applications, setApplications, onOpenApp }: Props
   return (
     <div>
       <Card className="relative overflow-visible">
-        <CardHeader className="items-center">
+        <CardHeader className="flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg tone-sky flex items-center justify-center">
               <Icon name="briefcase" size={18} />
@@ -109,7 +109,8 @@ export function IncomingPage({ applications, setApplications, onOpenApp }: Props
           </div>
         </CardHeader>
 
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px]">
           <thead>
             <tr>
               <Th>المتقدم</Th>
@@ -171,6 +172,7 @@ export function IncomingPage({ applications, setApplications, onOpenApp }: Props
             ))}
           </tbody>
         </table>
+        </div>
 
         <Pagination
           page={page} pages={pages} total={filtered.length}

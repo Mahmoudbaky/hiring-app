@@ -57,7 +57,7 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
       />
 
       <Card>
-        <div className="p-4 border-b border-[var(--border)] flex flex-wrap items-center gap-3">
+        <div className="p-4 border-b border-[var(--border)] flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3">
           <span className="text-[13px] text-[var(--muted-foreground)] flex items-center gap-1.5">
             <Icon name="filter" size={14} /> تصفية حسب:
           </span>
@@ -97,7 +97,8 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
           </div>
         </div>
 
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr>
               <Th>المتقدم</Th>
@@ -154,6 +155,7 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
             ))}
           </tbody>
         </table>
+        </div>
 
         <Pagination
           page={page} pages={pages} total={filtered.length}

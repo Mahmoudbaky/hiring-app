@@ -57,16 +57,16 @@ interface PageHeaderProps {
 
 export function PageHeader({ icon, title, desc, actions }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-6 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
       <div className="flex items-start gap-3">
         {icon && (
-          <div className="w-10 h-10 rounded-lg tone-rose flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg tone-rose flex items-center justify-center shrink-0">
             <Icon name={icon} size={18} />
           </div>
         )}
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight text-[var(--foreground)]">{title}</h1>
-          {desc && <p className="text-[13.5px] text-[var(--muted-foreground)] mt-1">{desc}</p>}
+          <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-[var(--foreground)]">{title}</h1>
+          {desc && <p className="text-[13px] sm:text-[13.5px] text-[var(--muted-foreground)] mt-1">{desc}</p>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
@@ -181,11 +181,19 @@ const navItems = [
 interface SidebarProps {
   page: Page;
   setPage: (p: Page) => void;
+  isOpen?: boolean;
 }
 
-export function Sidebar({ page, setPage }: SidebarProps) {
+export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
   return (
-    <aside className="w-[240px] shrink-0 bg-[var(--card)] border-l border-[var(--border)] h-screen sticky top-0 flex flex-col">
+    <aside
+      className={cn(
+        'w-[240px] bg-[var(--card)] border-l border-[var(--border)] h-screen flex flex-col z-30',
+        'fixed top-0 right-0 transition-transform duration-300 ease-in-out',
+        isOpen ? 'translate-x-0' : 'translate-x-full',
+        'lg:sticky lg:top-0 lg:shrink-0 lg:translate-x-0',
+      )}
+    >
       <div className="p-5 border-b border-[var(--border)]">
         <BrandLogo />
       </div>
@@ -246,19 +254,34 @@ export function Sidebar({ page, setPage }: SidebarProps) {
 }
 
 /* ── Topbar ───────────────────────────────────────────────────────── */
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { theme, setTheme } = useTheme();
   const isDark = theme === 'dark';
 
   const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   return (
-    <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] sticky top-0 z-20 px-6 flex items-center gap-4">
-      <div className="flex-1 max-w-[440px]">
+    <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] sticky top-0 z-20 px-4 sm:px-6 flex items-center gap-3">
+      <Btn
+        variant="ghost"
+        size="icon"
+        className="lg:hidden shrink-0"
+        aria-label="فتح القائمة"
+        onClick={onMenuClick}
+      >
+        <Icon name="menu" size={20} />
+      </Btn>
+
+      <div className="flex-1 max-w-[440px] hidden sm:block">
         <DInput placeholder="ابحث عن متقدم، وظيفة، أو قسم…" icon={<Icon name="search" size={14} />} />
       </div>
       <div className="flex-1" />
-      <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-1 sm:gap-2">
         <Btn
           variant="ghost"
           size="icon"
@@ -274,12 +297,15 @@ export function Topbar() {
             <span className="absolute -top-0.5 -end-0.5 w-2 h-2 bg-[var(--primary)] rounded-full ring-2 ring-[var(--card)]" />
           </div>
         </Btn>
-        <div className="h-6 w-px bg-[var(--border)]" />
-        <div className="flex items-center gap-3 pe-1">
+        <div className="h-6 w-px bg-[var(--border)] hidden sm:block" />
+        <div className="hidden sm:flex items-center gap-3 pe-1">
           <div className="text-end leading-tight">
             <div className="text-[13px] font-medium">أحمد المدير</div>
             <div className="text-[11px] text-[var(--muted-foreground)]">مدير الموارد البشرية</div>
           </div>
+          <Avatar name="أ" tone="slate" size={32} />
+        </div>
+        <div className="sm:hidden">
           <Avatar name="أ" tone="slate" size={32} />
         </div>
       </div>

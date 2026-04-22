@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Icon } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Btn, Sidebar, Topbar } from '@/components/shell';
+import { Btn } from '@/components/shell';
 import { DDialog } from '@/components/ui/ddialog';
 import { ToastProvider } from '@/components/ui/toast';
 import { AttachIcon } from '@/components/shell';
@@ -10,8 +10,10 @@ import { DashboardPage }    from '@/pages/DashboardPage';
 import { ApplicationsPage } from '@/pages/ApplicationsPage';
 import { IncomingPage }     from '@/pages/IncomingPage';
 import { JobsPage }         from '@/pages/JobsPage';
+import { SettingsPage }     from '@/pages/SettingsPage';
 import { JobListingsPage, JobDetailPage } from '@/pages/CareersPage';
 import { ApplyPage }        from '@/pages/ApplyPage';
+import { DashboardLayout }  from '@/layouts/DashboardLayout';
 import { SEED_APPLICATIONS, SEED_JOBS, STATUS_META } from '@/data';
 import type { Application, Job } from '@/types';
 
@@ -104,28 +106,6 @@ function ApplicantDialog({
   );
 }
 
-/* ── Settings page ────────────────────────────────────────────────── */
-function SettingsPage() {
-  return (
-    <div>
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg tone-rose flex items-center justify-center">
-          <Icon name="settings" size={18} />
-        </div>
-        <div>
-          <h1 className="text-[22px] font-bold tracking-tight">الإعدادات</h1>
-          <p className="text-[13.5px] text-[var(--muted-foreground)] mt-1">إدارة تفضيلات الحساب والنظام</p>
-        </div>
-      </div>
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl card-shadow p-6">
-        <div className="text-[13.5px] text-[var(--muted-foreground)]">
-          هذه الصفحة تجريبية — أضف إعدادات العلامة التجارية والمستخدمين والأذونات هنا.
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ── Root app ─────────────────────────────────────────────────────── */
 export default function App() {
   const [page, setPage]             = useState<Page>('dashboard');
@@ -206,19 +186,13 @@ export default function App() {
   /* ── Admin shell ────────────────────────────────────────────────── */
   return (
     <ToastProvider>
-      <div className="flex min-h-screen" dir="rtl">
-        <Sidebar page={page} setPage={(p) => setPage(p as Page)} />
-        <main className="flex-1 min-w-0">
-          <Topbar />
-          <div className="p-8">
-            {page === 'dashboard'    && <DashboardPage    applications={applications} onOpenApp={setViewing} />}
-            {page === 'applications' && <ApplicationsPage applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
-            {page === 'incoming'     && <IncomingPage     applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
-            {page === 'jobs'         && <JobsPage         jobs={jobs} setJobs={setJobs} />}
-            {page === 'settings'     && <SettingsPage />}
-          </div>
-        </main>
-      </div>
+      <DashboardLayout page={page} setPage={(p) => setPage(p as Page)}>
+        {page === 'dashboard'    && <DashboardPage    applications={applications} onOpenApp={setViewing} />}
+        {page === 'applications' && <ApplicationsPage applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
+        {page === 'incoming'     && <IncomingPage     applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
+        {page === 'jobs'         && <JobsPage         jobs={jobs} setJobs={setJobs} />}
+        {page === 'settings'     && <SettingsPage />}
+      </DashboardLayout>
       <ApplicantDialog
         applicant={viewing}
         onClose={() => setViewing(null)}

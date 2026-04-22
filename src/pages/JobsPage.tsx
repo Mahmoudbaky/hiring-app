@@ -71,7 +71,7 @@ function AddJobDialog({
         </div>
 
         <div className="p-6 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <DLabel required>عنوان الوظيفة</DLabel>
               <DInput placeholder="مثال: مطور Laravel محترف" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -82,7 +82,7 @@ function AddJobDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <DLabel>نوع العمل</DLabel>
               <div className="grid grid-cols-2 gap-2">
@@ -171,7 +171,7 @@ export function JobsPage({ jobs, setJobs }: Props) {
         }
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {jobs.map((j) => (
           <Card key={j.id} className="p-5 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between gap-3 mb-3">
