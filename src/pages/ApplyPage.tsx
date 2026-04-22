@@ -27,7 +27,7 @@ export function ApplyPage({ jobs, preselectedJobId, onSubmitted }: Props) {
   const [name, setName]       = useState('');
   const [email, setEmail]     = useState('');
   const [phone, setPhone]     = useState('');
-  const [jobId, setJobId]     = useState<number | string>(preselectedJobId ?? jobs[0]?.id ?? '');
+  const [jobId, setJobId]     = useState<string>(String(preselectedJobId ?? jobs[0]?.id ?? ''));
   const [years, setYears]     = useState(0);
   const [cv, setCv]           = useState<string | null>(null);
   const [why, setWhy]         = useState('');
@@ -94,7 +94,7 @@ export function ApplyPage({ jobs, preselectedJobId, onSubmitted }: Props) {
                   <DSelect
                     value={jobId}
                     onChange={setJobId}
-                    options={jobs.map((j) => ({ value: j.id, label: j.title }))}
+                    options={jobs.map((j) => ({ value: String(j.id), label: j.title }))}
                   />
                 </div>
 
