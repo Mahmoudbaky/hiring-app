@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Icon } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { DSelect } from '@/components/ui/dselect';
+import { DSelect } from '@/components/shell';
 import { Btn, BrandLogo, DInput, DTextarea, DLabel } from '@/components/shell';
 import type { Job } from '@/types';
 
@@ -53,7 +53,7 @@ export function ApplyPage({ jobs, preselectedJobId, onSubmitted }: Props) {
                 <div className="text-[12.5px] text-[var(--muted-foreground)]">نظام إدارة الموارد البشرية</div>
               </div>
             </div>
-            <Badge tone="emerald" className="h-7">
+            <Badge variant="emerald" className="h-7">
               <span className="w-1.5 h-1.5 rounded-full bg-[oklch(0.6_0.15_155)]" />
               متاح حالياً
             </Badge>

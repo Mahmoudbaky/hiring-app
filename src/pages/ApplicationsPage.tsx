@@ -1,11 +1,10 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Icon } from '@/components/icons';
-import { Avatar } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { DSelect } from '@/components/ui/dselect';
-import { Btn, PageHeader, Th, Td, Pagination } from '@/components/shell';
-import { useToast } from '@/components/ui/toast';
+import { Btn, PageHeader, Th, Td, Pagination, DSelect } from '@/components/shell';
 import { STATUS_META } from '@/data';
 import type { Application, StatusKey } from '@/types';
 
@@ -22,7 +21,6 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
   const [status, setStatus] = useState<string>('all');
   const [sort, setSort]     = useState<string>('newest');
   const [page, setPage]     = useState(1);
-  const toast = useToast();
 
   const reset = () => { setJob('all'); setStatus('all'); setSort('newest'); };
 
@@ -40,7 +38,8 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
 
   const updateStatus = (id: number, newStatus: StatusKey, msg: string) => {
     setApplications((apps) => apps.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
-    toast({ title: msg, tone: newStatus === 'rejected' ? 'error' : 'success' });
+    if (newStatus === 'rejected') toast.error(msg);
+    else toast.success(msg);
   };
 
   return (
@@ -57,8 +56,8 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
       />
 
       <Card>
-        <div className="p-4 border-b border-[var(--border)] flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3">
-          <span className="text-[13px] text-[var(--muted-foreground)] flex items-center gap-1.5">
+        <div className="p-4 border-b flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3">
+          <span className="text-[13px] text-muted-foreground flex items-center gap-1.5">
             <Icon name="filter" size={14} /> تصفية حسب:
           </span>
           <DSelect
@@ -92,69 +91,69 @@ export function ApplicationsPage({ applications, setApplications, onOpenApp }: P
             <Icon name="undo" size={13} /> إعادة ضبط
           </Btn>
           <div className="flex-1" />
-          <div className="text-[12px] text-[var(--muted-foreground)] tabular">
-            عرض <span className="font-medium text-[var(--foreground)]">{view.length}</span> من أصل {filtered.length} طلب
+          <div className="text-[12px] text-muted-foreground tabular">
+            عرض <span className="font-medium text-foreground">{view.length}</span> من أصل {filtered.length} طلب
           </div>
         </div>
 
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px]">
-          <thead>
-            <tr>
-              <Th>المتقدم</Th>
-              <Th>الوظيفة</Th>
-              <Th>تاريخ التقديم</Th>
-              <Th>الحالة</Th>
-              <Th>الإجراءات</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.length === 0 && (
+          <table className="w-full min-w-[640px]">
+            <thead>
               <tr>
-                <Td colSpan={5}>
-                  <div className="text-center py-10 text-[var(--muted-foreground)]">لا توجد طلبات مطابقة للتصفية</div>
-                </Td>
+                <Th>المتقدم</Th>
+                <Th>الوظيفة</Th>
+                <Th>تاريخ التقديم</Th>
+                <Th>الحالة</Th>
+                <Th>الإجراءات</Th>
               </tr>
-            )}
-            {view.map((a) => (
-              <tr key={a.id} className="row">
-                <Td>
-                  <div className="flex items-center gap-3">
-                    <Avatar name={a.name} tone={a.avatar as any} />
-                    <div>
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-[12px] text-[var(--muted-foreground)]">{a.email}</div>
+            </thead>
+            <tbody>
+              {view.length === 0 && (
+                <tr>
+                  <Td colSpan={5}>
+                    <div className="text-center py-10 text-muted-foreground">لا توجد طلبات مطابقة للتصفية</div>
+                  </Td>
+                </tr>
+              )}
+              {view.map((a) => (
+                <tr key={a.id} className="row">
+                  <Td>
+                    <div className="flex items-center gap-3">
+                      <UserAvatar name={a.name} tone={a.avatar as string} />
+                      <div>
+                        <div className="font-medium">{a.name}</div>
+                        <div className="text-[12px] text-muted-foreground">{a.email}</div>
+                      </div>
                     </div>
-                  </div>
-                </Td>
-                <Td>{a.job}</Td>
-                <Td className="text-[var(--muted-foreground)] tabular">{a.date}</Td>
-                <Td>
-                  <Badge tone={STATUS_META[a.status].tone as any}>{STATUS_META[a.status].label}</Badge>
-                </Td>
-                <Td>
-                  <div className="flex items-center gap-1">
-                    <Btn variant="ghost" size="iconSm" title="عرض" onClick={() => onOpenApp(a)}>
-                      <Icon name="eye" size={15} />
-                    </Btn>
-                    <Btn
-                      variant="ghost" size="iconSm" title="قبول"
-                      onClick={() => updateStatus(a.id, 'shortlisted', `تم ترشيح ${a.name}`)}
-                    >
-                      <Icon name="check" size={15} className="text-[oklch(0.5_0.13_155)]" />
-                    </Btn>
-                    <Btn
-                      variant="ghost" size="iconSm" title="رفض"
-                      onClick={() => updateStatus(a.id, 'rejected', `تم رفض طلب ${a.name}`)}
-                    >
-                      <Icon name="x" size={15} className="text-[oklch(0.55_0.15_25)]" />
-                    </Btn>
-                  </div>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </Td>
+                  <Td>{a.job}</Td>
+                  <Td className="text-muted-foreground tabular">{a.date}</Td>
+                  <Td>
+                    <Badge variant={STATUS_META[a.status].tone as any}>{STATUS_META[a.status].label}</Badge>
+                  </Td>
+                  <Td>
+                    <div className="flex items-center gap-1">
+                      <Btn variant="ghost" size="iconSm" title="عرض" onClick={() => onOpenApp(a)}>
+                        <Icon name="eye" size={15} />
+                      </Btn>
+                      <Btn
+                        variant="ghost" size="iconSm" title="قبول"
+                        onClick={() => updateStatus(a.id, 'shortlisted', `تم ترشيح ${a.name}`)}
+                      >
+                        <Icon name="check" size={15} className="text-[oklch(0.5_0.13_155)]" />
+                      </Btn>
+                      <Btn
+                        variant="ghost" size="iconSm" title="رفض"
+                        onClick={() => updateStatus(a.id, 'rejected', `تم رفض طلب ${a.name}`)}
+                      >
+                        <Icon name="x" size={15} className="text-[oklch(0.55_0.15_25)]" />
+                      </Btn>
+                    </div>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <Pagination

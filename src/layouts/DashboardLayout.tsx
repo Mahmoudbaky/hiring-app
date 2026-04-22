@@ -1,38 +1,25 @@
-import { useState } from 'react';
-import { Sidebar, Topbar } from '@/components/shell';
-
-type Page = string;
+import {
+  SidebarProvider,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import { AppSidebar, AppTopbar } from '@/components/shell';
 
 interface DashboardLayoutProps {
-  page: Page;
-  setPage: (p: Page) => void;
+  page: string;
+  setPage: (p: string) => void;
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ page, setPage, children }: DashboardLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <Sidebar
-        page={page}
-        setPage={(p) => { setPage(p); setSidebarOpen(false); }}
-        isOpen={sidebarOpen}
-      />
-
-      <main className="flex-1 min-w-0 flex flex-col">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+    <SidebarProvider dir="rtl">
+      <AppSidebar page={page} setPage={setPage} />
+      <SidebarInset>
+        <AppTopbar />
         <div className="flex-1 p-4 sm:p-6 lg:p-8">
           {children}
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

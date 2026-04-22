@@ -1,9 +1,29 @@
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/icons';
-import { Avatar } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  Pagination as ShadPagination, PaginationContent, PaginationEllipsis,
+  PaginationItem, PaginationLink, PaginationNext, PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
+  Sidebar as ShadSidebar, SidebarContent, SidebarFooter, SidebarGroup,
+  SidebarGroupContent, SidebarHeader, SidebarMenu,
+  SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar,
+} from '@/components/ui/sidebar';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  TableHead, TableCell,
+} from '@/components/ui/table';
 import { useTheme } from '@/components/theme-provider';
-
-type Page = string;
 
 /* ── Brand logo ───────────────────────────────────────────────────── */
 export function BrandLogo({ size = 32 }: { size?: number }) {
@@ -13,8 +33,8 @@ export function BrandLogo({ size = 32 }: { size?: number }) {
         <svg viewBox="0 0 40 40" width={size} height={size}>
           <defs>
             <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
-              <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
+              <stop offset="0" stopColor="oklch(0.65 0.18 260)" />
+              <stop offset="1" stopColor="oklch(0.50 0.22 255)" />
             </linearGradient>
           </defs>
           <rect x="2" y="2" width="36" height="36" rx="9" fill="url(#lg-brand)" />
@@ -23,27 +43,108 @@ export function BrandLogo({ size = 32 }: { size?: number }) {
         </svg>
       </div>
       <div className="leading-tight">
-        <div className="text-[15px] font-bold tracking-tight text-[var(--foreground)]">ضم</div>
-        <div className="text-[11px] text-[var(--muted-foreground)] -mt-0.5">نظام التوظيف</div>
+        <div className="text-[15px] font-bold tracking-tight">ضم</div>
+        <div className="text-[11px] text-muted-foreground -mt-0.5">نظام التوظيف</div>
       </div>
     </div>
   );
 }
 
-/* ── Table helpers ────────────────────────────────────────────────── */
-export function Th({ children, className = '' }: { children?: React.ReactNode; className?: string }) {
+/* ── Button wrapper (backward-compat size/variant mapping) ─────────── */
+type OldSize = 'sm' | 'md' | 'lg' | 'icon' | 'iconSm';
+type OldVariant = 'default' | 'outline' | 'ghost' | 'subtle' | 'destructive' | 'link';
+
+const sizeMap: Record<OldSize, any> = {
+  sm: 'sm', md: 'default', lg: 'lg', icon: 'icon', iconSm: 'icon-sm',
+};
+const variantMap: Record<OldVariant, any> = {
+  default: 'default', outline: 'outline', ghost: 'ghost',
+  subtle: 'secondary', destructive: 'destructive', link: 'link',
+};
+
+interface BtnProps extends Omit<React.ComponentProps<typeof Button>, 'size' | 'variant'> {
+  size?: OldSize;
+  variant?: OldVariant;
+}
+export function Btn({ size, variant, ...props }: BtnProps) {
   return (
-    <th className={cn('text-start text-[12px] font-medium text-[var(--muted-foreground)] px-4 py-3 bg-[var(--muted)]/40', className)}>
-      {children}
-    </th>
+    <Button
+      size={size ? (sizeMap[size] ?? size) : undefined}
+      variant={variant ? (variantMap[variant] ?? variant) : undefined}
+      {...props}
+    />
   );
 }
 
-export function Td({ children, className = '', colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) {
+/* ── Input with optional icon ─────────────────────────────────────── */
+interface DInputProps extends React.ComponentProps<typeof Input> {
+  icon?: React.ReactNode;
+}
+export function DInput({ icon, className, ...rest }: DInputProps) {
+  if (!icon) return <Input className={className} {...rest} />;
   return (
-    <td colSpan={colSpan} className={cn('px-4 py-3 text-[13.5px] text-[var(--foreground)] border-t border-[var(--border)]', className)}>
+    <div className="relative">
+      <span className="absolute inset-y-0 start-0 ps-3 flex items-center text-muted-foreground pointer-events-none">
+        {icon}
+      </span>
+      <Input className={cn('ps-9', className)} {...rest} />
+    </div>
+  );
+}
+
+/* ── Label with optional required ─────────────────────────────────── */
+interface DLabelProps extends React.ComponentProps<typeof Label> {
+  required?: boolean;
+}
+export function DLabel({ children, required, className, ...props }: DLabelProps) {
+  return (
+    <Label className={cn('flex items-center gap-1', className)} {...props}>
       {children}
-    </td>
+      {required && <span className="text-destructive">*</span>}
+    </Label>
+  );
+}
+
+/* ── Textarea re-export ───────────────────────────────────────────── */
+export { Textarea as DTextarea } from '@/components/ui/textarea';
+
+/* ── Select wrapper (old options-array API) ───────────────────────── */
+interface DSelectProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  className?: string;
+}
+export function DSelect({ value, onChange, options, className }: DSelectProps) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className={className}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/* ── Table helpers (thin shadcn wrappers) ─────────────────────────── */
+export function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return (
+    <TableHead className={cn('text-xs font-medium text-muted-foreground bg-muted/40 px-4 py-3', className)}>
+      {children}
+    </TableHead>
+  );
+}
+export function Td({ children, className, colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) {
+  return (
+    <TableCell colSpan={colSpan} className={cn('px-4 py-3 text-[13.5px]', className)}>
+      {children}
+    </TableCell>
   );
 }
 
@@ -54,262 +155,22 @@ interface PageHeaderProps {
   desc?: string;
   actions?: React.ReactNode;
 }
-
 export function PageHeader({ icon, title, desc, actions }: PageHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
       <div className="flex items-start gap-3">
         {icon && (
-          <div className="w-10 h-10 rounded-lg tone-rose flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg tone-primary flex items-center justify-center shrink-0">
             <Icon name={icon} size={18} />
           </div>
         )}
         <div>
-          <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-[var(--foreground)]">{title}</h1>
-          {desc && <p className="text-[13px] sm:text-[13.5px] text-[var(--muted-foreground)] mt-1">{desc}</p>}
+          <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight">{title}</h1>
+          {desc && <p className="text-sm text-muted-foreground mt-1">{desc}</p>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>
-  );
-}
-
-/* ── Button ───────────────────────────────────────────────────────── */
-type ButtonVariant = 'default' | 'outline' | 'ghost' | 'subtle' | 'destructive' | 'link';
-type ButtonSize = 'sm' | 'md' | 'lg' | 'icon' | 'iconSm';
-
-const btnVariants: Record<ButtonVariant, string> = {
-  default:     'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]',
-  outline:     'border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--accent)] text-[var(--foreground)]',
-  ghost:       'hover:bg-[var(--accent)] text-[var(--foreground)]',
-  subtle:      'bg-[var(--secondary)] hover:bg-[var(--border)] text-[var(--secondary-foreground)]',
-  destructive: 'bg-[var(--destructive)] text-white hover:opacity-90',
-  link:        'text-[var(--primary)] underline-offset-4 hover:underline',
-};
-
-const btnSizes: Record<ButtonSize, string> = {
-  sm:     'h-8 px-3 text-[13px]',
-  md:     'h-9 px-4 text-[13.5px]',
-  lg:     'h-10 px-5 text-sm',
-  icon:   'h-9 w-9',
-  iconSm: 'h-8 w-8',
-};
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-}
-
-export function Btn({ variant = 'default', size = 'md', className = '', children, ...rest }: ButtonProps) {
-  return (
-    <button
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-ring disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap',
-        btnVariants[variant],
-        btnSizes[size],
-        className,
-      )}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
-/* ── Input ────────────────────────────────────────────────────────── */
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon?: React.ReactNode;
-}
-
-export function DInput({ icon, className = '', ...rest }: InputProps) {
-  return (
-    <div className="relative">
-      {icon && (
-        <span className="absolute inset-y-0 start-0 ps-3 flex items-center text-[var(--muted-foreground)] pointer-events-none">
-          {icon}
-        </span>
-      )}
-      <input
-        className={cn(
-          'w-full h-10 rounded-md border border-[var(--input)] bg-[var(--card)] text-[13.5px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]',
-          'px-3 focus-ring transition-shadow',
-          icon ? 'ps-9' : '',
-          className,
-        )}
-        {...rest}
-      />
-    </div>
-  );
-}
-
-/* ── Textarea ─────────────────────────────────────────────────────── */
-export function DTextarea({ className = '', ...rest }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      className={cn(
-        'w-full min-h-[120px] rounded-md border border-[var(--input)] bg-[var(--card)] text-[13.5px] p-3 placeholder:text-[var(--muted-foreground)] focus-ring resize-y',
-        className,
-      )}
-      {...rest}
-    />
-  );
-}
-
-/* ── Label ────────────────────────────────────────────────────────── */
-interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
-  required?: boolean;
-}
-
-export function DLabel({ children, className = '', required, ...rest }: LabelProps) {
-  return (
-    <label className={cn('text-[13px] font-medium text-[var(--foreground)] flex items-center gap-1', className)} {...rest}>
-      {children}
-      {required && <span className="text-[var(--primary)]">*</span>}
-    </label>
-  );
-}
-
-/* ── Sidebar ──────────────────────────────────────────────────────── */
-const navItems = [
-  { key: 'dashboard',    label: 'الإحصائيات',       icon: 'chart' },
-  { key: 'applications', label: 'طلبات التوظيف',    icon: 'users',     badge: 24 },
-  { key: 'incoming',     label: 'الطلبات الواردة',  icon: 'briefcase' },
-  { key: 'jobs',         label: 'الوظائف المتاحة',  icon: 'globe' },
-  { key: 'settings',     label: 'الإعدادات',        icon: 'settings' },
-];
-
-interface SidebarProps {
-  page: Page;
-  setPage: (p: Page) => void;
-  isOpen?: boolean;
-}
-
-export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
-  return (
-    <aside
-      className={cn(
-        'w-[240px] bg-[var(--card)] border-l border-[var(--border)] h-screen flex flex-col z-30',
-        'fixed top-0 right-0 transition-transform duration-300 ease-in-out',
-        isOpen ? 'translate-x-0' : 'translate-x-full',
-        'lg:sticky lg:top-0 lg:shrink-0 lg:translate-x-0',
-      )}
-    >
-      <div className="p-5 border-b border-[var(--border)]">
-        <BrandLogo />
-      </div>
-      <nav className="flex-1 p-3 space-y-1">
-        {navItems.map((n) => {
-          const active = page === n.key;
-          return (
-            <button
-              key={n.key}
-              onClick={() => setPage(n.key)}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] transition-colors focus-ring',
-                active
-                  ? 'bg-[oklch(0.97_0.03_30)] text-[var(--primary)] font-medium'
-                  : 'text-[var(--foreground)] hover:bg-[var(--accent)]',
-              )}
-            >
-              <Icon
-                name={n.icon}
-                size={17}
-                className={active ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}
-              />
-              <span className="flex-1 text-start">{n.label}</span>
-              {n.badge && (
-                <span
-                  className={cn(
-                    'text-[11px] h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center',
-                    active ? 'bg-[var(--primary)] text-white' : 'bg-[var(--muted)] text-[var(--muted-foreground)]',
-                  )}
-                >
-                  {n.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-      <div className="p-3 border-t border-[var(--border)] space-y-1">
-        <button
-          onClick={() => setPage('careers')}
-          className="w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] text-[var(--muted-foreground)] hover:bg-[var(--accent)] focus-ring"
-        >
-          <Icon name="globe" size={17} />
-          <span className="flex-1 text-start">صفحة الوظائف (للمستخدم)</span>
-          <Icon name="chevLeft" size={14} />
-        </button>
-        <button
-          onClick={() => setPage('apply')}
-          className="w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] text-[var(--muted-foreground)] hover:bg-[var(--accent)] focus-ring"
-        >
-          <Icon name="send" size={17} />
-          <span className="flex-1 text-start">بوابة التقديم العامة</span>
-          <Icon name="chevLeft" size={14} />
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-/* ── Topbar ───────────────────────────────────────────────────────── */
-interface TopbarProps {
-  onMenuClick?: () => void;
-}
-
-export function Topbar({ onMenuClick }: TopbarProps) {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
-
-  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
-
-  return (
-    <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] sticky top-0 z-20 px-4 sm:px-6 flex items-center gap-3">
-      <Btn
-        variant="ghost"
-        size="icon"
-        className="lg:hidden shrink-0"
-        aria-label="فتح القائمة"
-        onClick={onMenuClick}
-      >
-        <Icon name="menu" size={20} />
-      </Btn>
-
-      <div className="flex-1 max-w-[440px] hidden sm:block">
-        <DInput placeholder="ابحث عن متقدم، وظيفة، أو قسم…" icon={<Icon name="search" size={14} />} />
-      </div>
-      <div className="flex-1" />
-
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Btn
-          variant="ghost"
-          size="icon"
-          aria-label="تبديل المظهر"
-          onClick={toggleTheme}
-          title={isDark ? 'تفعيل المظهر الفاتح' : 'تفعيل المظهر الداكن'}
-        >
-          <Icon name={isDark ? 'sun' : 'moon'} size={18} />
-        </Btn>
-        <Btn variant="ghost" size="icon" aria-label="الإشعارات">
-          <div className="relative">
-            <Icon name="bell" size={18} />
-            <span className="absolute -top-0.5 -end-0.5 w-2 h-2 bg-[var(--primary)] rounded-full ring-2 ring-[var(--card)]" />
-          </div>
-        </Btn>
-        <div className="h-6 w-px bg-[var(--border)] hidden sm:block" />
-        <div className="hidden sm:flex items-center gap-3 pe-1">
-          <div className="text-end leading-tight">
-            <div className="text-[13px] font-medium">أحمد المدير</div>
-            <div className="text-[11px] text-[var(--muted-foreground)]">مدير الموارد البشرية</div>
-          </div>
-          <Avatar name="أ" tone="slate" size={32} />
-        </div>
-        <div className="sm:hidden">
-          <Avatar name="أ" tone="slate" size={32} />
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -318,7 +179,7 @@ export function AttachIcon({ type }: { type: 'pdf' | 'image' | 'link' }) {
   return (
     <span
       className={cn(
-        'w-7 h-7 rounded-md flex items-center justify-center',
+        'w-7 h-7 rounded-md flex items-center justify-center shrink-0',
         type === 'pdf' ? 'tone-rose' : type === 'image' ? 'tone-amber' : 'tone-sky',
       )}
     >
@@ -327,7 +188,7 @@ export function AttachIcon({ type }: { type: 'pdf' | 'image' | 'link' }) {
   );
 }
 
-/* ── Pagination ───────────────────────────────────────────────────── */
+/* ── Pagination wrapper (old API → shadcn Pagination) ─────────────── */
 interface PaginationProps {
   page: number;
   pages: number;
@@ -335,38 +196,195 @@ interface PaginationProps {
   perPage: number;
   onPage: (p: number) => void;
 }
-
 export function Pagination({ page, pages, total, perPage, onPage }: PaginationProps) {
   return (
-    <div className="flex items-center justify-between p-4 border-t border-[var(--border)]">
-      <div className="text-[12px] text-[var(--muted-foreground)] tabular">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t">
+      <div className="text-xs text-muted-foreground tabular-nums">
         عرض{' '}
-        <span className="font-medium text-[var(--foreground)]">{Math.min((page - 1) * perPage + 1, total)}</span>
+        <span className="font-medium text-foreground">{Math.min((page - 1) * perPage + 1, total)}</span>
         {' '}إلى{' '}
-        <span className="font-medium text-[var(--foreground)]">{Math.min(page * perPage, total)}</span>
+        <span className="font-medium text-foreground">{Math.min(page * perPage, total)}</span>
         {' '}من أصل {total} طلب
       </div>
-      <div className="flex items-center gap-1">
-        <Btn variant="outline" size="sm" disabled={page === 1} onClick={() => onPage(Math.max(1, page - 1))}>
-          <Icon name="chevRight" size={13} /> السابق
-        </Btn>
-        {Array.from({ length: Math.min(pages, 5) }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => onPage(i + 1)}
-            className={cn(
-              'h-8 min-w-8 px-2 rounded-md border text-[13px] tabular focus-ring',
-              page === i + 1 ? 'page-active' : 'border-[var(--border)] bg-[var(--card)] hover:bg-[var(--accent)]',
-            )}
-          >
-            {i + 1}
-          </button>
-        ))}
-        {pages > 5 && <span className="px-2 text-[var(--muted-foreground)]">…</span>}
-        <Btn variant="outline" size="sm" disabled={page === pages} onClick={() => onPage(Math.min(pages, page + 1))}>
-          التالي <Icon name="chevLeft" size={13} />
-        </Btn>
-      </div>
+      <ShadPagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              text="السابق"
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page > 1) onPage(page - 1); }}
+              aria-disabled={page === 1}
+              className={page === 1 ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+          {Array.from({ length: Math.min(pages, 5) }).map((_, i) => (
+            <PaginationItem key={i}>
+              <PaginationLink
+                href="#"
+                isActive={page === i + 1}
+                onClick={(e) => { e.preventDefault(); onPage(i + 1); }}
+              >
+                {i + 1}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          {pages > 5 && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
+          <PaginationItem>
+            <PaginationNext
+              text="التالي"
+              href="#"
+              onClick={(e) => { e.preventDefault(); if (page < pages) onPage(page + 1); }}
+              aria-disabled={page === pages}
+              className={page === pages ? 'pointer-events-none opacity-50' : ''}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </ShadPagination>
     </div>
+  );
+}
+
+/* ── Sidebar nav items ────────────────────────────────────────────── */
+const navItems = [
+  { key: 'dashboard',    label: 'الإحصائيات',      icon: 'chart' },
+  { key: 'applications', label: 'طلبات التوظيف',   icon: 'users',     badge: 24 },
+  { key: 'incoming',     label: 'الطلبات الواردة', icon: 'briefcase' },
+  { key: 'jobs',         label: 'الوظائف المتاحة', icon: 'globe' },
+  { key: 'settings',     label: 'الإعدادات',       icon: 'settings' },
+];
+
+/* ── App Sidebar ──────────────────────────────────────────────────── */
+interface AppSidebarProps {
+  page: string;
+  setPage: (p: string) => void;
+}
+export function AppSidebar({ page, setPage }: AppSidebarProps) {
+  const { setOpenMobile } = useSidebar();
+  const navigate = (key: string) => { setPage(key); setOpenMobile(false); };
+
+  return (
+    <ShadSidebar side="right" collapsible="offcanvas">
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
+        <BrandLogo />
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((n) => {
+                const active = page === n.key;
+                return (
+                  <SidebarMenuItem key={n.key}>
+                    <SidebarMenuButton
+                      isActive={active}
+                      onClick={() => navigate(n.key)}
+                      className="gap-3 text-[13.5px] h-10"
+                    >
+                      <Icon
+                        name={n.icon}
+                        size={17}
+                        className={active ? 'text-primary shrink-0' : 'text-muted-foreground shrink-0'}
+                      />
+                      <span className="flex-1 text-start">{n.label}</span>
+                      {n.badge && (
+                        <span className={cn(
+                          'text-[11px] h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center tabular',
+                          active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                        )}>
+                          {n.badge}
+                        </span>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate('careers')} className="text-[13.5px]">
+              <Icon name="globe" size={17} />
+              <span className="flex-1 text-start">صفحة الوظائف (للمستخدم)</span>
+              <Icon name="chevLeft" size={14} />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate('apply')} className="text-[13.5px]">
+              <Icon name="send" size={17} />
+              <span className="flex-1 text-start">بوابة التقديم العامة</span>
+              <Icon name="chevLeft" size={14} />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </ShadSidebar>
+  );
+}
+
+/* ── App Topbar ───────────────────────────────────────────────────── */
+export function AppTopbar() {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
+
+  return (
+    <header className="h-16 bg-card border-b border-border sticky top-0 z-20 px-4 sm:px-6 flex items-center gap-3">
+      <SidebarTrigger className="shrink-0" />
+      <div className="w-px h-5 bg-border shrink-0 hidden lg:block" />
+
+      <div className="flex-1 max-w-[440px] hidden sm:block">
+        <DInput
+          placeholder="ابحث عن متقدم، وظيفة، أو قسم…"
+          icon={<Icon name="search" size={14} />}
+        />
+      </div>
+      <div className="flex-1" />
+
+      <div className="flex items-center gap-1 sm:gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="تبديل المظهر"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          title={isDark ? 'تفعيل المظهر الفاتح' : 'تفعيل المظهر الداكن'}
+        >
+          <Icon name={isDark ? 'sun' : 'moon'} size={18} />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="الإشعارات">
+          <div className="relative">
+            <Icon name="bell" size={18} />
+            <span className="absolute -top-0.5 -end-0.5 w-2 h-2 bg-primary rounded-full ring-2 ring-card" />
+          </div>
+        </Button>
+        <div className="w-px h-5 bg-border shrink-0 hidden sm:block" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="hidden sm:flex items-center gap-3 rounded-md px-2 py-1 hover:bg-accent transition-colors">
+              <div className="text-end leading-tight">
+                <div className="text-[13px] font-medium">أحمد المدير</div>
+                <div className="text-[11px] text-muted-foreground">مدير الموارد البشرية</div>
+              </div>
+              <UserAvatar name="أحمد" tone="slate" size={32} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="bottom">
+            <DropdownMenuItem>الملف الشخصي</DropdownMenuItem>
+            <DropdownMenuItem>الإعدادات</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">تسجيل الخروج</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="sm:hidden">
+          <UserAvatar name="أ" tone="slate" size={32} />
+        </div>
+      </div>
+    </header>
   );
 }

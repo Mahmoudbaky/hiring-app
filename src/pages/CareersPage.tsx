@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Icon } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { DSelect } from '@/components/ui/dselect';
+import { DSelect } from '@/components/shell';
 import { Btn, BrandLogo, DInput } from '@/components/shell';
 import type { Job } from '@/types';
 
@@ -62,7 +62,7 @@ export function JobListingsPage({ jobs, onOpenJob, onGoApply }: ListingsProps) {
 
       <section className="max-w-[1120px] mx-auto px-6 pt-14 pb-10">
         <div className="max-w-[640px]">
-          <Badge tone="rose" className="mb-4">
+          <Badge variant="rose" className="mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
             {filtered.length} وظيفة شاغرة الآن
           </Badge>
@@ -76,7 +76,8 @@ export function JobListingsPage({ jobs, onOpenJob, onGoApply }: ListingsProps) {
           </p>
         </div>
 
-        <Card className="mt-8 p-4 flex flex-wrap items-center gap-3">
+        <Card className="mt-8">
+          <div className="p-4 flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[240px]">
             <DInput
               placeholder="ابحث عن مسمى وظيفي أو قسم…"
@@ -97,6 +98,7 @@ export function JobListingsPage({ jobs, onOpenJob, onGoApply }: ListingsProps) {
               { value: 'remote', label: 'عن بعد' },
             ]}
           />
+          </div>
         </Card>
       </section>
 
@@ -119,7 +121,7 @@ export function JobListingsPage({ jobs, onOpenJob, onGoApply }: ListingsProps) {
               onClick={() => onOpenJob(j.id)}
             >
               <div className="flex items-start gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl tone-rose flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-xl tone-primary flex items-center justify-center shrink-0">
                   <Icon name="briefcase" size={20} />
                 </div>
                 <div>
@@ -128,9 +130,9 @@ export function JobListingsPage({ jobs, onOpenJob, onGoApply }: ListingsProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap mb-4">
-                <Badge tone="neutral">{j.type}</Badge>
-                {j.remote && <Badge tone="sky">عن بعد</Badge>}
-                <Badge tone="neutral">{j.salary}</Badge>
+                <Badge variant="neutral">{j.type}</Badge>
+                {j.remote && <Badge variant="sky">عن بعد</Badge>}
+                <Badge variant="neutral">{j.salary}</Badge>
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
                 <div className="flex items-center gap-1.5 text-[12.5px] text-[var(--muted-foreground)]">
@@ -181,15 +183,15 @@ export function JobDetailPage({ job, onBack, onApply }: DetailProps) {
           <div className="col-span-2 space-y-6">
             <Card className="p-6">
               <div className="flex items-start gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl tone-rose flex items-center justify-center shrink-0">
+                <div className="w-16 h-16 rounded-xl tone-primary flex items-center justify-center shrink-0">
                   <Icon name="briefcase" size={26} />
                 </div>
                 <div>
                   <h1 className="text-[24px] font-bold">{job.title}</h1>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <Badge tone="neutral">{job.dept}</Badge>
-                    <Badge tone="neutral">{job.type}</Badge>
-                    {job.remote && <Badge tone="sky">عن بعد</Badge>}
+                    <Badge variant="neutral">{job.dept}</Badge>
+                    <Badge variant="neutral">{job.type}</Badge>
+                    {job.remote && <Badge variant="sky">عن بعد</Badge>}
                   </div>
                 </div>
               </div>

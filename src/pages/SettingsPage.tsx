@@ -4,7 +4,7 @@ export function SettingsPage() {
   return (
     <div>
       <div className="flex items-start gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg tone-rose flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-lg tone-primary flex items-center justify-center shrink-0">
           <Icon name="settings" size={18} />
         </div>
         <div>

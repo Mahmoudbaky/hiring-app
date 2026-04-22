@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/icons';
-import { Avatar } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDesc, CardBody } from '@/components/ui/card';
-import { Btn, PageHeader, Th, Td, AttachIcon, DInput } from '@/components/shell';
-import { DSelect } from '@/components/ui/dselect';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Btn, PageHeader, Th, Td, AttachIcon, DInput, DSelect } from '@/components/shell';
 import { STATUS_META } from '@/data';
 import type { Application } from '@/types';
 
@@ -29,9 +28,9 @@ function StatCard({
         )}
       </div>
       <div className="mt-4">
-        <div className="text-[13px] text-[var(--muted-foreground)]">{label}</div>
+        <div className="text-[13px] text-muted-foreground">{label}</div>
         <div className="text-[28px] font-bold tabular tracking-tight mt-0.5">{value}</div>
-        {sub && <div className="text-[12px] text-[var(--muted-foreground)] mt-0.5">{sub}</div>}
+        {sub && <div className="text-[12px] text-muted-foreground mt-0.5">{sub}</div>}
       </div>
     </Card>
   );
@@ -59,11 +58,11 @@ function BarChart() {
               <div className="w-3 rounded-t-sm bg-[oklch(0.78_0.1_155)]"  style={{ height: `${(d.s / max) * 100}%` }} />
               <div className="w-3 rounded-t-sm bg-[var(--primary)]"       style={{ height: `${(d.n / max) * 100}%` }} />
             </div>
-            <div className="text-[11px] text-[var(--muted-foreground)] tabular">{d.d} أبريل</div>
+            <div className="text-[11px] text-muted-foreground tabular">{d.d} أبريل</div>
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-5 mt-4 text-[12px] text-[var(--muted-foreground)]">
+      <div className="flex items-center gap-5 mt-4 text-[12px] text-muted-foreground">
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[var(--primary)]" />طلبات جديدة</span>
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[oklch(0.78_0.1_155)]" />تم الترشيح</span>
         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[oklch(0.85_0.08_230)]" />مرفوضة</span>
@@ -108,10 +107,10 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>توزيع الطلبات حسب الحالة</CardTitle>
-              <CardDesc>آخر 30 يوماً</CardDesc>
+              <CardDescription>آخر 30 يوماً</CardDescription>
             </div>
             <DSelect
               value="30"
@@ -124,19 +123,19 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
               className="w-32"
             />
           </CardHeader>
-          <CardBody>
+          <CardContent>
             <BarChart />
-          </CardBody>
+          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <div>
               <CardTitle>الأقسام الأكثر طلباً</CardTitle>
-              <CardDesc>حسب حجم الطلبات المفتوحة</CardDesc>
+              <CardDescription>حسب حجم الطلبات المفتوحة</CardDescription>
             </div>
           </CardHeader>
-          <CardBody className="space-y-3">
+          <CardContent className="space-y-3">
             {[
               { name: 'التطوير البرمجي', count: 486, pct: 38 },
               { name: 'التصميم',         count: 312, pct: 24 },
@@ -147,27 +146,27 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
               <div key={i}>
                 <div className="flex items-center justify-between text-[12.5px] mb-1">
                   <span>{d.name}</span>
-                  <span className="tabular text-[var(--muted-foreground)]">{d.count}</span>
+                  <span className="tabular text-muted-foreground">{d.count}</span>
                 </div>
-                <div className="h-2 bg-[var(--muted)] rounded-full overflow-hidden">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[var(--primary)] rounded-full"
+                    className="h-full bg-primary rounded-full"
                     style={{ width: `${d.pct * 2}%`, opacity: 0.7 + (i === 0 ? 0.3 : 0) }}
                   />
                 </div>
               </div>
             ))}
-          </CardBody>
+          </CardContent>
         </Card>
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon name="list" size={18} className="text-[var(--muted-foreground)]" />
+            <Icon name="list" size={18} className="text-muted-foreground" />
             <div>
               <CardTitle>أحدث طلبات التوظيف</CardTitle>
-              <CardDesc>أحدث 4 طلبات وردت إلى النظام</CardDesc>
+              <CardDescription>أحدث 4 طلبات وردت إلى النظام</CardDescription>
             </div>
           </div>
           <div className="w-[220px]">
@@ -175,51 +174,51 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
           </div>
         </CardHeader>
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[580px]">
-          <thead>
-            <tr>
-              <Th>المتقدم</Th>
-              <Th>الوظيفة</Th>
-              <Th>المرفقات</Th>
-              <Th>الحالة</Th>
-              <Th>الإجراءات</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {recent.map((a) => (
-              <tr key={a.id} className="row">
-                <Td>
-                  <div className="flex items-center gap-3">
-                    <Avatar name={a.name} tone={a.avatar as any} />
-                    <div>
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-[12px] text-[var(--muted-foreground)]">{a.email}</div>
-                    </div>
-                  </div>
-                </Td>
-                <Td>{a.job}</Td>
-                <Td>
-                  <div className="flex items-center gap-1.5">
-                    {a.attachments.map((at, i) => <AttachIcon key={i} type={at.type} />)}
-                  </div>
-                </Td>
-                <Td>
-                  <Badge tone={STATUS_META[a.status].tone as any}>{STATUS_META[a.status].label}</Badge>
-                </Td>
-                <Td>
-                  <div className="flex items-center gap-1">
-                    <Btn variant="ghost" size="iconSm" onClick={() => onOpenApp(a)}>
-                      <Icon name="eye" size={15} />
-                    </Btn>
-                    <Btn variant="ghost" size="iconSm">
-                      <Icon name="check" size={15} className="text-[oklch(0.5_0.13_155)]" />
-                    </Btn>
-                  </div>
-                </Td>
+          <table className="w-full min-w-[580px]">
+            <thead>
+              <tr>
+                <Th>المتقدم</Th>
+                <Th>الوظيفة</Th>
+                <Th>المرفقات</Th>
+                <Th>الحالة</Th>
+                <Th>الإجراءات</Th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recent.map((a) => (
+                <tr key={a.id} className="row">
+                  <Td>
+                    <div className="flex items-center gap-3">
+                      <UserAvatar name={a.name} tone={a.avatar as string} />
+                      <div>
+                        <div className="font-medium">{a.name}</div>
+                        <div className="text-[12px] text-muted-foreground">{a.email}</div>
+                      </div>
+                    </div>
+                  </Td>
+                  <Td>{a.job}</Td>
+                  <Td>
+                    <div className="flex items-center gap-1.5">
+                      {a.attachments.map((at, i) => <AttachIcon key={i} type={at.type} />)}
+                    </div>
+                  </Td>
+                  <Td>
+                    <Badge variant={STATUS_META[a.status].tone as any}>{STATUS_META[a.status].label}</Badge>
+                  </Td>
+                  <Td>
+                    <div className="flex items-center gap-1">
+                      <Btn variant="ghost" size="iconSm" onClick={() => onOpenApp(a)}>
+                        <Icon name="eye" size={15} />
+                      </Btn>
+                      <Btn variant="ghost" size="iconSm">
+                        <Icon name="check" size={15} className="text-[oklch(0.5_0.13_155)]" />
+                      </Btn>
+                    </div>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Card>
     </div>
