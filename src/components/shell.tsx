@@ -4,7 +4,7 @@ import { UserAvatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -43,8 +43,8 @@ export function BrandLogo({ size = 32 }: { size?: number }) {
         </svg>
       </div>
       <div className="leading-tight">
-        <div className="text-[15px] font-bold tracking-tight">ضم</div>
-        <div className="text-[11px] text-muted-foreground -mt-0.5">نظام التوظيف</div>
+        <div className="text-[16px] font-bold tracking-tight">ضم</div>
+        <div className="text-[13px] text-muted-foreground -mt-0.5">نظام التوظيف</div>
       </div>
     </div>
   );
@@ -250,10 +250,10 @@ export function Pagination({ page, pages, total, perPage, onPage }: PaginationPr
 
 /* ── Sidebar nav items ────────────────────────────────────────────── */
 const navItems = [
-  { key: 'dashboard',    label: 'الإحصائيات',      icon: 'chart' },
   { key: 'applications', label: 'طلبات التوظيف',   icon: 'users',     badge: 24 },
-  { key: 'incoming',     label: 'الطلبات الواردة', icon: 'briefcase' },
+  // { key: 'incoming',     label: 'الطلبات الواردة', icon: 'briefcase' },
   { key: 'jobs',         label: 'الوظائف المتاحة', icon: 'globe' },
+  { key: 'dashboard',    label: 'الإحصائيات',      icon: 'chart' },
   { key: 'settings',     label: 'الإعدادات',       icon: 'settings' },
 ];
 
@@ -275,7 +275,7 @@ export function AppSidebar({ page, setPage }: AppSidebarProps) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {navItems.map((n) => {
                 const active = page === n.key;
                 return (
@@ -283,7 +283,7 @@ export function AppSidebar({ page, setPage }: AppSidebarProps) {
                     <SidebarMenuButton
                       isActive={active}
                       onClick={() => navigate(n.key)}
-                      className="gap-3 text-[13.5px] h-10"
+                      className="gap-3 text-[16px] h-11"
                     >
                       <Icon
                         name={n.icon}
@@ -311,14 +311,14 @@ export function AppSidebar({ page, setPage }: AppSidebarProps) {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate('careers')} className="text-[13.5px]">
+            <SidebarMenuButton onClick={() => navigate('careers')} className="text-[15px] h-11">
               <Icon name="globe" size={17} />
               <span className="flex-1 text-start">صفحة الوظائف (للمستخدم)</span>
               <Icon name="chevLeft" size={14} />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => navigate('apply')} className="text-[13.5px]">
+            <SidebarMenuButton onClick={() => navigate('apply')} className="text-[15px] h-11">
               <Icon name="send" size={17} />
               <span className="flex-1 text-start">بوابة التقديم العامة</span>
               <Icon name="chevLeft" size={14} />

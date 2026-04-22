@@ -34,7 +34,7 @@ function ApplicantDialog({
 
   return (
     <Dialog open={!!applicant} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-lg" showCloseButton={false}>
+      <DialogContent className="sm:max-w-lg" showCloseButton={false} dir="rtl">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <UserAvatar name={applicant.name} tone={applicant.avatar as string} size={48} />
