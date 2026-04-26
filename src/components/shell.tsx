@@ -1,7 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Icon } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { useTheme } from '@/components/theme-provider';
+import { useApp } from '@/context/AppContext';
 
 type Page = string;
 
@@ -180,11 +182,18 @@ const navItems = [
 
 interface SidebarProps {
   page: Page;
-  setPage: (p: Page) => void;
+  onCloseMobile: () => void;
   isOpen?: boolean;
 }
 
-export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
+export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
+  const navigate = useNavigate();
+
+  const go = (path: string) => {
+    navigate(path);
+    onCloseMobile();
+  };
+
   return (
     <aside
       className={cn(
@@ -203,7 +212,7 @@ export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
           return (
             <button
               key={n.key}
-              onClick={() => setPage(n.key)}
+              onClick={() => go(`/${n.key}`)}
               className={cn(
                 'w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] transition-colors focus-ring',
                 active
@@ -233,7 +242,7 @@ export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
       </nav>
       <div className="p-3 border-t border-[var(--border)] space-y-1">
         <button
-          onClick={() => setPage('careers')}
+          onClick={() => go('/careers')}
           className="w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] text-[var(--muted-foreground)] hover:bg-[var(--accent)] focus-ring"
         >
           <Icon name="globe" size={17} />
@@ -241,7 +250,7 @@ export function Sidebar({ page, setPage, isOpen = false }: SidebarProps) {
           <Icon name="chevLeft" size={14} />
         </button>
         <button
-          onClick={() => setPage('apply')}
+          onClick={() => go('/apply')}
           className="w-full flex items-center gap-3 px-3 h-10 rounded-md text-[13.5px] text-[var(--muted-foreground)] hover:bg-[var(--accent)] focus-ring"
         >
           <Icon name="send" size={17} />
@@ -260,9 +269,15 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const { user, logout }    = useApp();
+  const navigate            = useNavigate();
+  const isDark              = theme === 'dark';
 
   const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
+  const handleLogout = async () => { await logout(); navigate('/login', { replace: true }); };
+
+  const initials = user?.name?.trim().slice(0, 1) ?? '؟';
+  const roleLabel = user?.role === 'super_admin' ? 'مشرف النظام' : 'مستخدم الشركة';
 
   return (
     <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] sticky top-0 z-20 px-4 sm:px-6 flex items-center gap-3">
@@ -300,13 +315,21 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <div className="h-6 w-px bg-[var(--border)] hidden sm:block" />
         <div className="hidden sm:flex items-center gap-3 pe-1">
           <div className="text-end leading-tight">
-            <div className="text-[13px] font-medium">أحمد المدير</div>
-            <div className="text-[11px] text-[var(--muted-foreground)]">مدير الموارد البشرية</div>
+            <div className="text-[13px] font-medium">{user?.name ?? '—'}</div>
+            <div className="text-[11px] text-[var(--muted-foreground)]">{roleLabel}</div>
           </div>
-          <Avatar name="أ" tone="slate" size={32} />
+          <button
+            onClick={handleLogout}
+            title="تسجيل الخروج"
+            className="focus-ring rounded-full"
+          >
+            <Avatar name={initials} tone="slate" size={32} />
+          </button>
         </div>
         <div className="sm:hidden">
-          <Avatar name="أ" tone="slate" size={32} />
+          <button onClick={handleLogout} title="تسجيل الخروج" className="focus-ring rounded-full">
+            <Avatar name={initials} tone="slate" size={32} />
+          </button>
         </div>
       </div>
     </header>

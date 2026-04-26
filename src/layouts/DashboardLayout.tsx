@@ -1,16 +1,11 @@
 import { useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar, Topbar } from '@/components/shell';
 
-type Page = string;
-
-interface DashboardLayoutProps {
-  page: Page;
-  setPage: (p: Page) => void;
-  children: React.ReactNode;
-}
-
-export function DashboardLayout({ page, setPage, children }: DashboardLayoutProps) {
+export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { pathname } = useLocation();
+  const page = pathname.replace(/^\//, '') || 'dashboard';
 
   return (
     <div className="flex min-h-screen" dir="rtl">
@@ -23,14 +18,14 @@ export function DashboardLayout({ page, setPage, children }: DashboardLayoutProp
 
       <Sidebar
         page={page}
-        setPage={(p) => { setPage(p); setSidebarOpen(false); }}
+        onCloseMobile={() => setSidebarOpen(false)}
         isOpen={sidebarOpen}
       />
 
       <main className="flex-1 min-w-0 flex flex-col">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         <div className="flex-1 p-4 sm:p-6 lg:p-8">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>

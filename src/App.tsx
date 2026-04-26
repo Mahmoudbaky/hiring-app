@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Icon } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Btn } from '@/components/shell';
 import { DDialog } from '@/components/ui/ddialog';
-import { ToastProvider } from '@/components/ui/toast';
 import { AttachIcon } from '@/components/shell';
 import { DashboardPage }    from '@/pages/DashboardPage';
 import { ApplicationsPage } from '@/pages/ApplicationsPage';
@@ -13,13 +12,22 @@ import { JobsPage }         from '@/pages/JobsPage';
 import { SettingsPage }     from '@/pages/SettingsPage';
 import { JobListingsPage, JobDetailPage } from '@/pages/CareersPage';
 import { ApplyPage }        from '@/pages/ApplyPage';
+import { LoginPage }        from '@/pages/LoginPage';
 import { DashboardLayout }  from '@/layouts/DashboardLayout';
-import { SEED_APPLICATIONS, SEED_JOBS, STATUS_META } from '@/data';
-import type { Application, Job } from '@/types';
+import { STATUS_META }      from '@/data';
+import { useApp }           from '@/context/AppContext';
+import type { Application } from '@/types';
 
-type Page =
-  | 'dashboard' | 'applications' | 'incoming' | 'jobs' | 'settings'
-  | 'careers' | 'career-detail' | 'apply';
+/* ── Full-screen loading spinner shown during session check ──────── */
+function AuthLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+      <svg viewBox="0 0 24 24" width="32" height="32" className="animate-spin text-[var(--primary)]">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray="40 60" />
+      </svg>
+    </div>
+  );
+}
 
 /* ── Applicant dialog ─────────────────────────────────────────────── */
 function ApplicantDialog({
@@ -106,98 +114,160 @@ function ApplicantDialog({
   );
 }
 
-/* ── Root app ─────────────────────────────────────────────────────── */
-export default function App() {
-  const [page, setPage]             = useState<Page>('dashboard');
-  const [applications, setApplications] = useState<Application[]>(SEED_APPLICATIONS);
-  const [jobs, setJobs]             = useState<Job[]>(SEED_JOBS);
-  const [viewing, setViewing]       = useState<Application | null>(null);
-  const [publicJobId, setPublicJobId] = useState<number | null>(null);
-  const [applyJobId, setApplyJobId]   = useState<number | null>(null);
+/* ── Protected layout (dashboard shell + dialog) ─────────────────── */
+function AdminLayout() {
+  const { loggedIn, authLoading, viewing, setViewing, setApplications } = useApp();
+  if (authLoading) return <AuthLoadingScreen />;
+  if (!loggedIn) return <Navigate to="/login" replace />;
 
-  /* ── Public pages (no admin shell) ─────────────────────────────── */
-  if (page === 'careers') {
-    return (
-      <ToastProvider>
-        <div className="relative">
-          <div className="fixed top-4 start-4 z-40">
-            <Btn variant="outline" size="sm" onClick={() => setPage('dashboard')}>
-              <Icon name="chevRight" size={13} /> لوحة التحكم
-            </Btn>
-          </div>
-          <JobListingsPage
-            jobs={jobs}
-            onOpenJob={(id) => { setPublicJobId(id); setPage('career-detail'); }}
-            onGoApply={(id) => { setApplyJobId(id); setPage('apply'); }}
-          />
-        </div>
-      </ToastProvider>
-    );
-  }
-
-  if (page === 'career-detail') {
-    const job = jobs.find((j) => j.id === publicJobId);
-    return (
-      <ToastProvider>
-        <div className="relative">
-          <div className="fixed top-4 start-4 z-40">
-            <Btn variant="outline" size="sm" onClick={() => setPage('dashboard')}>
-              <Icon name="chevRight" size={13} /> لوحة التحكم
-            </Btn>
-          </div>
-          <JobDetailPage
-            job={job}
-            onBack={() => setPage('careers')}
-            onApply={(id) => { setApplyJobId(id ?? publicJobId); setPage('apply'); }}
-          />
-        </div>
-      </ToastProvider>
-    );
-  }
-
-  if (page === 'apply') {
-    return (
-      <ToastProvider>
-        <div className="relative">
-          <div className="fixed top-4 start-4 z-40 flex gap-2">
-            <Btn variant="outline" size="sm" onClick={() => setPage('careers')}>
-              <Icon name="chevRight" size={13} /> الوظائف المتاحة
-            </Btn>
-            <Btn variant="ghost" size="sm" onClick={() => setPage('dashboard')}>لوحة التحكم</Btn>
-          </div>
-          <ApplyPage
-            jobs={jobs.filter((j) => j.published)}
-            preselectedJobId={applyJobId}
-            onSubmitted={(app) => {
-              const j = jobs.find((x) => x.id === app.jobId);
-              setApplications((prev) => [{
-                id: Date.now(), name: app.name, email: app.email,
-                location: '—', job: j?.title ?? '—', jobMeta: `خبرة ${app.years} سنة`,
-                date: 'الآن', rawDate: '2026-04-21', status: 'new',
-                attachments: app.cv ? [{ type: 'pdf' }] : [], avatar: 'sky',
-              } as Application, ...prev]);
-            }}
-          />
-        </div>
-      </ToastProvider>
-    );
-  }
-
-  /* ── Admin shell ────────────────────────────────────────────────── */
   return (
-    <ToastProvider>
-      <DashboardLayout page={page} setPage={(p) => setPage(p as Page)}>
-        {page === 'dashboard'    && <DashboardPage    applications={applications} onOpenApp={setViewing} />}
-        {page === 'applications' && <ApplicationsPage applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
-        {page === 'incoming'     && <IncomingPage     applications={applications} setApplications={setApplications} onOpenApp={setViewing} />}
-        {page === 'jobs'         && <JobsPage         jobs={jobs} setJobs={setJobs} />}
-        {page === 'settings'     && <SettingsPage />}
-      </DashboardLayout>
+    <>
+      <DashboardLayout />
       <ApplicantDialog
         applicant={viewing}
         onClose={() => setViewing(null)}
-        onUpdate={(id, s) => setApplications((prev) => prev.map((x) => (x.id === id ? { ...x, status: s } : x)))}
+        onUpdate={(id, s) =>
+          setApplications((prev) => prev.map((x) => (x.id === id ? { ...x, status: s } : x)))
+        }
       />
-    </ToastProvider>
+    </>
+  );
+}
+
+/* ── Route wrappers: pull from context, pass as props ─────────────── */
+function DashboardRoute() {
+  const { applications, setViewing } = useApp();
+  return <DashboardPage applications={applications} onOpenApp={setViewing} />;
+}
+
+function ApplicationsRoute() {
+  const { applications, setApplications, setViewing } = useApp();
+  return (
+    <ApplicationsPage
+      applications={applications}
+      setApplications={setApplications}
+      onOpenApp={setViewing}
+    />
+  );
+}
+
+function IncomingRoute() {
+  const { applications, setApplications, setViewing } = useApp();
+  return (
+    <IncomingPage
+      applications={applications}
+      setApplications={setApplications}
+      onOpenApp={setViewing}
+    />
+  );
+}
+
+function JobsRoute() {
+  const { jobs, setJobs } = useApp();
+  return <JobsPage jobs={jobs} setJobs={setJobs} />;
+}
+
+function CareersRoute() {
+  const { jobs } = useApp();
+  const navigate = useNavigate();
+  return (
+    <JobListingsPage
+      jobs={jobs}
+      onOpenJob={(id) => navigate(`/careers/${id}`)}
+      onGoApply={(id) => navigate(`/apply?jobId=${id}`)}
+    />
+  );
+}
+
+function CareerDetailRoute() {
+  const { jobs } = useApp();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const job = jobs.find((j) => j.id === Number(id));
+  return (
+    <JobDetailPage
+      job={job}
+      onBack={() => navigate('/careers')}
+      onApply={(jobId) => navigate(`/apply?jobId=${jobId ?? id}`)}
+    />
+  );
+}
+
+function ApplyRoute() {
+  const { jobs, setApplications } = useApp();
+  const [params] = useSearchParams();
+  const jobId = params.get('jobId') ? Number(params.get('jobId')) : null;
+  return (
+    <ApplyPage
+      jobs={jobs.filter((j) => j.published)}
+      preselectedJobId={jobId}
+      onSubmitted={(app) => {
+        const j = jobs.find((x) => x.id === app.jobId);
+        setApplications((prev) => [
+          {
+            id: Date.now(),
+            name: app.name,
+            email: app.email,
+            location: '—',
+            job: j?.title ?? '—',
+            jobMeta: `خبرة ${app.years} سنة`,
+            date: 'الآن',
+            rawDate: '2026-04-21',
+            status: 'new',
+            attachments: app.cv ? [{ type: 'pdf' }] : [],
+            avatar: 'sky',
+          } as Application,
+          ...prev,
+        ]);
+      }}
+    />
+  );
+}
+
+/* ── Public page wrapper (back-to-dashboard button) ──────────────── */
+function PublicShell({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  return (
+    <div className="relative" dir="rtl">
+      <div className="fixed top-4 start-4 z-40">
+        <Btn variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+          <Icon name="chevRight" size={13} /> لوحة التحكم
+        </Btn>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ── Root ─────────────────────────────────────────────────────────── */
+export default function App() {
+  const { loggedIn, authLoading } = useApp();
+
+  // While the session check is in-flight, block rendering to avoid flicker
+  if (authLoading) return <AuthLoadingScreen />;
+
+  return (
+    <Routes>
+      {/* Redirect already-logged-in users away from /login */}
+      <Route path="/login" element={loggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+
+      {/* Protected admin routes */}
+      <Route element={<AdminLayout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard"    element={<DashboardRoute />} />
+        <Route path="/applications" element={<ApplicationsRoute />} />
+        <Route path="/incoming"     element={<IncomingRoute />} />
+        <Route path="/jobs"         element={<JobsRoute />} />
+        <Route path="/settings"     element={<SettingsPage />} />
+      </Route>
+
+      {/* Public routes */}
+      <Route path="/careers" element={<PublicShell><CareersRoute /></PublicShell>} />
+      <Route path="/careers/:id" element={<PublicShell><CareerDetailRoute /></PublicShell>} />
+      <Route path="/apply" element={<PublicShell><ApplyRoute /></PublicShell>} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to={loggedIn ? '/dashboard' : '/login'} replace />} />
+    </Routes>
   );
 }
