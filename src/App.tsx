@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { Icon } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { ApplicationsPage } from '@/pages/ApplicationsPage';
 import { IncomingPage }     from '@/pages/IncomingPage';
 import { JobsPage }         from '@/pages/JobsPage';
 import { SettingsPage }     from '@/pages/SettingsPage';
-import { JobListingsPage, JobDetailPage } from '@/pages/CareersPage';
+import { CareersPage, JobDetailPage } from '@/pages/CareersPage';
 import { ApplyPage }        from '@/pages/ApplyPage';
 import { LoginPage }        from '@/pages/LoginPage';
 import { DashboardLayout }  from '@/layouts/DashboardLayout';
@@ -167,77 +167,6 @@ function JobsRoute() {
   return <JobsPage jobs={jobs} setJobs={setJobs} />;
 }
 
-function CareersRoute() {
-  const { jobs } = useApp();
-  const navigate = useNavigate();
-  return (
-    <JobListingsPage
-      jobs={jobs}
-      onOpenJob={(id) => navigate(`/careers/${id}`)}
-      onGoApply={(id) => navigate(`/apply?jobId=${id}`)}
-    />
-  );
-}
-
-function CareerDetailRoute() {
-  const { jobs } = useApp();
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const job = jobs.find((j) => j.id === Number(id));
-  return (
-    <JobDetailPage
-      job={job}
-      onBack={() => navigate('/careers')}
-      onApply={(jobId) => navigate(`/apply?jobId=${jobId ?? id}`)}
-    />
-  );
-}
-
-function ApplyRoute() {
-  const { jobs, setApplications } = useApp();
-  const [params] = useSearchParams();
-  const jobId = params.get('jobId') ? Number(params.get('jobId')) : null;
-  return (
-    <ApplyPage
-      jobs={jobs.filter((j) => j.published)}
-      preselectedJobId={jobId}
-      onSubmitted={(app) => {
-        const j = jobs.find((x) => x.id === app.jobId);
-        setApplications((prev) => [
-          {
-            id: Date.now(),
-            name: app.name,
-            email: app.email,
-            location: '—',
-            job: j?.title ?? '—',
-            jobMeta: `خبرة ${app.years} سنة`,
-            date: 'الآن',
-            rawDate: '2026-04-21',
-            status: 'new',
-            attachments: app.cv ? [{ type: 'pdf' }] : [],
-            avatar: 'sky',
-          } as Application,
-          ...prev,
-        ]);
-      }}
-    />
-  );
-}
-
-/* ── Public page wrapper (back-to-dashboard button) ──────────────── */
-function PublicShell({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  return (
-    <div className="relative" dir="rtl">
-      <div className="fixed top-4 start-4 z-40">
-        <Btn variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
-          <Icon name="chevRight" size={13} /> لوحة التحكم
-        </Btn>
-      </div>
-      {children}
-    </div>
-  );
-}
 
 /* ── Root ─────────────────────────────────────────────────────────── */
 export default function App() {
@@ -261,10 +190,10 @@ export default function App() {
         <Route path="/settings"     element={<SettingsPage />} />
       </Route>
 
-      {/* Public routes */}
-      <Route path="/careers" element={<PublicShell><CareersRoute /></PublicShell>} />
-      <Route path="/careers/:id" element={<PublicShell><CareerDetailRoute /></PublicShell>} />
-      <Route path="/apply" element={<PublicShell><ApplyRoute /></PublicShell>} />
+      {/* Public routes — pages are self-contained */}
+      <Route path="/careers"     element={<CareersPage />} />
+      <Route path="/careers/:id" element={<JobDetailPage />} />
+      <Route path="/apply"       element={<ApplyPage />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to={loggedIn ? '/dashboard' : '/login'} replace />} />
