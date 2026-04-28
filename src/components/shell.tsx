@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { Avatar } from "@/components/ui/avatar"
 import { useTheme } from "@/components/theme-provider"
 import { useApp } from "@/context/AppContext"
+import { REQUESTS_QUERY_KEY } from "@/hooks/useRequests"
+import { requestsService } from "@/services/requests.service"
 
 type Page = string
 
@@ -249,8 +252,8 @@ export function DLabel({
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 const navItems = [
-  { key: "applications", label: "طلبات التوظيف", icon: "users", badge: 24 },
-  { key: "incoming", label: "الطلبات الواردة", icon: "briefcase" },
+  // { key: "applications", label: "طلبات التوظيف", icon: "users", badge: 24 },
+  { key: "incoming", label: "طلبات التوظيف", icon: "briefcase" },
   { key: "jobs", label: "الوظائف المتاحة", icon: "globe" },
   { key: "dashboard", label: "الإحصائيات", icon: "chart" },
   { key: "settings", label: "الإعدادات", icon: "settings" },
@@ -264,10 +267,20 @@ interface SidebarProps {
 
 export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const go = (path: string) => {
     navigate(path)
     onCloseMobile()
+  }
+
+  const prefetchMap: Record<string, () => void> = {
+    incoming: () =>
+      queryClient.prefetchQuery({
+        queryKey: REQUESTS_QUERY_KEY,
+        queryFn: requestsService.list,
+        staleTime: 30_000,
+      }),
   }
 
   return (
@@ -289,6 +302,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
             <button
               key={n.key}
               onClick={() => go(`/${n.key}`)}
+              onMouseEnter={() => prefetchMap[n.key]?.()}
               className={cn(
                 "focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13.5px] transition-colors",
                 active
@@ -306,7 +320,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
                 }
               />
               <span className="flex-1 text-start">{n.label}</span>
-              {n.badge && (
+              {/* {n.badge && (
                 <span
                   className={cn(
                     "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px]",
@@ -317,7 +331,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
                 >
                   {n.badge}
                 </span>
-              )}
+              )} */}
             </button>
           )
         })}

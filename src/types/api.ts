@@ -30,6 +30,54 @@ export interface SubmitApplicationBody {
   }[];
 }
 
+export type RequestStatus =
+  | "new"
+  | "review"
+  | "shortlisted"
+  | "interview"
+  | "rejected"
+  | "hired";
+
+/** Full job request returned by GET /requests */
+export interface JobRequest {
+  id: string;
+  status: RequestStatus;
+  submissionType: "self" | "manual";
+  cvUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  applicant: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    gender: "male" | "female" | null;
+    currentJobLocation: string | null;
+  };
+  jobAd: {
+    id: string;
+    adTitle: string;
+  };
+  company: {
+    id: string;
+    companyName: string;
+  };
+}
+
+/** Full request detail returned by GET /requests/:id (includes qualifications) */
+export interface JobRequestDetail extends Omit<JobRequest, "applicant"> {
+  applicant: JobRequest["applicant"] & {
+    dateOfBirth: string | null;
+  };
+  qualifications: {
+    id: string;
+    yearObtained: number | null;
+    instituteName: string | null;
+    typeName: string | null;
+  }[];
+}
+
 /** Qualification type option from /settings/qualification-types/public */
 export interface QualificationType {
   id: string;
