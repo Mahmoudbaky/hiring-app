@@ -11,7 +11,11 @@ import {
 } from "@tanstack/react-table"
 import * as XLSX from "xlsx"
 import { useApp } from "@/context/AppContext"
-import { useRequests, useRequestDetail, useUpdateRequestStatus } from "@/hooks/useRequests"
+import {
+  useRequests,
+  useRequestDetail,
+  useUpdateRequestStatus,
+} from "@/hooks/useRequests"
 import { useOpenCv } from "@/hooks/useOpenCv"
 import { useToast } from "@/components/ui/toast"
 import { Icon } from "@/components/icons"
@@ -21,19 +25,29 @@ import { Card } from "@/components/ui/card"
 import { DDialog } from "@/components/ui/ddialog"
 import { Btn, Th, Td, PageHeader } from "@/components/shell"
 import { cn } from "@/lib/utils"
-import type { JobRequest, JobRequestDetail, RequestStatus } from "@/types/api"
+import type { JobRequest, RequestStatus } from "@/types/api"
 
 /* ── Status metadata ─────────────────────────────────────────────── */
 const STATUS_META: Record<
   RequestStatus,
-  { label: string; tone: "sky" | "amber" | "emerald" | "violet" | "rose" | "success" | "neutral" }
+  {
+    label: string
+    tone:
+      | "sky"
+      | "amber"
+      | "emerald"
+      | "violet"
+      | "rose"
+      | "success"
+      | "neutral"
+  }
 > = {
-  new:         { label: "جديد",         tone: "sky" },
-  review:      { label: "قيد المراجعة", tone: "amber" },
-  shortlisted: { label: "تم الترشيح",   tone: "emerald" },
-  interview:   { label: "موعد مقابلة",  tone: "violet" },
-  rejected:    { label: "مرفوض",        tone: "rose" },
-  hired:       { label: "تم التعيين",   tone: "success" },
+  new: { label: "جديد", tone: "sky" },
+  review: { label: "قيد المراجعة", tone: "amber" },
+  shortlisted: { label: "تم الترشيح", tone: "emerald" },
+  interview: { label: "موعد مقابلة", tone: "violet" },
+  rejected: { label: "مرفوض", tone: "rose" },
+  hired: { label: "تم التعيين", tone: "success" },
 }
 
 /* ── Indeterminate checkbox ──────────────────────────────────────── */
@@ -91,10 +105,16 @@ function FilterSelect({
 }
 
 /* ── Small layout helpers for the dialog ────────────────────────── */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <div className="px-6 py-4">
-      <h3 className="mb-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3 className="mb-3 text-[11.5px] font-semibold tracking-wide text-muted-foreground uppercase">
         {title}
       </h3>
       {children}
@@ -102,10 +122,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function InfoItem({ icon, label, value }: { icon: string; label: string; value: string }) {
+function InfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: string
+  label: string
+  value: string
+}) {
   return (
     <div className="flex items-start gap-2">
-      <Icon name={icon} size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <Icon
+        name={icon}
+        size={14}
+        className="mt-0.5 shrink-0 text-muted-foreground"
+      />
       <div>
         <div className="text-[11px] text-muted-foreground">{label}</div>
         <div className="text-[13px] font-medium">{value || "—"}</div>
@@ -154,7 +186,9 @@ function RequestDetailDialog({
               <Avatar name={data.applicant.name} size={46} />
               <div>
                 <h2 className="text-[16px] font-bold">{data.applicant.name}</h2>
-                <p className="text-[12.5px] text-muted-foreground">{data.applicant.email}</p>
+                <p className="text-[12.5px] text-muted-foreground">
+                  {data.applicant.email}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -175,7 +209,11 @@ function RequestDetailDialog({
             {/* Personal info */}
             <Section title="البيانات الشخصية">
               <div className="grid grid-cols-2 gap-4">
-                <InfoItem icon="phone" label="الجوال" value={data.applicant.phone} />
+                <InfoItem
+                  icon="phone"
+                  label="الجوال"
+                  value={data.applicant.phone}
+                />
                 <InfoItem
                   icon="user"
                   label="الجنس"
@@ -203,8 +241,16 @@ function RequestDetailDialog({
             {/* Application info */}
             <Section title="تفاصيل الطلب">
               <div className="grid grid-cols-2 gap-4">
-                <InfoItem icon="briefcase" label="الوظيفة" value={data.jobAd.adTitle} />
-                <InfoItem icon="users" label="الشركة" value={data.company.companyName} />
+                <InfoItem
+                  icon="briefcase"
+                  label="الوظيفة"
+                  value={data.jobAd.adTitle}
+                />
+                <InfoItem
+                  icon="users"
+                  label="الشركة"
+                  value={data.company.companyName}
+                />
                 <InfoItem
                   icon="send"
                   label="نوع التقديم"
@@ -218,7 +264,9 @@ function RequestDetailDialog({
               </div>
               {data.notes && (
                 <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
-                  <p className="mb-1 text-[11px] text-muted-foreground">ملاحظات</p>
+                  <p className="mb-1 text-[11px] text-muted-foreground">
+                    ملاحظات
+                  </p>
                   <p className="text-[13px]">{data.notes}</p>
                 </div>
               )}
@@ -233,7 +281,11 @@ function RequestDetailDialog({
                 >
                   <Icon name="pdf" size={15} />
                   <span>فتح السيرة الذاتية</span>
-                  <Icon name="chevLeft" size={13} className="text-muted-foreground" />
+                  <Icon
+                    name="chevLeft"
+                    size={13}
+                    className="text-muted-foreground"
+                  />
                 </button>
               </Section>
             )}
@@ -241,7 +293,9 @@ function RequestDetailDialog({
             {/* Qualifications */}
             <Section title="المؤهلات الأكاديمية">
               {data.qualifications.length === 0 ? (
-                <p className="text-[13px] text-muted-foreground">لا توجد مؤهلات مسجلة</p>
+                <p className="text-[13px] text-muted-foreground">
+                  لا توجد مؤهلات مسجلة
+                </p>
               ) : (
                 <div className="space-y-2">
                   {data.qualifications.map((q) => (
@@ -257,7 +311,9 @@ function RequestDetailDialog({
                           {q.typeName ?? "مؤهل أكاديمي"}
                         </div>
                         <div className="text-[12px] text-muted-foreground">
-                          {[q.yearObtained, q.instituteName].filter(Boolean).join(" · ") || "—"}
+                          {[q.yearObtained, q.instituteName]
+                            .filter(Boolean)
+                            .join(" · ") || "—"}
                         </div>
                       </div>
                     </div>
@@ -284,31 +340,33 @@ export function IncomingPage() {
   const toast = useToast()
   const { mutate: changeStatus } = useUpdateRequestStatus(
     () => toast({ title: "تم تغيير الحالة بنجاح", tone: "success" }),
-    () => toast({ title: "فشل تغيير الحالة", tone: "error" }),
+    () => toast({ title: "فشل تغيير الحالة", tone: "error" })
   )
 
-  const [selectedId, setSelectedId]           = useState<string | null>(null)
-  const [globalFilter, setGlobalFilter]       = useState("")
-  const [jobFilter, setJobFilter]             = useState("all")
-  const [companyFilter, setCompanyFilter]     = useState("all")
-  const [rowSelection, setRowSelection]       = useState<RowSelectionState>({})
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [jobFilter, setJobFilter] = useState("all")
+  const [companyFilter, setCompanyFilter] = useState("all")
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const { openCv } = useOpenCv()
 
   /* Dropdown options derived from raw data */
   const uniqueJobTitles = useMemo(
     () => [...new Set(requests.map((r) => r.jobAd.adTitle))].sort(),
-    [requests],
+    [requests]
   )
   const uniqueCompanies = useMemo(
     () => [...new Set(requests.map((r) => r.company.companyName))].sort(),
-    [requests],
+    [requests]
   )
 
   /* Pre-filter by dropdowns before handing to TanStack Table */
   const preFiltered = useMemo(() => {
     let data = requests
-    if (jobFilter !== "all")     data = data.filter((r) => r.jobAd.adTitle === jobFilter)
-    if (companyFilter !== "all") data = data.filter((r) => r.company.companyName === companyFilter)
+    if (jobFilter !== "all")
+      data = data.filter((r) => r.jobAd.adTitle === jobFilter)
+    if (companyFilter !== "all")
+      data = data.filter((r) => r.company.companyName === companyFilter)
     return data
   }, [requests, jobFilter, companyFilter])
 
@@ -342,7 +400,9 @@ export function IncomingPage() {
             <div className="flex items-center gap-3">
               <Avatar name={applicant.name} size={34} />
               <div>
-                <div className="text-[13.5px] font-medium">{applicant.name}</div>
+                <div className="text-[13.5px] font-medium">
+                  {applicant.name}
+                </div>
                 <div className="text-[11.5px] text-muted-foreground">
                   {applicant.email}
                 </div>
@@ -417,7 +477,12 @@ export function IncomingPage() {
                   <Icon name="link" size={14} />
                 </Btn>
               ) : (
-                <Btn variant="ghost" size="iconSm" disabled title="لا توجد سيرة ذاتية">
+                <Btn
+                  variant="ghost"
+                  size="iconSm"
+                  disabled
+                  title="لا توجد سيرة ذاتية"
+                >
                   <Icon name="link" size={14} className="opacity-30" />
                 </Btn>
               )}
@@ -428,15 +493,18 @@ export function IncomingPage() {
                 onChange={(e) =>
                   changeStatus({ id, status: e.target.value as RequestStatus })
                 }
-                className="h-8 rounded-md border border-input bg-card px-2 text-[12px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                className="h-8 rounded-md border border-input bg-card px-2 text-[12px] text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
               >
-                {(Object.entries(STATUS_META) as [RequestStatus, { label: string }][]).map(
-                  ([key, { label }]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ),
-                )}
+                {(
+                  Object.entries(STATUS_META) as [
+                    RequestStatus,
+                    { label: string },
+                  ][]
+                ).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
               </select>
 
               {/* View details */}
@@ -453,7 +521,7 @@ export function IncomingPage() {
         },
       }),
     ],
-    [isSuperAdmin, changeStatus, setSelectedId, openCv],
+    [isSuperAdmin, changeStatus, setSelectedId, openCv]
   )
 
   /* TanStack Table instance */
@@ -492,7 +560,12 @@ export function IncomingPage() {
         الاسم: r.applicant.name,
         "البريد الإلكتروني": r.applicant.email,
         الجوال: r.applicant.phone,
-        الجنس: r.applicant.gender === "male" ? "ذكر" : r.applicant.gender === "female" ? "أنثى" : "",
+        الجنس:
+          r.applicant.gender === "male"
+            ? "ذكر"
+            : r.applicant.gender === "female"
+              ? "أنثى"
+              : "",
         الوظيفة: r.jobAd.adTitle,
         الشركة: r.company.companyName,
         الحالة: STATUS_META[r.status].label,
@@ -539,14 +612,17 @@ export function IncomingPage() {
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="بحث بالاسم أو البريد أو الجوال…"
-              className="h-9 w-full rounded-md border border-[var(--input)] bg-card pe-9 ps-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className="h-9 w-full rounded-md border border-[var(--input)] bg-card ps-3 pe-9 text-[13px] text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
 
           {/* Job filter */}
           <FilterSelect
             value={jobFilter}
-            onChange={(v) => { setJobFilter(v); table.setPageIndex(0) }}
+            onChange={(v) => {
+              setJobFilter(v)
+              table.setPageIndex(0)
+            }}
             options={uniqueJobTitles}
             placeholder="كل الوظائف"
           />
@@ -555,7 +631,10 @@ export function IncomingPage() {
           {isSuperAdmin && (
             <FilterSelect
               value={companyFilter}
-              onChange={(v) => { setCompanyFilter(v); table.setPageIndex(0) }}
+              onChange={(v) => {
+                setCompanyFilter(v)
+                table.setPageIndex(0)
+              }}
               options={uniqueCompanies}
               placeholder="كل الشركات"
             />
@@ -639,12 +718,15 @@ export function IncomingPage() {
                     className={cn(
                       "row",
                       row.getIsSelected() &&
-                        "bg-[oklch(0.97_0.03_30)] dark:bg-[oklch(0.25_0.03_30)]",
+                        "bg-[oklch(0.97_0.03_30)] dark:bg-[oklch(0.25_0.03_30)]"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <Td key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </Td>
                     ))}
                   </tr>
@@ -700,7 +782,7 @@ export function IncomingPage() {
                     "tabular focus-ring h-8 min-w-8 rounded-md border px-2 text-[13px]",
                     pageIndex === i
                       ? "page-active"
-                      : "border-border bg-card hover:bg-accent",
+                      : "border-border bg-card hover:bg-accent"
                   )}
                 >
                   {i + 1}

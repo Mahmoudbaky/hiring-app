@@ -152,14 +152,7 @@ function ApplicationsRoute() {
 }
 
 function IncomingRoute() {
-  const { applications, setApplications, setViewing } = useApp();
-  return (
-    <IncomingPage
-      applications={applications}
-      setApplications={setApplications}
-      onOpenApp={setViewing}
-    />
-  );
+  return <IncomingPage />;
 }
 
 function JobsRoute() {
