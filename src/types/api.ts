@@ -30,6 +30,12 @@ export interface SubmitApplicationBody {
   }[];
 }
 
+/** Qualification type option from /settings/qualification-types/public */
+export interface QualificationType {
+  id: string;
+  name: string;
+}
+
 /** Wrapped response envelope from backend utils/response.ts */
 export interface ApiResponse<T> {
   success: boolean;

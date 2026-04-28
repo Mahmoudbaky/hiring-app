@@ -26,6 +26,15 @@ export function usePublishedJob(id: string | undefined) {
   });
 }
 
+/** Fetch active qualification types — used by the public apply form */
+export function useQualificationTypes() {
+  return useQuery({
+    queryKey: ['careers', 'qualificationTypes'] as const,
+    queryFn: careersService.getQualificationTypes,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 /** POST /requests — self-apply */
 export function useSubmitApplication() {
   return useMutation({

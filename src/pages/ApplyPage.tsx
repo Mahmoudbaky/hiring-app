@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,7 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { usePublishedJobs, useSubmitApplication } from "@/hooks/useCareers"
+import { usePublishedJobs, useQualificationTypes, useSubmitApplication } from "@/hooks/useCareers"
+import { CvUpload } from "@/components/cv-upload"
 
 /* ── Zod schema ───────────────────────────────────────────────────── */
 const schema = z.object({
@@ -29,11 +30,7 @@ const schema = z.object({
     dateOfBirth: z.string().optional(),
     currentJobLocation: z.string().optional(),
   }),
-  cvUrl: z
-    .string()
-    .url("رابط السيرة الذاتية غير صالح")
-    .optional()
-    .or(z.literal("")),
+  cvUrl: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -75,12 +72,40 @@ export function ApplyPage() {
   const preselectedJobId = params.get("jobId") ?? ""
 
   const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
+  const { data: qualTypes = [] } = useQualificationTypes()
   const {
     mutate: submit,
     isPending,
     isSuccess,
     error: submitError,
   } = useSubmitApplication()
+
+  // qualDetails keys = checked typeIds; values = the expandable sub-fields
+  const [qualDetails, setQualDetails] = useState<
+    Record<string, { yearObtained: string; instituteName: string }>
+  >({})
+
+  const toggleQual = (id: string) => {
+    setQualDetails((prev) => {
+      if (id in prev) {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      }
+      return { ...prev, [id]: { yearObtained: "", instituteName: "" } }
+    })
+  }
+
+  const setQualField = (
+    id: string,
+    key: "yearObtained" | "instituteName",
+    value: string,
+  ) => {
+    setQualDetails((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [key]: value },
+    }))
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -110,7 +135,11 @@ export function ApplyPage() {
       hiringCompanyCode: values.hiringCompanyCode,
       cvUrl: values.cvUrl || undefined,
       applicant: values.applicant,
-      qualifications: [],
+      qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
+        qualificationTypeId: typeId,
+        yearObtained: det.yearObtained ? parseInt(det.yearObtained, 10) : undefined,
+        instituteName: det.instituteName || undefined,
+      })),
     })
   }
 
@@ -218,17 +247,31 @@ export function ApplyPage() {
                       <FormItem>
                         <FormLabel required>الوظيفة المطلوبة</FormLabel>
                         <FormControl>
-                          <NativeSelect
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder={
-                              jobsLoading ? "جاري التحميل…" : "اختر وظيفة"
-                            }
-                            options={jobs.map((j) => ({
-                              value: j.id,
-                              label: j.adTitle,
-                            }))}
-                          />
+                          {preselectedJobId ? (
+                            <div className="flex h-10 items-center gap-2 rounded-md border border-input bg-muted px-3 text-[13.5px]">
+                              <Icon
+                                name="briefcase"
+                                size={14}
+                                className="shrink-0 text-muted-foreground"
+                              />
+                              <span className="truncate text-foreground">
+                                {jobs.find((j) => j.id === preselectedJobId)
+                                  ?.adTitle ?? "جاري التحميل…"}
+                              </span>
+                            </div>
+                          ) : (
+                            <NativeSelect
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder={
+                                jobsLoading ? "جاري التحميل…" : "اختر وظيفة"
+                              }
+                              options={jobs.map((j) => ({
+                                value: j.id,
+                                label: j.adTitle,
+                              }))}
+                            />
+                          )}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -368,7 +411,7 @@ export function ApplyPage() {
                 </div>
               </div>
 
-              {/* ── CV URL ───────────────────────────────────────────── */}
+              {/* ── CV Upload ────────────────────────────────────────── */}
               <div className="space-y-4">
                 <h3 className="text-[14px] font-semibold tracking-wide text-[var(--muted-foreground)] uppercase">
                   السيرة الذاتية
@@ -378,12 +421,11 @@ export function ApplyPage() {
                   name="cvUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>رابط السيرة الذاتية</FormLabel>
+                      <FormLabel>ملف السيرة الذاتية</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="link" size={14} />}
-                          placeholder="https://drive.google.com/…"
-                          {...field}
+                        <CvUpload
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -391,6 +433,91 @@ export function ApplyPage() {
                   )}
                 />
               </div>
+
+              {/* ── Qualifications ───────────────────────────────────── */}
+              {qualTypes.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-[14px] font-semibold tracking-wide text-muted-foreground uppercase">
+                    المؤهل الدراسي - الأكاديمي
+                  </h3>
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    {qualTypes.map((qt, idx) => {
+                      const checked = qt.id in qualDetails
+                      const det = qualDetails[qt.id]
+                      return (
+                        <div
+                          key={qt.id}
+                          className={idx > 0 ? "border-t border-border" : ""}
+                        >
+                          {/* ── Checkbox row ── */}
+                          <button
+                            type="button"
+                            onClick={() => toggleQual(qt.id)}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-right transition-colors hover:bg-muted"
+                          >
+                            <div
+                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                                checked
+                                  ? "border-primary bg-primary"
+                                  : "border-muted-foreground"
+                              }`}
+                            >
+                              {checked && (
+                                <svg
+                                  viewBox="0 0 10 8"
+                                  width="10"
+                                  height="8"
+                                  fill="none"
+                                  stroke="white"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M1 4l3 3 5-6" />
+                                </svg>
+                              )}
+                            </div>
+                            <span className="text-[13.5px] text-foreground">
+                              {qt.name}
+                            </span>
+                          </button>
+
+                          {/* ── Expandable inputs ── */}
+                          {checked && (
+                            <div className="grid grid-cols-1 gap-4 border-t border-border bg-(--muted)/40 px-4 py-4 sm:grid-cols-2">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[12.5px] font-medium text-foreground">
+                                  سنة الحصول
+                                </label>
+                                <DInput
+                                  type="number"
+                                  placeholder="مثال: 2020"
+                                  value={det.yearObtained}
+                                  onChange={(e) =>
+                                    setQualField(qt.id, "yearObtained", e.target.value)
+                                  }
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[12.5px] font-medium text-foreground">
+                                  اسم المؤسسة التعليمية
+                                </label>
+                                <DInput
+                                  placeholder="مثال: جامعة الملك سعود"
+                                  value={det.instituteName}
+                                  onChange={(e) =>
+                                    setQualField(qt.id, "instituteName", e.target.value)
+                                  }
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* ── Server error ─────────────────────────────────────── */}
               {submitError && (
