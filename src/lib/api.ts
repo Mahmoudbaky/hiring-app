@@ -1,14 +1,12 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api",
   withCredentials: true, // send session cookies on every request
   headers: {
     "Content-Type": "application/json",
   },
 })
-
-console.log("API base URL:", api)
 
 /* ── Response interceptor ────────────────────────────────────────────
    Unwrap the { success, message, data } envelope so callers just get
