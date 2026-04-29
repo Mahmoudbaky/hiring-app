@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useApp } from "@/context/AppContext"
 import { PageHeader, Btn, DInput, DLabel, Th, Td } from "@/components/shell"
 import { DSelect } from "@/components/ui/dselect"
 import { DDialog } from "@/components/ui/ddialog"
@@ -248,21 +249,32 @@ function CompaniesTab() {
 
 /* ── Users Tab ─────────────────────────────────────────────────────── */
 function UsersTab() {
+  const { user: me } = useApp()
+  const isSuperAdmin = me?.role === "super_admin"
+
   const { data: users = [], isLoading } = useUsers()
   const { data: companies = [] } = useCompanies()
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({
+
+  const emptyForm = {
     name: "",
     email: "",
     password: "",
-    hiringCompanyId: "",
-  })
+    hiringCompanyId: isSuperAdmin ? "" : (me?.hiringCompanyId ?? ""),
+  }
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState("")
   const { mutate: create, isPending } = useCreateUser(() => {
     setOpen(false)
-    setForm({ name: "", email: "", password: "", hiringCompanyId: "" })
+    setForm(emptyForm)
     setError("")
   })
+
+  function openDialog() {
+    setForm(emptyForm)
+    setError("")
+    setOpen(true)
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -290,22 +302,26 @@ function UsersTab() {
     value: c.id,
     label: c.companyName,
   }))
+
+  const resolveCompanyName = (hiringCompanyId: string | null) => {
+    if (!hiringCompanyId) return "—"
+    const found = companies.find((c) => c.id === hiringCompanyId)
+    if (found) return found.companyName
+    // for company_user the companies list is empty — use own company name
+    if (hiringCompanyId === me?.hiringCompanyId) return me?.companyName ?? "—"
+    return "—"
+  }
+
   const roleLabel = (role: string) =>
     role === "super_admin" ? "مشرف عام" : "مستخدم شركة"
 
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-[13.5px] text-[var(--muted-foreground)]">
+        <p className="text-[13.5px] text-muted-foreground">
           إدارة مستخدمي النظام وربطهم بالشركات
         </p>
-        <Btn
-          size="sm"
-          onClick={() => {
-            setError("")
-            setOpen(true)
-          }}
-        >
+        <Btn size="sm" onClick={openDialog}>
           <Icon name="userPlus" size={14} />
           إنشاء مستخدم
         </Btn>
@@ -341,27 +357,20 @@ function UsersTab() {
                 </Td>
               </tr>
             ) : (
-              users.map((u) => {
-                const company = companies.find(
-                  (c) => c.id === u.hiringCompanyId
-                )
-                return (
-                  <tr key={u.id}>
-                    <Td className="font-medium">{u.name}</Td>
-                    <Td className="text-[var(--muted-foreground)]">
-                      {u.email}
-                    </Td>
-                    <Td>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${u.role === "super_admin" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"}`}
-                      >
-                        {roleLabel(u.role)}
-                      </span>
-                    </Td>
-                    <Td>{company?.companyName ?? "—"}</Td>
-                  </tr>
-                )
-              })
+              users.map((u) => (
+                <tr key={u.id}>
+                  <Td className="font-medium">{u.name}</Td>
+                  <Td className="text-muted-foreground">{u.email}</Td>
+                  <Td>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${u.role === "super_admin" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"}`}
+                    >
+                      {roleLabel(u.role)}
+                    </span>
+                  </Td>
+                  <Td>{resolveCompanyName(u.hiringCompanyId)}</Td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -410,14 +419,22 @@ function UsersTab() {
             </div>
             <div className="space-y-1.5">
               <DLabel>الشركة</DLabel>
-              <DSelect
-                value={form.hiringCompanyId}
-                onChange={(v) =>
-                  setForm((f) => ({ ...f, hiringCompanyId: String(v) }))
-                }
-                options={companyOptions}
-                placeholder="اختر شركة (اختياري)"
-              />
+              {isSuperAdmin ? (
+                <DSelect
+                  value={form.hiringCompanyId}
+                  onChange={(v) =>
+                    setForm((f) => ({ ...f, hiringCompanyId: String(v) }))
+                  }
+                  options={companyOptions}
+                  placeholder="اختر شركة (اختياري)"
+                />
+              ) : (
+                <DInput
+                  value={me?.companyName ?? ""}
+                  disabled
+                  className="opacity-60"
+                />
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-2 border-t border-[var(--border)] p-4">
@@ -725,6 +742,9 @@ function QualificationTypesTab() {
 
 /* ── Main Page ─────────────────────────────────────────────────────── */
 export function SettingsPage() {
+  const { user } = useApp()
+  const isSuperAdmin = user?.role === "super_admin"
+
   return (
     <div>
       <PageHeader
@@ -733,15 +753,17 @@ export function SettingsPage() {
         desc="إدارة الشركات والمستخدمين وبيانات النظام"
       />
 
-      <Tabs defaultValue="companies" dir="rtl">
+      <Tabs defaultValue={isSuperAdmin ? "companies" : "users"} dir="rtl">
         <TabsList className="mb-6 h-auto w-full justify-start gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1.5">
-          <TabsTrigger
-            value="companies"
-            className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
-          >
-            <Icon name="briefcase" size={14} />
-            الشركات
-          </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger
+              value="companies"
+              className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
+            >
+              <Icon name="briefcase" size={14} />
+              الشركات
+            </TabsTrigger>
+          )}
           <TabsTrigger
             value="users"
             className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
@@ -749,35 +771,45 @@ export function SettingsPage() {
             <Icon name="users" size={14} />
             المستخدمون
           </TabsTrigger>
-          <TabsTrigger
-            value="job-titles"
-            className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
-          >
-            <Icon name="list" size={14} />
-            المسميات الوظيفية
-          </TabsTrigger>
-          <TabsTrigger
-            value="qual-types"
-            className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
-          >
-            <Icon name="bold" size={14} />
-            أنواع المؤهلات
-          </TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger
+              value="job-titles"
+              className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
+            >
+              <Icon name="list" size={14} />
+              المسميات الوظيفية
+            </TabsTrigger>
+          )}
+          {isSuperAdmin && (
+            <TabsTrigger
+              value="qual-types"
+              className="gap-1.5 rounded-lg px-4 py-2 text-[13.5px]"
+            >
+              <Icon name="bold" size={14} />
+              أنواع المؤهلات
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <div className="card-shadow rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-          <TabsContent value="companies">
-            <CompaniesTab />
-          </TabsContent>
+          {isSuperAdmin && (
+            <TabsContent value="companies">
+              <CompaniesTab />
+            </TabsContent>
+          )}
           <TabsContent value="users">
             <UsersTab />
           </TabsContent>
-          <TabsContent value="job-titles">
-            <JobTitlesTab />
-          </TabsContent>
-          <TabsContent value="qual-types">
-            <QualificationTypesTab />
-          </TabsContent>
+          {isSuperAdmin && (
+            <TabsContent value="job-titles">
+              <JobTitlesTab />
+            </TabsContent>
+          )}
+          {isSuperAdmin && (
+            <TabsContent value="qual-types">
+              <QualificationTypesTab />
+            </TabsContent>
+          )}
         </div>
       </Tabs>
     </div>

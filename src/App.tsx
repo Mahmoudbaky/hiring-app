@@ -6,7 +6,7 @@ import { Btn } from "@/components/shell"
 import { DDialog } from "@/components/ui/ddialog"
 import { AttachIcon } from "@/components/shell"
 import { DashboardPage } from "@/pages/DashboardPage"
-import { ApplicationsPage } from "@/pages/ApplicationsPage"
+// import { ApplicationsPage } from "@/pages/ApplicationsPage"
 import { IncomingPage } from "@/pages/IncomingPage"
 import { JobsPage } from "@/pages/JobsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -172,6 +172,13 @@ function ApplicantDialog({
   )
 }
 
+/* ── Super-admin-only route guard ─────────────────────────────────── */
+function SuperAdminOnly() {
+  const { user } = useApp()
+  if (user?.role !== "super_admin") return <Navigate to="/dashboard" replace />
+  return null
+}
+
 /* ── Protected layout (dashboard shell + dialog) ─────────────────── */
 function AdminLayout() {
   const { loggedIn, authLoading, viewing, setViewing, setApplications } =
@@ -201,16 +208,16 @@ function DashboardRoute() {
   return <DashboardPage applications={applications} onOpenApp={setViewing} />
 }
 
-function ApplicationsRoute() {
-  const { applications, setApplications, setViewing } = useApp()
-  return (
-    <ApplicationsPage
-      applications={applications}
-      setApplications={setApplications}
-      onOpenApp={setViewing}
-    />
-  )
-}
+// function ApplicationsRoute() {
+//   const { applications, setApplications, setViewing } = useApp()
+//   return (
+//     <ApplicationsPage
+//       applications={applications}
+//       setApplications={setApplications}
+//       onOpenApp={setViewing}
+//     />
+//   )
+// }
 
 function IncomingRoute() {
   return <IncomingPage />
@@ -232,18 +239,31 @@ export default function App() {
       {/* Redirect already-logged-in users away from /login */}
       <Route
         path="/login"
-        element={
-          loggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage />
-        }
+        element={loggedIn ? <Navigate to="/incoming" replace /> : <LoginPage />}
       />
 
       {/* Protected admin routes */}
       <Route element={<AdminLayout />}>
         <Route index element={<Navigate to="/incoming" replace />} />
-        <Route path="/dashboard" element={<DashboardRoute />} />
-        <Route path="/applications" element={<ApplicationsRoute />} />
+        <Route
+          path="/dashboard"
+          element={
+            <>
+              <SuperAdminOnly />
+              <DashboardRoute />
+            </>
+          }
+        />
         <Route path="/incoming" element={<IncomingRoute />} />
-        <Route path="/jobs" element={<JobsRoute />} />
+        <Route
+          path="/jobs"
+          element={
+            <>
+              <SuperAdminOnly />
+              <JobsRoute />
+            </>
+          }
+        />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 

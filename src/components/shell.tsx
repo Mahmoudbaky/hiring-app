@@ -257,12 +257,12 @@ export function DLabel({
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
-const navItems = [
+const allNavItems = [
   // { key: "applications", label: "طلبات التوظيف", icon: "users", badge: 24 },
-  { key: "incoming", label: "طلبات التوظيف", icon: "briefcase" },
-  { key: "jobs", label: "الوظائف المتاحة", icon: "globe" },
-  { key: "dashboard", label: "الإحصائيات", icon: "chart" },
-  { key: "settings", label: "الإعدادات", icon: "settings" },
+  { key: "incoming", label: "طلبات التوظيف", icon: "briefcase", superAdminOnly: false },
+  { key: "jobs", label: "الوظائف المتاحة", icon: "globe", superAdminOnly: true },
+  { key: "dashboard", label: "الإحصائيات", icon: "chart", superAdminOnly: true },
+  { key: "settings", label: "الإعدادات", icon: "settings", superAdminOnly: false },
 ]
 
 interface SidebarProps {
@@ -303,7 +303,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
         <BrandLogo companyName={user?.companyName} />
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {navItems.map((n) => {
+        {allNavItems.filter((n) => !n.superAdminOnly || user?.role === "super_admin").map((n) => {
           const active = page === n.key
           return (
             <button
