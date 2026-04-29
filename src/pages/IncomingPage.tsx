@@ -1,4 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import {
   useReactTable,
   getCoreRowModel,
@@ -15,7 +18,9 @@ import {
   useRequests,
   useRequestDetail,
   useUpdateRequestStatus,
+  useSubmitManualApplication,
 } from "@/hooks/useRequests"
+import { usePublishedJobs, useQualificationTypes } from "@/hooks/useCareers"
 import { useOpenCv } from "@/hooks/useOpenCv"
 import { useToast } from "@/components/ui/toast"
 import { Icon } from "@/components/icons"
@@ -23,7 +28,16 @@ import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { DDialog } from "@/components/ui/ddialog"
-import { Btn, Th, Td, PageHeader } from "@/components/shell"
+import { Btn, Th, Td, PageHeader, DInput } from "@/components/shell"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { CvUpload } from "@/components/cv-upload"
 import { cn } from "@/lib/utils"
 import type { JobRequest, RequestStatus } from "@/types/api"
 
@@ -328,6 +342,386 @@ function RequestDetailDialog({
   )
 }
 
+/* ── Manual apply schema ─────────────────────────────────────────── */
+const manualSchema = z.object({
+  jobAdId: z.string().min(1, "الرجاء اختيار وظيفة"),
+  applicant: z.object({
+    name: z.string().min(1, "الاسم مطلوب"),
+    email: z.string().email("بريد إلكتروني غير صالح"),
+    phone: z.string().min(1, "رقم الهاتف مطلوب"),
+    gender: z.enum(["male", "female"]).optional(),
+    dateOfBirth: z.string().optional(),
+    currentJobLocation: z.string().optional(),
+  }),
+  cvUrl: z.string().optional(),
+})
+type ManualFormValues = z.infer<typeof manualSchema>
+
+function NativeSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+  placeholder?: string
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="focus-ring h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] text-foreground"
+    >
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+/* ── Manual apply dialog ─────────────────────────────────────────── */
+function ManualApplyDialog({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const toast = useToast()
+  const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
+  const { data: qualTypes = [] } = useQualificationTypes()
+  const { mutate: submit, isPending, error: submitError } = useSubmitManualApplication(
+    () => {
+      toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
+      onClose()
+    },
+    () => toast({ title: "فشل إضافة الطلب", tone: "error" })
+  )
+
+  const [qualDetails, setQualDetails] = useState<
+    Record<string, { yearObtained: string; instituteName: string }>
+  >({})
+
+  const form = useForm<ManualFormValues>({
+    resolver: zodResolver(manualSchema),
+    defaultValues: {
+      jobAdId: "",
+      cvUrl: "",
+      applicant: {
+        name: "",
+        email: "",
+        phone: "",
+        gender: undefined,
+        dateOfBirth: "",
+        currentJobLocation: "",
+      },
+    },
+  })
+
+  useEffect(() => {
+    if (!open) {
+      form.reset()
+      setQualDetails({})
+    }
+  }, [open, form])
+
+  const toggleQual = (id: string) => {
+    setQualDetails((prev) => {
+      if (id in prev) {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      }
+      return { ...prev, [id]: { yearObtained: "", instituteName: "" } }
+    })
+  }
+
+  const setQualField = (
+    id: string,
+    key: "yearObtained" | "instituteName",
+    value: string
+  ) => {
+    setQualDetails((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }))
+  }
+
+  const onSubmit = (values: ManualFormValues) => {
+    submit({
+      jobAdId: values.jobAdId,
+      cvUrl: values.cvUrl || undefined,
+      applicant: values.applicant,
+      qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
+        qualificationTypeId: typeId,
+        yearObtained: det.yearObtained ? parseInt(det.yearObtained, 10) : undefined,
+        instituteName: det.instituteName || undefined,
+      })),
+    })
+  }
+
+  return (
+    <DDialog open={open} onClose={onClose} size="lg">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="tone-sky flex h-9 w-9 items-center justify-center rounded-lg">
+            <Icon name="userPlus" size={16} />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-bold">إضافة طلب يدوي</h2>
+            <p className="text-[12px] text-muted-foreground">
+              تقديم طلب توظيف نيابةً عن المتقدم
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
+        >
+          <Icon name="x" size={16} />
+        </button>
+      </div>
+
+      {/* Scrollable form */}
+      <div className="max-h-[75vh] overflow-y-auto">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-5">
+            {/* Job selection */}
+            <div className="space-y-3">
+              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                الوظيفة
+              </h3>
+              <FormField
+                control={form.control}
+                name="jobAdId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel required>الوظيفة المطلوبة</FormLabel>
+                    <FormControl>
+                      <NativeSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder={jobsLoading ? "جاري التحميل…" : "اختر وظيفة"}
+                        options={jobs.map((j) => ({ value: j.id, label: j.adTitle }))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Personal info */}
+            <div className="space-y-3">
+              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                المعلومات الشخصية
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="applicant.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>الاسم الكامل</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="user" size={14} />} placeholder="الاسم الثلاثي" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>البريد الإلكتروني</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@domain.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>رقم الهاتف</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="phone" size={14} />} placeholder="05xxxxxxxx" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الجنس</FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(v || undefined)}
+                          placeholder="اختر (اختياري)"
+                          options={[
+                            { value: "male", label: "ذكر" },
+                            { value: "female", label: "أنثى" },
+                          ]}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.dateOfBirth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>تاريخ الميلاد</FormLabel>
+                      <FormControl>
+                        <DInput type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.currentJobLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>مكان العمل الحالي</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="globe" size={14} />} placeholder="مثال: الرياض" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* CV upload */}
+            <div className="space-y-3">
+              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                السيرة الذاتية
+              </h3>
+              <FormField
+                control={form.control}
+                name="cvUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ملف السيرة الذاتية</FormLabel>
+                    <FormControl>
+                      <CvUpload value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Qualifications */}
+            {qualTypes.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                  المؤهل الأكاديمي
+                </h3>
+                <div className="overflow-hidden rounded-lg border border-border">
+                  {qualTypes.map((qt, idx) => {
+                    const checked = qt.id in qualDetails
+                    const det = qualDetails[qt.id]
+                    return (
+                      <div key={qt.id} className={idx > 0 ? "border-t border-border" : ""}>
+                        <button
+                          type="button"
+                          onClick={() => toggleQual(qt.id)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-right transition-colors hover:bg-muted"
+                        >
+                          <div
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                              checked ? "border-primary bg-primary" : "border-muted-foreground"
+                            }`}
+                          >
+                            {checked && (
+                              <svg viewBox="0 0 10 8" width="10" height="8" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M1 4l3 3 5-6" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="text-[13.5px] text-foreground">{qt.name}</span>
+                        </button>
+                        {checked && (
+                          <div className="grid grid-cols-1 gap-4 border-t border-border bg-muted/40 px-4 py-4 sm:grid-cols-2">
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[12.5px] font-medium text-foreground">سنة الحصول</label>
+                              <DInput
+                                type="number"
+                                placeholder="مثال: 2020"
+                                value={det.yearObtained}
+                                onChange={(e) => setQualField(qt.id, "yearObtained", e.target.value)}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[12.5px] font-medium text-foreground">اسم المؤسسة التعليمية</label>
+                              <DInput
+                                placeholder="مثال: جامعة الملك سعود"
+                                value={det.instituteName}
+                                onChange={(e) => setQualField(qt.id, "instituteName", e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Server error */}
+            {submitError && (
+              <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
+                <Icon name="info" size={13} />
+                {submitError instanceof Error ? submitError.message : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 border-t border-border pt-2">
+              <Btn variant="outline" type="button" onClick={onClose}>
+                إلغاء
+              </Btn>
+              <Btn type="submit" disabled={isPending}>
+                {isPending ? (
+                  <>
+                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
+                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
+                    </svg>
+                    جاري الإرسال…
+                  </>
+                ) : (
+                  <>
+                    <Icon name="send" size={14} /> إضافة الطلب
+                  </>
+                )}
+              </Btn>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </DDialog>
+  )
+}
+
 /* ── Column helper ───────────────────────────────────────────────── */
 const col = createColumnHelper<JobRequest>()
 
@@ -344,6 +738,7 @@ export function IncomingPage() {
   )
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [manualApplyOpen, setManualApplyOpen] = useState(false)
   const [globalFilter, setGlobalFilter] = useState("")
   const [jobFilter, setJobFilter] = useState("all")
   const [companyFilter, setCompanyFilter] = useState("all")
@@ -593,7 +988,7 @@ export function IncomingPage() {
         title="إدارة طلبات التوظيف"
         desc="راجع وصنّف طلبات المتقدمين للوظائف الشاغرة"
         actions={
-          <Btn>
+          <Btn onClick={() => setManualApplyOpen(true)}>
             <Icon name="plus" size={14} /> إضافة طلب يدوي
           </Btn>
         }
@@ -807,6 +1202,11 @@ export function IncomingPage() {
       <RequestDetailDialog
         id={selectedId}
         onClose={() => setSelectedId(null)}
+      />
+
+      <ManualApplyDialog
+        open={manualApplyOpen}
+        onClose={() => setManualApplyOpen(false)}
       />
     </div>
   )

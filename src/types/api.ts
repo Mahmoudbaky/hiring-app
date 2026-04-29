@@ -130,6 +130,25 @@ export interface HiringCompany {
   updatedAt: string;
 }
 
+/** Body for POST /requests/manual (authenticated company_user) */
+export interface ManualApplicationBody {
+  jobAdId: string;
+  cvUrl?: string;
+  applicant: {
+    name: string;
+    email: string;
+    phone: string;
+    gender?: 'male' | 'female';
+    dateOfBirth?: string;
+    currentJobLocation?: string;
+  };
+  qualifications: {
+    qualificationTypeId?: string;
+    yearObtained?: number;
+    instituteName?: string;
+  }[];
+}
+
 /** Body for POST /companies */
 export interface CreateCompanyBody {
   companyName: string;

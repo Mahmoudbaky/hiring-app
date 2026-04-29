@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { requestsService } from "@/services/requests.service";
-import type { RequestStatus } from "@/types/api";
+import type { RequestStatus, ManualApplicationBody } from "@/types/api";
 
 export const REQUESTS_QUERY_KEY = ["requests"] as const;
 
@@ -28,6 +28,18 @@ export function useUpdateRequestStatus(onSuccess?: () => void, onError?: () => v
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: RequestStatus }) =>
       requestsService.updateStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_QUERY_KEY });
+      onSuccess?.();
+    },
+    onError,
+  });
+}
+
+export function useSubmitManualApplication(onSuccess?: () => void, onError?: () => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: ManualApplicationBody) => requestsService.submitManual(body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: REQUESTS_QUERY_KEY });
       onSuccess?.();

@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { ApiResponse, JobRequest, JobRequestDetail, RequestStatus } from "@/types/api";
+import type { ApiResponse, JobRequest, JobRequestDetail, RequestStatus, ManualApplicationBody } from "@/types/api";
 
 export const requestsService = {
   async list(): Promise<JobRequest[]> {
@@ -14,5 +14,9 @@ export const requestsService = {
 
   async updateStatus(id: string, status: RequestStatus): Promise<void> {
     await api.patch(`/requests/${id}/status`, { status });
+  },
+
+  async submitManual(body: ManualApplicationBody): Promise<void> {
+    await api.post("/requests/manual", body);
   },
 };

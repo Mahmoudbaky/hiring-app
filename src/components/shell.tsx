@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
@@ -375,12 +376,25 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useApp()
   const navigate = useNavigate()
   const isDark = theme === "dark"
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const toggleTheme = () => setTheme(isDark ? "light" : "dark")
   const handleLogout = async () => {
+    setMenuOpen(false)
     await logout()
     navigate("/login", { replace: true })
   }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const initials = user?.name?.trim().slice(0, 1) ?? "؟"
   const roleLabel =
@@ -423,29 +437,39 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           </div>
         </Btn>
         <div className="hidden h-6 w-px bg-[var(--border)] sm:block" />
-        <div className="hidden items-center gap-3 pe-1 sm:flex">
-          <div className="text-end leading-tight">
-            <div className="text-[13px] font-medium">{user?.name ?? "—"}</div>
-            <div className="text-[11px] text-[var(--muted-foreground)]">
-              {roleLabel}
+
+        {/* User dropdown */}
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="focus-ring flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent"
+          >
+            <div className="hidden text-end leading-tight sm:block">
+              <div className="text-[13px] font-medium">{user?.name ?? "—"}</div>
+              <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
             </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            title="تسجيل الخروج"
-            className="focus-ring rounded-full"
-          >
             <Avatar name={initials} tone="slate" size={32} />
           </button>
-        </div>
-        <div className="sm:hidden">
-          <button
-            onClick={handleLogout}
-            title="تسجيل الخروج"
-            className="focus-ring rounded-full"
-          >
-            <Avatar name={initials} tone="slate" size={32} />
-          </button>
+
+          {menuOpen && (
+            <div className="absolute inset-e-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+              {/* Header */}
+              <div className="border-b border-border px-4 py-3">
+                <div className="text-[13px] font-semibold">{user?.name ?? "—"}</div>
+                <div className="text-[11.5px] text-muted-foreground">{user?.email ?? ""}</div>
+              </div>
+              {/* Actions */}
+              <div className="p-1.5">
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-destructive transition-colors hover:bg-accent"
+                >
+                  <Icon name="x" size={15} />
+                  تسجيل الخروج
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
