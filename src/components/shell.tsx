@@ -11,7 +11,13 @@ import { requestsService } from "@/services/requests.service"
 type Page = string
 
 /* ── Brand logo ───────────────────────────────────────────────────── */
-export function BrandLogo({ size = 38, companyName }: { size?: number; companyName?: string | null }) {
+export function BrandLogo({
+  size = 38,
+  companyName,
+}: {
+  size?: number
+  companyName?: string | null
+}) {
   return (
     <div className="flex items-center gap-2.5">
       <div style={{ width: size, height: size }}>
@@ -39,7 +45,7 @@ export function BrandLogo({ size = 38, companyName }: { size?: number; companyNa
         </svg>
       </div>
       <div className="leading-tight">
-        <div className="text-[17px] font-bold tracking-tight text-[var(--foreground)]">
+        <div className="text-[16px] font-bold tracking-tight text-[var(--foreground)]">
           {companyName ?? "ضم"}
         </div>
         <div className="-mt-0.5 text-[11.5px] text-muted-foreground">
