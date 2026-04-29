@@ -1,5 +1,6 @@
 import { useRef, useState } from "react"
-import axios from "axios"
+import type { AxiosProgressEvent } from "axios"
+import api from "@/lib/api"
 import {
   Upload,
   X,
@@ -33,12 +34,12 @@ export function CvUpload({ onChange }: CvUploadProps) {
     formData.append("file", file)
 
     try {
-      const res = await axios.post<{ success: boolean; data: { url: string } }>(
-        "/api/upload/cv",
+      const res = await api.post<{ success: boolean; data: { url: string } }>(
+        "upload/cv",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (e) => {
+          onUploadProgress: (e: AxiosProgressEvent) => {
             if (e.total) {
               const pct = Math.round((e.loaded / e.total) * 100)
               setState((prev) =>
