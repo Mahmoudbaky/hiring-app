@@ -25,9 +25,7 @@ import { useState } from 'react';
 const schema = z.object({
   adTitle: z.string().min(1, 'عنوان الوظيفة مطلوب'),
   jobTitleId: z.string().optional(),
-  adType: z.enum(['remote', 'on_site', 'hybrid'], {
-    required_error: 'نوع العمل مطلوب',
-  }),
+  adType: z.enum(['remote', 'on_site', 'hybrid']),
   salaryFrom: z.string().optional(),
   salaryTo: z.string().optional(),
   description: z.string().optional(),
