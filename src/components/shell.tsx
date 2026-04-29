@@ -11,9 +11,9 @@ import { requestsService } from "@/services/requests.service"
 type Page = string
 
 /* ── Brand logo ───────────────────────────────────────────────────── */
-export function BrandLogo({ size = 32 }: { size?: number }) {
+export function BrandLogo({ size = 38, companyName }: { size?: number; companyName?: string | null }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <div style={{ width: size, height: size }}>
         <svg viewBox="0 0 40 40" width={size} height={size}>
           <defs>
@@ -39,10 +39,10 @@ export function BrandLogo({ size = 32 }: { size?: number }) {
         </svg>
       </div>
       <div className="leading-tight">
-        <div className="text-[15px] font-bold tracking-tight text-[var(--foreground)]">
-          ضم
+        <div className="text-[17px] font-bold tracking-tight text-[var(--foreground)]">
+          {companyName ?? "ضم"}
         </div>
-        <div className="-mt-0.5 text-[11px] text-[var(--muted-foreground)]">
+        <div className="-mt-0.5 text-[11.5px] text-muted-foreground">
           نظام التوظيف
         </div>
       </div>
@@ -268,6 +268,7 @@ interface SidebarProps {
 export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useApp()
 
   const go = (path: string) => {
     navigate(path)
@@ -293,7 +294,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
       )}
     >
       <div className="border-b border-[var(--border)] p-5">
-        <BrandLogo />
+        <BrandLogo companyName={user?.companyName} />
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map((n) => {
@@ -336,7 +337,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
           )
         })}
       </nav>
-      <div className="space-y-1 border-t border-[var(--border)] p-3">
+      {/* <div className="space-y-1 border-t border-[var(--border)] p-3">
         <button
           onClick={() => go("/careers")}
           className="focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13.5px] text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
@@ -353,7 +354,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
           <span className="flex-1 text-start">بوابة التقديم العامة</span>
           <Icon name="chevLeft" size={14} />
         </button>
-      </div>
+      </div> */}
     </aside>
   )
 }

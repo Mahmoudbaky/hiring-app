@@ -78,10 +78,11 @@ export interface JobRequestDetail extends Omit<JobRequest, "applicant"> {
   }[];
 }
 
-/** Qualification type option from /settings/qualification-types/public */
+/** Qualification type option from /settings/qualification-types */
 export interface QualificationType {
   id: string;
   name: string;
+  isActive: boolean;
 }
 
 /** Wrapped response envelope from backend utils/response.ts */
@@ -112,6 +113,58 @@ export interface JobTitle {
   id: string;
   title: string;
   isActive: boolean;
+}
+
+/** Hiring company from GET /companies */
+export interface HiringCompany {
+  id: string;
+  companyName: string;
+  uniqueCode: string;
+  phoneNumber: string | null;
+  address: string | null;
+  managerName: string | null;
+  companyRecord: string | null;
+  isAdminCompany: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Body for POST /companies */
+export interface CreateCompanyBody {
+  companyName: string;
+  uniqueCode: string;
+  phoneNumber?: string;
+  address?: string;
+  managerName?: string;
+}
+
+/** User from GET /users */
+export interface CompanyUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'super_admin' | 'company_user';
+  hiringCompanyId: string | null;
+  createdAt: string;
+}
+
+/** Body for POST /users */
+export interface CreateUserBody {
+  name: string;
+  email: string;
+  password: string;
+  hiringCompanyId?: string;
+}
+
+/** Body for POST /settings/job-titles */
+export interface CreateJobTitleBody {
+  title: string;
+}
+
+/** Body for POST /settings/qualification-types */
+export interface CreateQualificationTypeBody {
+  name: string;
 }
 
 /** Body for POST /jobs (super_admin only) */

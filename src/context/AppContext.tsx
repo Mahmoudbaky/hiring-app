@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   role: 'super_admin' | 'company_user';
   hiringCompanyId: string | null;
+  companyName: string | null;
 }
 
 interface AppCtx {
@@ -25,14 +26,25 @@ interface AppCtx {
 
 const Ctx = createContext<AppCtx | null>(null);
 
-function toAuthUser(u: Record<string, unknown>): AuthUser {
+function toAuthUser(u: Record<string, unknown>, companyName: string | null = null): AuthUser {
   return {
     id: u.id as string,
     name: u.name as string,
     email: u.email as string,
     role: (u.role as AuthUser['role']) ?? 'company_user',
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
+    companyName,
   };
+}
+
+async function fetchCompanyName(companyId: string | null): Promise<string | null> {
+  if (!companyId) return null;
+  try {
+    const res = await api.get('/companies/mine');
+    return (res.data?.data?.companyName as string) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -44,8 +56,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Restore session from cookie on first load
   useEffect(() => {
     api.get('/auth/get-session')
-      .then((res) => {
-        if (res.data?.user) setUser(toAuthUser(res.data.user));
+      .then(async (res) => {
+        if (res.data?.user) {
+          const u = res.data.user;
+          const companyName = await fetchCompanyName(u.hiringCompanyId ?? null);
+          setUser(toAuthUser(u, companyName));
+        }
       })
       .catch(() => { /* no session — stay logged out */ })
       .finally(() => setAuthLoading(false));
@@ -53,7 +69,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, rememberMe = false) => {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
-    setUser(toAuthUser(res.data.user));
+    const u = res.data.user;
+    const companyName = await fetchCompanyName(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, companyName));
   };
 
   const logout = async () => {
