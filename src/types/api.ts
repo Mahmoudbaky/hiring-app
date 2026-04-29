@@ -130,9 +130,10 @@ export interface HiringCompany {
   updatedAt: string;
 }
 
-/** Body for POST /requests/manual (authenticated company_user) */
+/** Body for POST /requests/manual (authenticated company_user or super_admin) */
 export interface ManualApplicationBody {
   jobAdId: string;
+  companyId?: string;
   cvUrl?: string;
   applicant: {
     name: string;

@@ -21,6 +21,7 @@ import {
   useSubmitManualApplication,
 } from "@/hooks/useRequests"
 import { usePublishedJobs, useQualificationTypes } from "@/hooks/useCareers"
+import { useCompanies } from "@/hooks/useSettings"
 import { useOpenCv } from "@/hooks/useOpenCv"
 import { useToast } from "@/components/ui/toast"
 import { Icon } from "@/components/icons"
@@ -393,8 +394,11 @@ function ManualApplyDialog({
   onClose: () => void
 }) {
   const toast = useToast()
+  const { user } = useApp()
+  const isSuperAdmin = user?.role === "super_admin"
   const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
   const { data: qualTypes = [] } = useQualificationTypes()
+  const { data: companies = [] } = useCompanies()
   const { mutate: submit, isPending, error: submitError } = useSubmitManualApplication(
     () => {
       toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
@@ -403,6 +407,7 @@ function ManualApplyDialog({
     () => toast({ title: "فشل إضافة الطلب", tone: "error" })
   )
 
+  const [selectedCompanyId, setSelectedCompanyId] = useState("")
   const [qualDetails, setQualDetails] = useState<
     Record<string, { yearObtained: string; instituteName: string }>
   >({})
@@ -427,6 +432,7 @@ function ManualApplyDialog({
     if (!open) {
       form.reset()
       setQualDetails({})
+      setSelectedCompanyId("")
     }
   }, [open, form])
 
@@ -450,8 +456,13 @@ function ManualApplyDialog({
   }
 
   const onSubmit = (values: ManualFormValues) => {
+    if (isSuperAdmin && !selectedCompanyId) {
+      toast({ title: "الرجاء اختيار الشركة", tone: "error" })
+      return
+    }
     submit({
       jobAdId: values.jobAdId,
+      companyId: isSuperAdmin ? selectedCompanyId : undefined,
       cvUrl: values.cvUrl || undefined,
       applicant: values.applicant,
       qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
@@ -489,6 +500,26 @@ function ManualApplyDialog({
       <div className="max-h-[75vh] overflow-y-auto">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-5">
+            {/* Company selection — super_admin only */}
+            {isSuperAdmin && (
+              <div className="space-y-3">
+                <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                  الشركة
+                </h3>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
+                    الشركة
+                  </label>
+                  <NativeSelect
+                    value={selectedCompanyId}
+                    onChange={setSelectedCompanyId}
+                    placeholder="اختر الشركة"
+                    options={companies.map((c) => ({ value: c.id, label: c.companyName }))}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Job selection */}
             <div className="space-y-3">
               <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">

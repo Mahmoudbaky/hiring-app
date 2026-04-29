@@ -107,7 +107,7 @@ export function LoginPage() {
       </div>
 
       {/* ── Right form panel ─────────────────────────────────────── */}
-      <div className="flex flex-col bg-white">
+      <div className="flex flex-col bg-background">
         {/* <div className="flex items-center justify-between p-6">
           <div className="text-[12.5px] text-[var(--muted-foreground)]">
             ليس لديك حساب؟
@@ -130,7 +130,7 @@ export function LoginPage() {
             <div className="mt-6 mb-5 grid grid-cols-2 gap-2">
               <button
                 type="button"
-                className="flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-white text-[13px] transition-colors hover:bg-[var(--accent)]"
+                className="flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background text-[13px] transition-colors hover:bg-accent"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14">
                   <path
@@ -154,9 +154,9 @@ export function LoginPage() {
               </button>
               <button
                 type="button"
-                className="flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-white text-[13px] transition-colors hover:bg-[var(--accent)]"
+                className="flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background text-[13px] transition-colors hover:bg-accent"
               >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="#000">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                   <path d="M16.4 1.5c0 1.2-.5 2.3-1.3 3.1-.9.9-2 1.4-3.2 1.4-.1-1.2.5-2.4 1.3-3.2.9-.9 2.1-1.4 3.2-1.3zM21 17.3c-.5 1.2-.8 1.8-1.5 2.9-.9 1.5-2.2 3.4-3.8 3.4-1.4 0-1.8-.9-3.8-.9s-2.4.9-3.8.9c-1.6 0-2.8-1.7-3.7-3.2-2.7-4.1-2.9-9-1.3-11.6 1.2-1.9 3-3 4.8-3 1.8 0 2.9 1 4.4 1 1.4 0 2.3-1 4.4-1 1.6 0 3.3.9 4.5 2.4-3.9 2.2-3.3 7.9-.2 9.1z" />
                 </svg>
                 Apple
@@ -218,8 +218,8 @@ export function LoginPage() {
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border transition-colors",
                     remember
-                      ? "border-[var(--primary)] bg-[var(--primary)]"
-                      : "border-[var(--border)] bg-white"
+                      ? "border-primary bg-primary"
+                      : "border-border bg-background"
                   )}
                 >
                   {remember && (
