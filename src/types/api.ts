@@ -91,3 +91,37 @@ export interface ApiResponse<T> {
   data: T;
   timestamp: string;
 }
+
+/** Authenticated job ad returned by GET /jobs */
+export interface JobAd {
+  id: string;
+  adTitle: string;
+  adType: 'remote' | 'on_site' | 'hybrid';
+  salaryFrom: number | null;
+  salaryTo: number | null;
+  description: string | null;
+  isPublished: boolean;
+  deadline: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Job title option from GET /settings/job-titles */
+export interface JobTitle {
+  id: string;
+  title: string;
+  isActive: boolean;
+}
+
+/** Body for POST /jobs (super_admin only) */
+export interface CreateJobBody {
+  adTitle: string;
+  jobTitleId?: string | null;
+  adType: 'remote' | 'on_site' | 'hybrid';
+  salaryFrom?: number;
+  salaryTo?: number;
+  description?: string;
+  isPublished: boolean;
+  deadline?: string | null;
+}

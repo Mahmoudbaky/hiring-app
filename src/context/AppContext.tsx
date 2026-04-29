@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import api from '@/lib/api';
-import { SEED_APPLICATIONS, SEED_JOBS } from '@/data';
-import type { Application, Job } from '@/types';
+import { SEED_APPLICATIONS } from '@/data';
+import type { Application } from '@/types';
 
 export interface AuthUser {
   id: string;
@@ -19,8 +19,6 @@ interface AppCtx {
   logout: () => Promise<void>;
   applications: Application[];
   setApplications: React.Dispatch<React.SetStateAction<Application[]>>;
-  jobs: Job[];
-  setJobs: React.Dispatch<React.SetStateAction<Job[]>>;
   viewing: Application | null;
   setViewing: React.Dispatch<React.SetStateAction<Application | null>>;
 }
@@ -41,7 +39,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser]                 = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading]   = useState(true);
   const [applications, setApplications] = useState<Application[]>(SEED_APPLICATIONS);
-  const [jobs, setJobs]                 = useState<Job[]>(SEED_JOBS);
   const [viewing, setViewing]           = useState<Application | null>(null);
 
   // Restore session from cookie on first load
@@ -72,7 +69,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       applications, setApplications,
-      jobs, setJobs,
       viewing, setViewing,
     }}>
       {children}

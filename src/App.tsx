@@ -156,8 +156,7 @@ function IncomingRoute() {
 }
 
 function JobsRoute() {
-  const { jobs, setJobs } = useApp();
-  return <JobsPage jobs={jobs} setJobs={setJobs} />;
+  return <JobsPage />;
 }
 
 
