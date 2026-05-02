@@ -10,6 +10,18 @@ export interface AuthUser {
   role: 'super_admin' | 'company_user';
   hiringCompanyId: string | null;
   companyName: string | null;
+  uniqueCode: string | null;
+}
+
+export interface RegisterCompanyData {
+  companyName: string;
+  phoneNumber?: string;
+  address?: string;
+  managerName?: string;
+  companyRecord?: string;
+  name: string;
+  email: string;
+  password: string;
 }
 
 interface AppCtx {
@@ -17,6 +29,7 @@ interface AppCtx {
   loggedIn: boolean;
   authLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  register: (data: RegisterCompanyData) => Promise<void>;
   logout: () => Promise<void>;
   applications: Application[];
   setApplications: React.Dispatch<React.SetStateAction<Application[]>>;
@@ -26,7 +39,11 @@ interface AppCtx {
 
 const Ctx = createContext<AppCtx | null>(null);
 
-function toAuthUser(u: Record<string, unknown>, companyName: string | null = null): AuthUser {
+function toAuthUser(
+  u: Record<string, unknown>,
+  companyName: string | null = null,
+  uniqueCode: string | null = null,
+): AuthUser {
   return {
     id: u.id as string,
     name: u.name as string,
@@ -34,16 +51,21 @@ function toAuthUser(u: Record<string, unknown>, companyName: string | null = nul
     role: (u.role as AuthUser['role']) ?? 'company_user',
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
     companyName,
+    uniqueCode,
   };
 }
 
-async function fetchCompanyName(companyId: string | null): Promise<string | null> {
-  if (!companyId) return null;
+async function fetchCompanyInfo(companyId: string | null): Promise<{ companyName: string | null; uniqueCode: string | null }> {
+  if (!companyId) return { companyName: null, uniqueCode: null };
   try {
     const res = await api.get('/companies/mine');
-    return (res.data?.data?.companyName as string) ?? null;
+    const data = res.data?.data;
+    return {
+      companyName: (data?.companyName as string) ?? null,
+      uniqueCode: (data?.uniqueCode as string) ?? null,
+    };
   } catch {
-    return null;
+    return { companyName: null, uniqueCode: null };
   }
 }
 
@@ -59,8 +81,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (res.data?.user) {
           const u = res.data.user;
-          const companyName = await fetchCompanyName(u.hiringCompanyId ?? null);
-          setUser(toAuthUser(u, companyName));
+          const { companyName, uniqueCode } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+          setUser(toAuthUser(u, companyName, uniqueCode));
         }
       })
       .catch(() => { /* no session — stay logged out */ })
@@ -70,8 +92,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, rememberMe = false) => {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
     const u = res.data.user;
-    const companyName = await fetchCompanyName(u.hiringCompanyId ?? null);
-    setUser(toAuthUser(u, companyName));
+    const { companyName, uniqueCode } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, companyName, uniqueCode));
+  };
+
+  const register = async (data: RegisterCompanyData) => {
+    const res = await api.post('/register-company', data);
+    const { user: u, company } = res.data;
+    // Auto-login after registration
+    await login(data.email, data.password);
+    void u; void company;
   };
 
   const logout = async () => {
@@ -85,6 +115,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loggedIn: !!user,
       authLoading,
       login,
+      register,
       logout,
       applications, setApplications,
       viewing, setViewing,

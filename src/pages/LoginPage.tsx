@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { BrandLogo, Btn, DInput, DLabel } from "@/components/shell"
@@ -108,14 +108,16 @@ export function LoginPage() {
 
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
-        {/* <div className="flex items-center justify-between p-6">
+        <div className="flex items-center justify-between p-6">
           <div className="text-[12.5px] text-[var(--muted-foreground)]">
             ليس لديك حساب؟
           </div>
-          <Btn variant="outline" size="sm">
-            طلب وصول
-          </Btn>
-        </div> */}
+          <Link to="/register">
+            <Btn variant="outline" size="sm">
+              إنشاء حساب
+            </Btn>
+          </Link>
+        </div>
 
         <div className="flex flex-1 items-center px-8 lg:px-12">
           <form onSubmit={submit} className="mx-auto w-full max-w-[400px]">
@@ -127,7 +129,7 @@ export function LoginPage() {
             </p>
 
             {/* Social buttons (decorative) */}
-            <div className="mt-6 mb-5 grid grid-cols-2 gap-2">
+            {/* <div className="mt-6 mb-5 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 className="flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background text-[13px] transition-colors hover:bg-accent"
@@ -161,14 +163,14 @@ export function LoginPage() {
                 </svg>
                 Apple
               </button>
-            </div>
+            </div> */}
 
             <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-[var(--border)]" />
-              <div className="text-[11.5px] text-[var(--muted-foreground)]">
+              {/* <div className="h-px flex-1 bg-[var(--border)]" /> */}
+              {/* <div className="text-[11.5px] text-[var(--muted-foreground)]">
                 أو بالبريد الإلكتروني
-              </div>
-              <div className="h-px flex-1 bg-[var(--border)]" />
+              </div> */}
+              {/* <div className="h-px flex-1 bg-[var(--border)]" /> */}
             </div>
 
             <div className="space-y-4">

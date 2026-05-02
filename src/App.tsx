@@ -13,6 +13,7 @@ import { SettingsPage } from "@/pages/SettingsPage"
 import { CareersPage, JobDetailPage } from "@/pages/CareersPage"
 import { ApplyPage } from "@/pages/ApplyPage"
 import { LoginPage } from "@/pages/LoginPage"
+import { RegisterPage } from "@/pages/RegisterPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -236,10 +237,14 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Redirect already-logged-in users away from /login */}
+      {/* Redirect already-logged-in users away from /login and /register */}
       <Route
         path="/login"
         element={loggedIn ? <Navigate to="/incoming" replace /> : <LoginPage />}
+      />
+      <Route
+        path="/register"
+        element={loggedIn ? <Navigate to="/incoming" replace /> : <RegisterPage />}
       />
 
       {/* Protected admin routes */}

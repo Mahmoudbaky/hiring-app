@@ -257,6 +257,39 @@ export function DLabel({
   )
 }
 
+/* ── Unique Code Badge ────────────────────────────────────────────── */
+function UniqueCodeBadge({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const copy = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  return (
+    <div className="mt-3 flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/40 px-2.5 py-1.5">
+      <div>
+        <div className="text-[10px] text-[var(--muted-foreground)]">كود الشركة</div>
+        <div className="font-mono text-[13px] font-semibold tracking-widest text-[var(--foreground)]">
+          {code}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        title="نسخ الكود"
+        className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+      >
+        {copied
+          ? <Icon name="check" size={13} className="text-[var(--primary)]" />
+          : <Icon name="link" size={13} />
+        }
+      </button>
+    </div>
+  )
+}
+
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 const allNavItems = [
   // { key: "applications", label: "طلبات التوظيف", icon: "users", badge: 24 },
@@ -302,6 +335,9 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
     >
       <div className="border-b border-[var(--border)] p-5">
         <BrandLogo companyName={user?.companyName} />
+        {user?.uniqueCode && (
+          <UniqueCodeBadge code={user.uniqueCode} />
+        )}
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {allNavItems.filter((n) => !n.superAdminOnly || user?.role === "super_admin").map((n) => {
