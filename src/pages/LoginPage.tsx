@@ -40,7 +40,7 @@ export function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       await login(values.email, values.password, values.remember)
-      navigate("/dashboard", { replace: true })
+      navigate("/incoming", { replace: true })
     } catch (err) {
       form.setError("root", {
         message: err instanceof Error ? err.message : "حدث خطأ غير متوقع",
@@ -214,7 +214,9 @@ export function LoginPage() {
                             )}
                           </button>
                         </FormControl>
-                        <span className="text-[13px]">تذكرني على هذا الجهاز</span>
+                        <span className="text-[13px]">
+                          تذكرني على هذا الجهاز
+                        </span>
                       </label>
                     </FormItem>
                   )}
