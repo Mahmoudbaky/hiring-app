@@ -1,6 +1,9 @@
 import { useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
-import { Sidebar, Topbar } from "@/components/shell"
+import {
+  Sidebar,
+  // Topbar
+} from "@/components/shell"
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
