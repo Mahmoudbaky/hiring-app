@@ -1,11 +1,14 @@
 import { useState } from "react"
 import { Outlet, useLocation } from "react-router-dom"
-import { Sidebar, Topbar } from "@/components/shell"
+import {
+  // Sidebar,
+  Topbar,
+} from "@/components/shell"
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { pathname } = useLocation()
-  const page = pathname.replace(/^\//, "") || "dashboard"
+  // const page = pathname.replace(/^\//, "") || "dashboard"
 
   return (
     <div className="flex min-h-screen" dir="rtl">
