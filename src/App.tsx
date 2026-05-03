@@ -14,6 +14,7 @@ import { CareersPage, JobDetailPage } from "@/pages/CareersPage"
 import { ApplyPage } from "@/pages/ApplyPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { RegisterPage } from "@/pages/RegisterPage"
+import { ProfilePage } from "@/pages/ProfilePage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -270,6 +271,7 @@ export default function App() {
           }
         />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Public routes — pages are self-contained */}

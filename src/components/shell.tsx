@@ -15,35 +15,48 @@ type Page = string
 export function BrandLogo({
   size = 38,
   companyName,
+  logo,
 }: {
   size?: number
   companyName?: string | null
+  logo?: string | null
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div style={{ width: size, height: size }}>
-        <svg viewBox="0 0 40 40" width={size} height={size}>
-          <defs>
-            <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
-              <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
-            </linearGradient>
-          </defs>
-          <rect
-            x="2"
-            y="2"
-            width="36"
-            height="36"
-            rx="9"
-            fill="url(#lg-brand)"
+      <div
+        className="shrink-0 overflow-hidden rounded-[9px]"
+        style={{ width: size, height: size }}
+      >
+        {logo ? (
+          <img
+            src={logo}
+            alt={companyName ?? "شعار"}
+            className="h-full w-full object-cover"
           />
-          <path
-            d="M12 14 L12 26 L20 26 A6 6 0 0 0 20 14 Z"
-            fill="#fff"
-            opacity="0.96"
-          />
-          <circle cx="27" cy="20" r="2.6" fill="#fff" opacity="0.9" />
-        </svg>
+        ) : (
+          <svg viewBox="0 0 40 40" width={size} height={size}>
+            <defs>
+              <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
+                <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
+              </linearGradient>
+            </defs>
+            <rect
+              x="2"
+              y="2"
+              width="36"
+              height="36"
+              rx="9"
+              fill="url(#lg-brand)"
+            />
+            <path
+              d="M12 14 L12 26 L20 26 A6 6 0 0 0 20 14 Z"
+              fill="#fff"
+              opacity="0.96"
+            />
+            <circle cx="27" cy="20" r="2.6" fill="#fff" opacity="0.9" />
+          </svg>
+        )}
       </div>
       <div className="leading-tight">
         <div className="text-[16px] font-bold tracking-tight text-[var(--foreground)]">
@@ -270,7 +283,9 @@ function UniqueCodeBadge({ code }: { code: string }) {
   return (
     <div className="mt-3 flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/40 px-2.5 py-1.5">
       <div>
-        <div className="text-[10px] text-[var(--muted-foreground)]">كود الشركة</div>
+        <div className="text-[10px] text-[var(--muted-foreground)]">
+          كود الشركة
+        </div>
         <div className="font-mono text-[13px] font-semibold tracking-widest text-[var(--foreground)]">
           {code}
         </div>
@@ -281,10 +296,11 @@ function UniqueCodeBadge({ code }: { code: string }) {
         title="نسخ الكود"
         className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
       >
-        {copied
-          ? <Icon name="check" size={13} className="text-[var(--primary)]" />
-          : <Icon name="link" size={13} />
-        }
+        {copied ? (
+          <Icon name="check" size={13} className="text-[var(--primary)]" />
+        ) : (
+          <Icon name="link" size={13} />
+        )}
       </button>
     </div>
   )
@@ -292,11 +308,36 @@ function UniqueCodeBadge({ code }: { code: string }) {
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 const allNavItems = [
-  // { key: "applications", label: "طلبات التوظيف", icon: "users", badge: 24 },
-  { key: "incoming", label: "طلبات التوظيف", icon: "briefcase", superAdminOnly: false },
-  { key: "jobs", label: "الوظائف المتاحة", icon: "globe", superAdminOnly: true },
-  { key: "dashboard", label: "الإحصائيات", icon: "chart", superAdminOnly: true },
-  { key: "settings", label: "الإعدادات", icon: "settings", superAdminOnly: false },
+  {
+    key: "incoming",
+    label: "طلبات التوظيف",
+    icon: "briefcase",
+    superAdminOnly: false,
+  },
+  {
+    key: "jobs",
+    label: "الوظائف المتاحة",
+    icon: "globe",
+    superAdminOnly: true,
+  },
+  {
+    key: "dashboard",
+    label: "الإحصائيات",
+    icon: "chart",
+    superAdminOnly: true,
+  },
+  {
+    key: "settings",
+    label: "الإعدادات",
+    icon: "settings",
+    superAdminOnly: false,
+  },
+  {
+    key: "profile",
+    label: "الملف الشخصي",
+    icon: "users",
+    superAdminOnly: false,
+  },
 ]
 
 interface SidebarProps {
@@ -334,37 +375,37 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
       )}
     >
       <div className="border-b border-[var(--border)] p-5">
-        <BrandLogo companyName={user?.companyName} />
-        {user?.uniqueCode && (
-          <UniqueCodeBadge code={user.uniqueCode} />
-        )}
+        <BrandLogo companyName={user?.companyName} logo={user?.companyLogo} />
+        {user?.uniqueCode && <UniqueCodeBadge code={user.uniqueCode} />}
       </div>
       <nav className="flex-1 space-y-1 p-3">
-        {allNavItems.filter((n) => !n.superAdminOnly || user?.role === "super_admin").map((n) => {
-          const active = page === n.key
-          return (
-            <button
-              key={n.key}
-              onClick={() => go(`/${n.key}`)}
-              onMouseEnter={() => prefetchMap[n.key]?.()}
-              className={cn(
-                "focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13.5px] transition-colors",
-                active
-                  ? "bg-[oklch(0.97_0.03_30)] font-medium text-[var(--primary)]"
-                  : "text-[var(--foreground)] hover:bg-[var(--accent)]"
-              )}
-            >
-              <Icon
-                name={n.icon}
-                size={17}
-                className={
+        {allNavItems
+          .filter((n) => !n.superAdminOnly || user?.role === "super_admin")
+          .map((n) => {
+            const active = page === n.key
+            return (
+              <button
+                key={n.key}
+                onClick={() => go(`/${n.key}`)}
+                onMouseEnter={() => prefetchMap[n.key]?.()}
+                className={cn(
+                  "focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13.5px] transition-colors",
                   active
-                    ? "text-[var(--primary)]"
-                    : "text-[var(--muted-foreground)]"
-                }
-              />
-              <span className="flex-1 text-start">{n.label}</span>
-              {/* {n.badge && (
+                    ? "bg-[oklch(0.97_0.03_30)] font-medium text-[var(--primary)]"
+                    : "text-[var(--foreground)] hover:bg-[var(--accent)]"
+                )}
+              >
+                <Icon
+                  name={n.icon}
+                  size={17}
+                  className={
+                    active
+                      ? "text-[var(--primary)]"
+                      : "text-[var(--muted-foreground)]"
+                  }
+                />
+                <span className="flex-1 text-start">{n.label}</span>
+                {/* {n.badge && (
                 <span
                   className={cn(
                     "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px]",
@@ -376,9 +417,9 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
                   {n.badge}
                 </span>
               )} */}
-            </button>
-          )
-        })}
+              </button>
+            )
+          })}
       </nav>
       {/* <div className="space-y-1 border-t border-[var(--border)] p-3">
         <button
@@ -448,12 +489,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <Icon name="menu" size={20} />
       </Btn>
 
-      <div className="hidden max-w-[440px] flex-1 sm:block">
+      {/* <div className="hidden max-w-[440px] flex-1 sm:block">
         <DInput
           placeholder="ابحث عن متقدم، وظيفة، أو قسم…"
           icon={<Icon name="search" size={14} />}
         />
-      </div>
+      </div> */}
       <div className="flex-1" />
 
       <div className="flex items-center gap-1 sm:gap-2">
@@ -482,20 +523,59 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           >
             <div className="hidden text-end leading-tight sm:block">
               <div className="text-[13px] font-medium">{user?.name ?? "—"}</div>
-              <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
+              <div className="text-[11px] text-muted-foreground">
+                {roleLabel}
+              </div>
             </div>
-            <Avatar name={initials} tone="slate" size={32} />
+            {user?.image ? (
+              <img
+                src={user.image}
+                alt={user.name}
+                className="h-8 w-8 rounded-full object-cover ring-2 ring-[var(--border)]"
+              />
+            ) : (
+              <Avatar name={initials} tone="slate" size={32} />
+            )}
           </button>
 
           {menuOpen && (
             <div className="absolute inset-e-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
               {/* Header */}
-              <div className="border-b border-border px-4 py-3">
-                <div className="text-[13px] font-semibold">{user?.name ?? "—"}</div>
-                <div className="text-[11.5px] text-muted-foreground">{user?.email ?? ""}</div>
+              <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+                {user?.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name}
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <Avatar
+                    name={user?.name?.slice(0, 1) ?? "؟"}
+                    tone="slate"
+                    size={36}
+                  />
+                )}
+                <div className="min-w-0">
+                  <div className="truncate text-[13px] font-semibold">
+                    {user?.name ?? "—"}
+                  </div>
+                  <div className="truncate text-[11.5px] text-muted-foreground">
+                    {user?.email ?? ""}
+                  </div>
+                </div>
               </div>
               {/* Actions */}
               <div className="p-1.5">
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    navigate("/profile")
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors hover:bg-accent"
+                >
+                  <Icon name="users" size={15} />
+                  الملف الشخصي
+                </button>
                 <button
                   onClick={handleLogout}
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-destructive transition-colors hover:bg-accent"

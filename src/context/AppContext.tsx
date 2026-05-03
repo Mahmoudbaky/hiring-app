@@ -7,10 +7,12 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  image: string | null;
   role: 'super_admin' | 'company_user';
   hiringCompanyId: string | null;
   companyName: string | null;
   uniqueCode: string | null;
+  companyLogo: string | null;
 }
 
 export interface RegisterCompanyData {
@@ -31,6 +33,7 @@ interface AppCtx {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (data: RegisterCompanyData) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   applications: Application[];
   setApplications: React.Dispatch<React.SetStateAction<Application[]>>;
   viewing: Application | null;
@@ -43,29 +46,33 @@ function toAuthUser(
   u: Record<string, unknown>,
   companyName: string | null = null,
   uniqueCode: string | null = null,
+  companyLogo: string | null = null,
 ): AuthUser {
   return {
     id: u.id as string,
     name: u.name as string,
     email: u.email as string,
+    image: (u.image as string) ?? null,
     role: (u.role as AuthUser['role']) ?? 'company_user',
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
     companyName,
     uniqueCode,
+    companyLogo,
   };
 }
 
-async function fetchCompanyInfo(companyId: string | null): Promise<{ companyName: string | null; uniqueCode: string | null }> {
-  if (!companyId) return { companyName: null, uniqueCode: null };
+async function fetchCompanyInfo(companyId: string | null): Promise<{ companyName: string | null; uniqueCode: string | null; companyLogo: string | null }> {
+  if (!companyId) return { companyName: null, uniqueCode: null, companyLogo: null };
   try {
     const res = await api.get('/companies/mine');
     const data = res.data?.data;
     return {
       companyName: (data?.companyName as string) ?? null,
       uniqueCode: (data?.uniqueCode as string) ?? null,
+      companyLogo: (data?.logo as string) ?? null,
     };
   } catch {
-    return { companyName: null, uniqueCode: null };
+    return { companyName: null, uniqueCode: null, companyLogo: null };
   }
 }
 
@@ -81,8 +88,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (res.data?.user) {
           const u = res.data.user;
-          const { companyName, uniqueCode } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-          setUser(toAuthUser(u, companyName, uniqueCode));
+          const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+          setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
         }
       })
       .catch(() => { /* no session — stay logged out */ })
@@ -92,8 +99,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, rememberMe = false) => {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
     const u = res.data.user;
-    const { companyName, uniqueCode } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-    setUser(toAuthUser(u, companyName, uniqueCode));
+    const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
   };
 
   const register = async (data: RegisterCompanyData) => {
@@ -102,6 +109,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Auto-login after registration
     await login(data.email, data.password);
     void u; void company;
+  };
+
+  const refreshProfile = async () => {
+    const res = await api.get('/profile/me');
+    const u = res.data.data;
+    const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
   };
 
   const logout = async () => {
@@ -117,6 +131,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      refreshProfile,
       applications, setApplications,
       viewing, setViewing,
     }}>
