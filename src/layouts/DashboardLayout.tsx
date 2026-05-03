@@ -1,5 +1,8 @@
 import { useState } from "react"
-import { Outlet, useLocation } from "react-router-dom"
+import {
+  Outlet,
+  // useLocation
+} from "react-router-dom"
 import {
   // Sidebar,
   Topbar,
@@ -7,7 +10,7 @@ import {
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { pathname } = useLocation()
+  // const { pathname } = useLocation()
   // const page = pathname.replace(/^\//, "") || "dashboard"
 
   return (
