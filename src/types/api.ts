@@ -12,7 +12,7 @@ export interface PublicJob {
 
 /** Body for POST /requests (self-apply) */
 export interface SubmitApplicationBody {
-  jobAdId: string;
+  jobAdId?: string;
   hiringCompanyCode: string;
   cvUrl?: string;
   applicant: {
@@ -21,6 +21,7 @@ export interface SubmitApplicationBody {
     phone: string;
     gender?: 'male' | 'female';
     dateOfBirth?: string;
+    nationality?: string;
     currentJobLocation?: string;
   };
   qualifications: {
@@ -28,6 +29,13 @@ export interface SubmitApplicationBody {
     yearObtained?: number;
     instituteName?: string;
   }[];
+  jobProfile?: {
+    departmentId?: string;
+    professionalGradeId?: string;
+    generalSpecialtyId?: string;
+    yearsOfExperience?: string;
+    additionalInfo?: string;
+  };
 }
 
 export type RequestStatus =
@@ -58,7 +66,7 @@ export interface JobRequest {
   jobAd: {
     id: string;
     adTitle: string;
-  };
+  } | null;
   company: {
     id: string;
     companyName: string;
@@ -69,7 +77,13 @@ export interface JobRequest {
 export interface JobRequestDetail extends Omit<JobRequest, "applicant"> {
   applicant: JobRequest["applicant"] & {
     dateOfBirth: string | null;
+    nationality: string | null;
   };
+  yearsOfExperience: string | null;
+  additionalInfo: string | null;
+  department: { id: string; name: string } | null;
+  professionalGrade: { id: string; name: string } | null;
+  generalSpecialty: { id: string; name: string } | null;
   qualifications: {
     id: string;
     yearObtained: number | null;
@@ -83,6 +97,32 @@ export interface QualificationType {
   id: string;
   name: string;
   isActive: boolean;
+}
+
+/** Department from /settings/departments */
+export interface Department {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+/** Professional grade from /settings/professional-grades */
+export interface ProfessionalGrade {
+  id: string;
+  name: string;
+  departmentId: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+/** General specialty from /settings/general-specialties */
+export interface GeneralSpecialty {
+  id: string;
+  name: string;
+  departmentId: string;
+  isActive: boolean;
+  createdAt: string;
 }
 
 /** Wrapped response envelope from backend utils/response.ts */

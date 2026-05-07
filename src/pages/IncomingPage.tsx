@@ -247,6 +247,11 @@ function RequestDetailDialog({
                 />
                 <InfoItem
                   icon="globe"
+                  label="الجنسية"
+                  value={data.applicant.nationality ?? "—"}
+                />
+                <InfoItem
+                  icon="globe"
                   label="مكان العمل الحالي"
                   value={data.applicant.currentJobLocation ?? "—"}
                 />
@@ -259,7 +264,7 @@ function RequestDetailDialog({
                 <InfoItem
                   icon="briefcase"
                   label="الوظيفة"
-                  value={data.jobAd.adTitle}
+                  value={data.jobAd?.adTitle ?? "—"}
                 />
                 <InfoItem
                   icon="users"
@@ -279,13 +284,37 @@ function RequestDetailDialog({
               </div>
               {data.notes && (
                 <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
-                  <p className="mb-1 text-[11px] text-muted-foreground">
-                    ملاحظات
-                  </p>
+                  <p className="mb-1 text-[11px] text-muted-foreground">ملاحظات</p>
                   <p className="text-[13px]">{data.notes}</p>
                 </div>
               )}
             </Section>
+
+            {/* Job profile */}
+            {(data.department || data.professionalGrade || data.generalSpecialty || data.yearsOfExperience) && (
+              <Section title="بيانات الوظيفة المطلوبة">
+                <div className="grid grid-cols-2 gap-4">
+                  {data.department && (
+                    <InfoItem icon="briefcase" label="القطاع" value={data.department.name} />
+                  )}
+                  {data.professionalGrade && (
+                    <InfoItem icon="sparkles" label="الدرجة المهنية" value={data.professionalGrade.name} />
+                  )}
+                  {data.generalSpecialty && (
+                    <InfoItem icon="globe" label="التخصص العام" value={data.generalSpecialty.name} />
+                  )}
+                  {data.yearsOfExperience && (
+                    <InfoItem icon="clock" label="سنوات الخبرة" value={data.yearsOfExperience} />
+                  )}
+                </div>
+                {data.additionalInfo && (
+                  <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
+                    <p className="mb-1 text-[11px] text-muted-foreground">معلومات إضافية</p>
+                    <p className="text-[13px]">{data.additionalInfo}</p>
+                  </div>
+                )}
+              </Section>
+            )}
 
             {/* CV */}
             {data.cvUrl && (
@@ -778,7 +807,7 @@ export function IncomingPage() {
 
   /* Dropdown options derived from raw data */
   const uniqueJobTitles = useMemo(
-    () => [...new Set(requests.map((r) => r.jobAd.adTitle))].sort(),
+    () => [...new Set(requests.map((r) => r.jobAd?.adTitle ?? "—"))].sort(),
     [requests]
   )
   const uniqueCompanies = useMemo(
@@ -790,7 +819,7 @@ export function IncomingPage() {
   const preFiltered = useMemo(() => {
     let data = requests
     if (jobFilter !== "all")
-      data = data.filter((r) => r.jobAd.adTitle === jobFilter)
+      data = data.filter((r) => (r.jobAd?.adTitle ?? "—") === jobFilter)
     if (companyFilter !== "all")
       data = data.filter((r) => r.company.companyName === companyFilter)
     return data
@@ -848,7 +877,7 @@ export function IncomingPage() {
         ),
       }),
 
-      col.accessor((r) => r.jobAd.adTitle, {
+      col.accessor((r) => r.jobAd?.adTitle ?? "—", {
         id: "jobTitle",
         header: "الوظيفة",
         cell: (info) => (
@@ -992,7 +1021,7 @@ export function IncomingPage() {
             : r.applicant.gender === "female"
               ? "أنثى"
               : "",
-        الوظيفة: r.jobAd.adTitle,
+        الوظيفة: r.jobAd?.adTitle ?? "—",
         الشركة: r.company.companyName,
         الحالة: STATUS_META[r.status].label,
         "نوع التقديم": r.submissionType === "self" ? "ذاتي" : "يدوي",

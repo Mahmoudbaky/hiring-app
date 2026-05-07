@@ -15,22 +15,37 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { usePublishedJobs, useQualificationTypes, useSubmitApplication } from "@/hooks/useCareers"
+import {
+  useQualificationTypes,
+  useDepartments,
+  useProfessionalGrades,
+  useGeneralSpecialties,
+  useSubmitApplication,
+} from "@/hooks/useCareers"
 import { CvUpload } from "@/components/cv-upload"
 
 /* ── Zod schema ───────────────────────────────────────────────────── */
 const schema = z.object({
   hiringCompanyCode: z.string().min(1, "كود الشركة مطلوب"),
-  jobAdId: z.string().min(1, "الرجاء اختيار وظيفة"),
   applicant: z.object({
     name: z.string().min(1, "الاسم مطلوب"),
     email: z.string().email("بريد إلكتروني غير صالح"),
     phone: z.string().min(1, "رقم الهاتف مطلوب"),
     gender: z.enum(["male", "female"]).optional(),
     dateOfBirth: z.string().optional(),
-    currentJobLocation: z.string().optional(),
+    nationality: z.string().optional(),
   }),
+  qualificationTypeId: z.string().optional(),
+  qualificationYear: z.string().optional(),
+  jobProfile: z.object({
+    departmentId: z.string().optional(),
+    professionalGradeId: z.string().optional(),
+    generalSpecialtyId: z.string().optional(),
+    yearsOfExperience: z.string().optional(),
+    additionalInfo: z.string().optional(),
+  }).optional(),
   cvUrl: z.string().optional(),
+  agreedToTerms: z.boolean().refine((v) => v === true, "يجب الموافقة على الشروط"),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -41,19 +56,22 @@ function NativeSelect({
   onChange,
   options,
   placeholder,
+  disabled = false,
   className = "",
 }: {
   value: string
   onChange: (v: string) => void
   options: { value: string; label: string }[]
   placeholder?: string
+  disabled?: boolean
   className?: string
 }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`focus-ring h-10 w-full rounded-md border border-[var(--input)] bg-[var(--card)] px-3 text-[13.5px] text-[var(--foreground)] ${className}`}
+      disabled={disabled}
+      className={`focus-ring h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] text-foreground disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((o) => (
@@ -65,14 +83,54 @@ function NativeSelect({
   )
 }
 
+const YEARS_OF_EXPERIENCE = [
+  { value: "less_than_1", label: "أقل من سنة" },
+  { value: "1_3", label: "1 - 3 سنوات" },
+  { value: "3_5", label: "3 - 5 سنوات" },
+  { value: "5_10", label: "5 - 10 سنوات" },
+  { value: "more_than_10", label: "أكثر من 10 سنوات" },
+]
+
+const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
+  const year = new Date().getFullYear() - i
+  return { value: String(year), label: String(year) }
+})
+
+/* ── Section heading ──────────────────────────────────────────────── */
+function SectionHeading({
+  icon,
+  title,
+  subtitle,
+  tone = "sky",
+}: {
+  icon: string
+  title: string
+  subtitle?: string
+  tone?: string
+}) {
+  return (
+    <div className="flex items-center gap-3 border-b border-border pb-4">
+      <div className={`tone-${tone} flex h-10 w-10 items-center justify-center rounded-lg`}>
+        <Icon name={icon as never} size={18} />
+      </div>
+      <div>
+        <h2 className="text-[16px] font-bold">{title}</h2>
+        {subtitle && (
+          <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ── Apply page ───────────────────────────────────────────────────── */
 export function ApplyPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const preselectedJobId = params.get("jobId") ?? ""
+  const preselectedCode = params.get("code") ?? ""
 
-  const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
   const { data: qualTypes = [] } = useQualificationTypes()
+  const { data: departments = [] } = useDepartments()
   const {
     mutate: submit,
     isPending,
@@ -80,81 +138,91 @@ export function ApplyPage() {
     error: submitError,
   } = useSubmitApplication()
 
-  // qualDetails keys = checked typeIds; values = the expandable sub-fields
-  const [qualDetails, setQualDetails] = useState<
-    Record<string, { yearObtained: string; instituteName: string }>
-  >({})
-
-  const toggleQual = (id: string) => {
-    setQualDetails((prev) => {
-      if (id in prev) {
-        const next = { ...prev }
-        delete next[id]
-        return next
-      }
-      return { ...prev, [id]: { yearObtained: "", instituteName: "" } }
-    })
-  }
-
-  const setQualField = (
-    id: string,
-    key: "yearObtained" | "instituteName",
-    value: string,
-  ) => {
-    setQualDetails((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], [key]: value },
-    }))
-  }
-
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      hiringCompanyCode: "",
-      jobAdId: preselectedJobId,
+      hiringCompanyCode: preselectedCode,
       cvUrl: "",
+      qualificationTypeId: "",
+      qualificationYear: "",
+      agreedToTerms: false,
       applicant: {
         name: "",
         email: "",
         phone: "",
         gender: undefined,
         dateOfBirth: "",
-        currentJobLocation: "",
+        nationality: "",
+      },
+      jobProfile: {
+        departmentId: "",
+        professionalGradeId: "",
+        generalSpecialtyId: "",
+        yearsOfExperience: "",
+        additionalInfo: "",
       },
     },
   })
 
-  // Sync jobAdId when URL param changes after mount
+  const selectedDepartmentId = form.watch("jobProfile.departmentId") || undefined
+  const { data: professionalGrades = [] } = useProfessionalGrades(selectedDepartmentId)
+  const { data: generalSpecialties = [] } = useGeneralSpecialties(selectedDepartmentId)
+
+  // Reset cascading selects when department changes
+  const [prevDeptId, setPrevDeptId] = useState(selectedDepartmentId)
   useEffect(() => {
-    if (preselectedJobId) form.setValue("jobAdId", preselectedJobId)
-  }, [preselectedJobId, form])
+    if (selectedDepartmentId !== prevDeptId) {
+      form.setValue("jobProfile.professionalGradeId", "")
+      form.setValue("jobProfile.generalSpecialtyId", "")
+      setPrevDeptId(selectedDepartmentId)
+    }
+  }, [selectedDepartmentId, prevDeptId, form])
+
+  // Sync URL params
+  useEffect(() => {
+    if (preselectedCode) form.setValue("hiringCompanyCode", preselectedCode)
+  }, [preselectedCode, form])
 
   const onSubmit = (values: FormValues) => {
+    const qualifications =
+      values.qualificationTypeId
+        ? [
+            {
+              qualificationTypeId: values.qualificationTypeId,
+              yearObtained: values.qualificationYear
+                ? parseInt(values.qualificationYear, 10)
+                : undefined,
+            },
+          ]
+        : []
+
     submit({
-      jobAdId: values.jobAdId,
       hiringCompanyCode: values.hiringCompanyCode,
       cvUrl: values.cvUrl || undefined,
       applicant: values.applicant,
-      qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
-        qualificationTypeId: typeId,
-        yearObtained: det.yearObtained ? parseInt(det.yearObtained, 10) : undefined,
-        instituteName: det.instituteName || undefined,
-      })),
+      qualifications,
+      jobProfile: {
+        departmentId: values.jobProfile?.departmentId || undefined,
+        professionalGradeId: values.jobProfile?.professionalGradeId || undefined,
+        generalSpecialtyId: values.jobProfile?.generalSpecialtyId || undefined,
+        yearsOfExperience: values.jobProfile?.yearsOfExperience || undefined,
+        additionalInfo: values.jobProfile?.additionalInfo || undefined,
+      },
     })
   }
 
   /* ── Success screen ─────────────────────────────────────────────── */
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[var(--background)]" dir="rtl">
+      <div className="min-h-screen bg-background" dir="rtl">
         <div className="mx-auto max-w-[860px] px-6 py-10">
           <Card className="overflow-hidden">
-            <div className="public-header-bg flex items-center justify-between border-b border-[var(--border)] px-8 py-6">
+            <div className="public-header-bg flex items-center justify-between border-b border-border px-8 py-6">
               <div className="flex items-center gap-3">
                 <BrandLogo size={40} />
-                <div className="border-s border-[var(--border)] ps-3">
-                  <div className="text-[18px] font-bold">بوابة التوظيف</div>
-                  <div className="text-[12.5px] text-[var(--muted-foreground)]">
+                <div className="border-s border-border ps-3">
+                  <div className="text-[18px] font-bold">منصة التوظيف</div>
+                  <div className="text-[12.5px] text-muted-foreground">
                     نظام إدارة الموارد البشرية
                   </div>
                 </div>
@@ -169,10 +237,8 @@ export function ApplyPage() {
               <div className="tone-emerald mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                 <Icon name="check" size={28} />
               </div>
-              <h2 className="mb-2 text-[22px] font-bold">
-                تم إرسال طلبك بنجاح
-              </h2>
-              <p className="mx-auto max-w-md text-[14px] text-[var(--muted-foreground)]">
+              <h2 className="mb-2 text-[22px] font-bold">تم إرسال طلبك بنجاح</h2>
+              <p className="mx-auto max-w-md text-[14px] text-muted-foreground">
                 شكراً لاهتمامك بالانضمام إلى فريقنا. سيقوم فريق الموارد البشرية
                 بمراجعة طلبك والتواصل معك خلال 3-5 أيام عمل.
               </p>
@@ -183,8 +249,8 @@ export function ApplyPage() {
               </div>
             </div>
 
-            <div className="border-t border-[var(--border)] px-8 py-4 text-center text-[11.5px] text-[var(--muted-foreground)]">
-              © 2026 جميع الحقوق محفوظة لـ ضم — نظام التوظيف.
+            <div className="border-t border-border px-8 py-4 text-center text-[11.5px] text-muted-foreground">
+              © 2026 جميع الحقوق محفوظة — منصة التوظيف
             </div>
           </Card>
         </div>
@@ -194,238 +260,264 @@ export function ApplyPage() {
 
   /* ── Form ───────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[var(--background)]" dir="rtl">
+    <div className="min-h-screen bg-background" dir="rtl">
       <div className="mx-auto max-w-[860px] px-6 py-10">
-        <Card className="overflow-hidden">
-          {/* Header */}
-          <div className="public-header-bg flex items-center justify-between border-b border-[var(--border)] px-8 py-6">
-            <div className="flex items-center gap-3">
-              <BrandLogo size={40} />
-              <div className="border-s border-[var(--border)] ps-3">
-                <div className="text-[18px] font-bold">بوابة التوظيف</div>
-                <div className="text-[12.5px] text-[var(--muted-foreground)]">
-                  نظام إدارة الموارد البشرية
-                </div>
-              </div>
+        {/* Header */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BrandLogo size={36} />
+            <div>
+              <div className="text-[17px] font-bold">منصة التوظيف</div>
             </div>
-            <Badge tone="emerald" className="h-7">
-              <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.6_0.15_155)]" />
-              متاح حالياً
-            </Badge>
           </div>
+          <Badge tone="sky" className="h-7 text-[11.5px]">
+            لا يلزم إنشاء حساب ✓
+          </Badge>
+        </div>
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-8 p-8"
-            >
-              {/* Section title */}
-              <div className="flex items-center gap-3 border-b border-[var(--border)] pb-4">
-                <div className="tone-sky flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Icon name="userPlus" size={18} />
-                </div>
-                <div>
-                  <h2 className="text-[18px] font-bold">
-                    نموذج طلب انضمام للفريق
-                  </h2>
-                  <p className="mt-0.5 text-[12.5px] text-[var(--muted-foreground)]">
-                    يرجى تعبئة المعلومات التالية بدقة
-                  </p>
-                </div>
-              </div>
+        {/* Page title */}
+        <div className="mb-6 text-center">
+          <h1 className="text-[26px] font-bold">
+            تسجيل <span className="text-primary">طلب</span> جديد
+          </h1>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            أكمل بياناتك في خطوات بسيطة — بدون تعقيدات
+          </p>
+        </div>
 
-              {/* ── Job & company ───────────────────────────────────── */}
-              <div className="space-y-4">
-                <h3 className="text-[14px] font-semibold tracking-wide text-[var(--muted-foreground)] uppercase">
-                  معلومات الطلب
-                </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="jobAdId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel required>الوظيفة المطلوبة</FormLabel>
-                        <FormControl>
-                          {preselectedJobId ? (
-                            <div className="flex h-10 items-center gap-2 rounded-md border border-input bg-muted px-3 text-[13.5px]">
-                              <Icon
-                                name="briefcase"
-                                size={14}
-                                className="shrink-0 text-muted-foreground"
-                              />
-                              <span className="truncate text-foreground">
-                                {jobs.find((j) => j.id === preselectedJobId)
-                                  ?.adTitle ?? "جاري التحميل…"}
-                              </span>
-                            </div>
-                          ) : (
-                            <NativeSelect
-                              value={field.value}
-                              onChange={field.onChange}
-                              placeholder={
-                                jobsLoading ? "جاري التحميل…" : "اختر وظيفة"
-                              }
-                              options={jobs.map((j) => ({
-                                value: j.id,
-                                label: j.adTitle,
-                              }))}
-                            />
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-                  <FormField
-                    control={form.control}
-                    name="hiringCompanyCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel required>كود الشركة</FormLabel>
-                        <FormControl>
-                          <DInput placeholder="مثال: DHUM2024" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+            {/* ── Company card ────────────────────────────────────── */}
+            <Card className="space-y-5 p-6">
+              <SectionHeading icon="briefcase" title="معلومات الطلب" subtitle="أدخل كود الشركة للمتابعة" tone="amber" />
+              <FormField
+                control={form.control}
+                name="hiringCompanyCode"
+                render={({ field }) => (
+                  <FormItem className="max-w-sm">
+                    <FormLabel required>كود الشركة</FormLabel>
+                    <FormControl>
+                      <DInput placeholder="مثال: DHUM2024" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Card>
 
-              {/* ── Personal info ────────────────────────────────────── */}
-              <div className="space-y-4">
-                <h3 className="text-[14px] font-semibold tracking-wide text-[var(--muted-foreground)] uppercase">
-                  المعلومات الشخصية
-                </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="applicant.name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel required>الاسم الكامل</FormLabel>
-                        <FormControl>
-                          <DInput
-                            icon={<Icon name="user" size={14} />}
-                            placeholder="أدخل اسمك الثلاثي"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant.email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel required>البريد الإلكتروني</FormLabel>
-                        <FormControl>
-                          <DInput
-                            icon={<Icon name="mail" size={14} />}
-                            type="email"
-                            placeholder="example@domain.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant.phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel required>رقم الهاتف</FormLabel>
-                        <FormControl>
-                          <DInput
-                            icon={<Icon name="phone" size={14} />}
-                            placeholder="05xxxxxxxx"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant.gender"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>الجنس</FormLabel>
-                        <FormControl>
-                          <NativeSelect
-                            value={field.value ?? ""}
-                            onChange={(v) => field.onChange(v || undefined)}
-                            placeholder="اختر (اختياري)"
-                            options={[
-                              { value: "male", label: "ذكر" },
-                              { value: "female", label: "أنثى" },
-                            ]}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant.dateOfBirth"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>تاريخ الميلاد</FormLabel>
-                        <FormControl>
-                          <DInput type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="applicant.currentJobLocation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>مكان العمل الحالي</FormLabel>
-                        <FormControl>
-                          <DInput
-                            icon={<Icon name="globe" size={14} />}
-                            placeholder="مثال: الرياض"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* ── CV Upload ────────────────────────────────────────── */}
-              <div className="space-y-4">
-                <h3 className="text-[14px] font-semibold tracking-wide text-[var(--muted-foreground)] uppercase">
-                  السيرة الذاتية
-                </h3>
+            {/* ── Personal info card ──────────────────────────────── */}
+            <Card className="space-y-5 p-6">
+              <SectionHeading icon="user" title="البيانات الشخصية" subtitle="معلومات أساسية للتواصل" tone="sky" />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="cvUrl"
+                  name="applicant.name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ملف السيرة الذاتية</FormLabel>
+                      <FormLabel required>الاسم الكامل</FormLabel>
                       <FormControl>
-                        <CvUpload
-                          value={field.value}
+                        <DInput icon={<Icon name="user" size={14} />} placeholder="أدخل اسمك الكامل" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="applicant.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>رقم الجوال</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="phone" size={14} />} placeholder="+966 5XX XXX XXXX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="applicant.email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>البريد الإلكتروني</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="applicant.nationality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الجنسية</FormLabel>
+                      <FormControl>
+                        <DInput placeholder="اختر الجنسية" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="applicant.dateOfBirth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>تاريخ الميلاد</FormLabel>
+                      <FormControl>
+                        <DInput type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="applicant.gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الجنس</FormLabel>
+                      <FormControl>
+                        <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
+                          {(["male", "female"] as const).map((val) => (
+                            <label key={val} className="flex cursor-pointer items-center gap-2">
+                              <input
+                                type="radio"
+                                name="gender"
+                                value={val}
+                                checked={field.value === val}
+                                onChange={() => field.onChange(val)}
+                                className="accent-primary"
+                              />
+                              <span className="text-[13.5px]">{val === "male" ? "ذكر" : "أنثى"}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="qualificationTypeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>أعلى مؤهل علمي</FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
                           onChange={field.onChange}
+                          placeholder="اختر المؤهل"
+                          options={qualTypes.map((q) => ({ value: q.id, label: q.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="qualificationYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>سنة الحصول على المؤهل</FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder="مثال: 2018"
+                          options={QUALIFICATION_YEARS}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
+
+            {/* ── Job profile card ────────────────────────────────── */}
+            <Card className="space-y-5 p-6">
+              <SectionHeading icon="briefcase" title="بيانات الوظيفة المطلوبة" subtitle="حدد قطاعك ودرجتك وتخصصك بدقة" tone="violet" />
+
+              {/* Cascading selects row */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {/* Department */}
+                <FormField
+                  control={form.control}
+                  name="jobProfile.departmentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">1</span>
+                        القطاع
+                      </FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder="اختر القطاع"
+                          options={departments.map((d) => ({ value: d.id, label: d.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Professional grade */}
+                <FormField
+                  control={form.control}
+                  name="jobProfile.professionalGradeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">2</span>
+                        الدرجة المهنية
+                      </FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder="اختر الدرجة"
+                          disabled={!selectedDepartmentId}
+                          options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* General specialty */}
+                <FormField
+                  control={form.control}
+                  name="jobProfile.generalSpecialtyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">3</span>
+                        التخصص العام
+                      </FormLabel>
+                      <FormControl>
+                        <NativeSelect
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          placeholder="اختر التخصص"
+                          disabled={!selectedDepartmentId}
+                          options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -434,92 +526,91 @@ export function ApplyPage() {
                 />
               </div>
 
-              {/* ── Qualifications ───────────────────────────────────── */}
-              {qualTypes.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-[14px] font-semibold tracking-wide text-muted-foreground uppercase">
-                    المؤهل الدراسي - الأكاديمي
-                  </h3>
-                  <div className="overflow-hidden rounded-lg border border-border">
-                    {qualTypes.map((qt, idx) => {
-                      const checked = qt.id in qualDetails
-                      const det = qualDetails[qt.id]
-                      return (
-                        <div
-                          key={qt.id}
-                          className={idx > 0 ? "border-t border-border" : ""}
-                        >
-                          {/* ── Checkbox row ── */}
-                          <button
-                            type="button"
-                            onClick={() => toggleQual(qt.id)}
-                            className="flex w-full items-center gap-3 px-4 py-3 text-right transition-colors hover:bg-muted"
-                          >
-                            <div
-                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                                checked
-                                  ? "border-primary bg-primary"
-                                  : "border-muted-foreground"
-                              }`}
-                            >
-                              {checked && (
-                                <svg
-                                  viewBox="0 0 10 8"
-                                  width="10"
-                                  height="8"
-                                  fill="none"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M1 4l3 3 5-6" />
-                                </svg>
-                              )}
-                            </div>
-                            <span className="text-[13.5px] text-foreground">
-                              {qt.name}
-                            </span>
-                          </button>
+              {/* Years of experience */}
+              <FormField
+                control={form.control}
+                name="jobProfile.yearsOfExperience"
+                render={({ field }) => (
+                  <FormItem className="max-w-sm">
+                    <FormLabel>سنوات الخبرة</FormLabel>
+                    <FormControl>
+                      <NativeSelect
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        placeholder="اختر سنوات الخبرة"
+                        options={YEARS_OF_EXPERIENCE}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                          {/* ── Expandable inputs ── */}
-                          {checked && (
-                            <div className="grid grid-cols-1 gap-4 border-t border-border bg-(--muted)/40 px-4 py-4 sm:grid-cols-2">
-                              <div className="flex flex-col gap-1.5">
-                                <label className="text-[12.5px] font-medium text-foreground">
-                                  سنة الحصول
-                                </label>
-                                <DInput
-                                  type="number"
-                                  placeholder="مثال: 2020"
-                                  value={det.yearObtained}
-                                  onChange={(e) =>
-                                    setQualField(qt.id, "yearObtained", e.target.value)
-                                  }
-                                />
-                              </div>
-                              <div className="flex flex-col gap-1.5">
-                                <label className="text-[12.5px] font-medium text-foreground">
-                                  اسم المؤسسة التعليمية
-                                </label>
-                                <DInput
-                                  placeholder="مثال: جامعة الملك سعود"
-                                  value={det.instituteName}
-                                  onChange={(e) =>
-                                    setQualField(qt.id, "instituteName", e.target.value)
-                                  }
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              {/* Additional info */}
+              <FormField
+                control={form.control}
+                name="jobProfile.additionalInfo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>أخرى (معلومات إضافية اختيارية)</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        rows={3}
+                        placeholder="أي معلومات إضافية تود إضافتها مثل شهادات، مهارات، أو ملاحظات خاصة..."
+                        className="focus-ring w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-[13.5px] text-foreground placeholder:text-muted-foreground"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Card>
 
-              {/* ── Server error ─────────────────────────────────────── */}
+            {/* ── CV Upload card ───────────────────────────────────── */}
+            <Card className="space-y-5 p-6">
+              <SectionHeading icon="upload" title="السيرة الذاتية" subtitle="ارفع ملف سيرتك الذاتية" tone="emerald" />
+              <FormField
+                control={form.control}
+                name="cvUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <CvUpload value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Card>
+
+            {/* ── Terms & errors ───────────────────────────────────── */}
+            <div className="space-y-3">
+              <FormField
+                control={form.control}
+                name="agreedToTerms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-[13px]">
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          className="accent-primary h-4 w-4"
+                        />
+                        <span>
+                          أوافق على{" "}
+                          <span className="text-primary underline">سياسة الخصوصية وشروط الاستخدام</span>
+                          . وأقر بصحة جميع البيانات المدخلة
+                        </span>
+                      </label>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {submitError && (
                 <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
                   <Icon name="info" size={13} />
@@ -528,47 +619,36 @@ export function ApplyPage() {
                     : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
                 </div>
               )}
+            </div>
 
-              {/* ── Actions ──────────────────────────────────────────── */}
-              <div className="flex items-center gap-3 border-t border-[var(--border)] pt-2">
-                <Btn type="submit" disabled={isPending}>
-                  {isPending ? (
-                    <>
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="14"
-                        height="14"
-                        className="animate-spin"
-                      >
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeDasharray="30 60"
-                        />
-                      </svg>
-                      جاري الإرسال…
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="send" size={14} /> إرسال الطلب
-                    </>
-                  )}
-                </Btn>
-                <span className="text-[12px] text-[var(--muted-foreground)]">
-                  نحترم خصوصيتك — بياناتك لن تتم مشاركتها.
-                </span>
+            {/* ── Actions ──────────────────────────────────────────── */}
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <Btn type="submit" disabled={isPending} className="flex-1 sm:flex-none sm:px-10">
+                {isPending ? (
+                  <>
+                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
+                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
+                    </svg>
+                    جاري الإرسال…
+                  </>
+                ) : (
+                  <>
+                    <Icon name="send" size={14} /> مراجعة البيانات وإرسال الطلب ✓
+                  </>
+                )}
+              </Btn>
+              <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+                <span>🔒 بياناتك محفوظة</span>
+                <span>✨ مجاني تماماً</span>
+                <span>✓ لا يلزم إنشاء حساب</span>
               </div>
-            </form>
-          </Form>
+            </div>
+          </form>
+        </Form>
 
-          <div className="border-t border-[var(--border)] px-8 py-4 text-center text-[11.5px] text-[var(--muted-foreground)]">
-            © 2026 جميع الحقوق محفوظة لـ ضم — نظام التوظيف.
-          </div>
-        </Card>
+        <div className="mt-6 text-center text-[11.5px] text-muted-foreground">
+          © 2026 جميع الحقوق محفوظة — منصة التوظيف
+        </div>
       </div>
     </div>
   )
