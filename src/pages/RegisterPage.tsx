@@ -6,13 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { useApp } from "@/context/AppContext"
 import { PhoneInput } from "@/components/ui/phone-input"
 
-type Step = "company" | "user"
-
 export function RegisterPage() {
   const { register } = useApp()
   const navigate = useNavigate()
 
-  // Company fields
   const [companyName, setCompanyName] = useState("")
   const [dialCode, setDialCode] = useState("+966")
   const [phoneNumber, setPhoneNumber] = useState("")
@@ -20,28 +17,20 @@ export function RegisterPage() {
   const [managerName, setManagerName] = useState("")
   const [companyRecord, setCompanyRecord] = useState("")
 
-  // User fields
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
 
-  const [step, setStep] = useState<Step>("company")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const nextStep = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!companyName.trim()) {
       setError("اسم الشركة مطلوب")
       return
     }
-    setError("")
-    setStep("user")
-  }
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
     if (!name.trim() || !email.trim() || !password) {
       setError("الاسم والبريد وكلمة المرور مطلوبة")
       return
@@ -115,37 +104,6 @@ export function RegisterPage() {
               أنشئ حساب شركتك في دقيقتين. راجع المتقدمين، صنّف السير الذاتية،
               وانشر الوظائف الجديدة من واجهة واحدة بسيطة.
             </p>
-
-            {/* Step indicators */}
-            <div className="mt-10 flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold transition-colors ${
-                    step === "company"
-                      ? "bg-[var(--primary)] text-white"
-                      : "bg-white/20 text-white"
-                  }`}
-                >
-                  {step === "user" ? <Icon name="check" size={13} strokeWidth={3} /> : "١"}
-                </div>
-                <span className="text-[13px] text-white/80">معلومات الشركة</span>
-              </div>
-              <div className="h-px w-8 bg-white/20" />
-              <div className="flex items-center gap-2">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold transition-colors ${
-                    step === "user"
-                      ? "bg-[var(--primary)] text-white"
-                      : "bg-white/20 text-white/50"
-                  }`}
-                >
-                  ٢
-                </div>
-                <span className={`text-[13px] ${step === "user" ? "text-white/80" : "text-white/40"}`}>
-                  بيانات المستخدم
-                </span>
-              </div>
-            </div>
           </div>
 
           <div className="text-[12px] text-white/50">
@@ -157,7 +115,7 @@ export function RegisterPage() {
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
         <div className="flex items-center justify-between p-6">
-          <div className="text-[12.5px] text-[var(--muted-foreground)]">
+          <div className="text-[12.5px] text-muted-foreground">
             لديك حساب بالفعل؟
           </div>
           <Link to="/login">
@@ -167,185 +125,162 @@ export function RegisterPage() {
           </Link>
         </div>
 
-        <div className="flex flex-1 items-center px-8 lg:px-12">
-          <div className="mx-auto w-full max-w-[400px]">
+        <div className="flex flex-1 items-start justify-center overflow-y-auto px-8 py-8 lg:px-12">
+          <form onSubmit={submit} className="w-full max-w-[400px]">
+            <h2 className="text-[26px] font-bold tracking-tight">
+              إنشاء حساب جديد
+            </h2>
+            <p className="mt-1 text-[13.5px] text-muted-foreground">
+              أدخل بيانات شركتك ومعلومات المسؤول لإنشاء الحساب.
+            </p>
 
-            {step === "company" ? (
-              <form onSubmit={nextStep}>
-                <h2 className="text-[26px] font-bold tracking-tight">
-                  معلومات الشركة
-                </h2>
-                <p className="mt-1 text-[13.5px] text-[var(--muted-foreground)]">
-                  أدخل بيانات شركتك لإنشاء حسابها على المنصة.
-                </p>
+            {/* Company section */}
+            <div className="mt-7 space-y-4">
+              <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                معلومات الشركة
+              </p>
 
-                <div className="mt-7 space-y-4">
-                  <div className="space-y-1.5">
-                    <DLabel required>اسم الشركة</DLabel>
-                    <DInput
-                      placeholder="مثال: شركة الأفق للتقنية"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel required>اسم الشركة</DLabel>
+                <DInput
+                  placeholder="مثال: شركة الأفق للتقنية"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <DLabel>رقم الهاتف</DLabel>
-                    <PhoneInput
-                      dialCode={dialCode}
-                      onDialCodeChange={setDialCode}
-                      number={phoneNumber}
-                      onNumberChange={setPhoneNumber}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel>رقم الهاتف</DLabel>
+                <PhoneInput
+                  dialCode={dialCode}
+                  onDialCodeChange={setDialCode}
+                  number={phoneNumber}
+                  onNumberChange={setPhoneNumber}
+                />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <DLabel>اسم المدير المسؤول</DLabel>
-                    <DInput
-                      placeholder="الاسم الكامل"
-                      value={managerName}
-                      onChange={(e) => setManagerName(e.target.value)}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel>اسم المدير المسؤول</DLabel>
+                <DInput
+                  placeholder="الاسم الكامل"
+                  value={managerName}
+                  onChange={(e) => setManagerName(e.target.value)}
+                />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <DLabel>العنوان</DLabel>
-                    <DInput
-                      placeholder="المدينة، الحي"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel>العنوان</DLabel>
+                <DInput
+                  placeholder="المدينة، الحي"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <DLabel>السجل التجاري</DLabel>
-                    <DInput
-                      placeholder="رقم السجل التجاري"
-                      value={companyRecord}
-                      onChange={(e) => setCompanyRecord(e.target.value)}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel>السجل التجاري</DLabel>
+                <DInput
+                  placeholder="رقم السجل التجاري"
+                  value={companyRecord}
+                  onChange={(e) => setCompanyRecord(e.target.value)}
+                />
+              </div>
+            </div>
 
-                  {error && (
-                    <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
-                      <Icon name="info" size={13} /> {error}
-                    </div>
-                  )}
+            {/* Divider */}
+            <div className="my-6 border-t border-border" />
 
-                  <Btn type="submit" size="lg" className="w-full">
-                    التالي <Icon name="chevLeft" size={14} />
-                  </Btn>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={submit}>
-                <button
-                  type="button"
-                  onClick={() => { setStep("company"); setError("") }}
-                  className="mb-5 flex items-center gap-1.5 text-[12.5px] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                >
-                  <Icon name="chevLeft" size={13} className="rotate-180" />
-                  رجوع
-                </button>
+            {/* User section */}
+            <div className="space-y-4">
+              <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                بيانات المستخدم
+              </p>
 
-                <h2 className="text-[26px] font-bold tracking-tight">
-                  بيانات المستخدم
-                </h2>
-                <p className="mt-1 text-[13.5px] text-[var(--muted-foreground)]">
-                  أنشئ حساب المسؤول الأول لشركة{" "}
-                  <span className="font-medium text-[var(--foreground)]">
-                    {companyName}
-                  </span>
-                  .
-                </p>
+              <div className="space-y-1.5">
+                <DLabel required>اسم المستخدم</DLabel>
+                <DInput
+                  placeholder="اسم المستخدم"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
 
-                <div className="mt-7 space-y-4">
-                  <div className="space-y-1.5">
-                    <DLabel required>الاسم الكامل</DLabel>
-                    <DInput
-                      placeholder="اسمك الكامل"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <DLabel required>البريد الإلكتروني</DLabel>
+                <DInput
+                  icon={<Icon name="mail" size={14} />}
+                  type="email"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <DLabel required>البريد الإلكتروني</DLabel>
-                    <DInput
-                      icon={<Icon name="mail" size={14} />}
-                      type="email"
-                      placeholder="name@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <DLabel required>كلمة المرور</DLabel>
-                    <div className="relative">
-                      <DInput
-                        type={showPw ? "text" : "password"}
-                        placeholder="8 أحرف على الأقل"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pe-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPw((s) => !s)}
-                        className="absolute inset-y-0 end-0 flex items-center pe-3 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      >
-                        <Icon name="eye" size={15} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
-                      <Icon name="info" size={13} /> {error}
-                    </div>
-                  )}
-
-                  <Btn
-                    type="submit"
-                    size="lg"
-                    className="w-full"
-                    disabled={loading}
+              <div className="space-y-1.5">
+                <DLabel required>كلمة المرور</DLabel>
+                <div className="relative">
+                  <DInput
+                    type={showPw ? "text" : "password"}
+                    placeholder="8 أحرف على الأقل"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pe-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((s) => !s)}
+                    className="absolute inset-y-0 inset-e-0 flex items-center pe-3 text-muted-foreground hover:text-foreground"
                   >
-                    {loading ? (
-                      <>
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="14"
-                          height="14"
-                          className="animate-spin"
-                        >
-                          <circle
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeDasharray="30 60"
-                          />
-                        </svg>
-                        جاري إنشاء الحساب…
-                      </>
-                    ) : (
-                      <>
-                        إنشاء الحساب <Icon name="chevLeft" size={14} />
-                      </>
-                    )}
-                  </Btn>
-
-                  <p className="text-center text-[11.5px] text-[var(--muted-foreground)]">
-                    بالنقر على "إنشاء الحساب" أنت توافق على شروط الخدمة وسياسة الخصوصية.
-                  </p>
+                    <Icon name="eye" size={15} />
+                  </button>
                 </div>
-              </form>
-            )}
-          </div>
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
+                  <Icon name="info" size={13} /> {error}
+                </div>
+              )}
+
+              <Btn
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      className="animate-spin"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray="30 60"
+                      />
+                    </svg>
+                    جاري إنشاء الحساب…
+                  </>
+                ) : (
+                  <>
+                    إنشاء الحساب <Icon name="chevLeft" size={14} />
+                  </>
+                )}
+              </Btn>
+
+              <p className="text-center text-[11.5px] text-muted-foreground">
+                بالنقر على "إنشاء الحساب" أنت توافق على شروط الخدمة وسياسة
+                الخصوصية.
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
