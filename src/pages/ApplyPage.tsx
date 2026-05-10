@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Btn, BrandLogo, DInput } from "@/components/shell"
+import { Combobox } from "@/components/ui/combobox"
 import {
   Form,
   FormControl,
@@ -93,6 +94,38 @@ const YEARS_OF_EXPERIENCE = [
   { value: "3_5", label: "3 - 5 سنوات" },
   { value: "5_10", label: "5 - 10 سنوات" },
   { value: "more_than_10", label: "أكثر من 10 سنوات" },
+]
+
+const NATIONALITIES = [
+  { value: "سعودي", label: "سعودي" },
+  { value: "مصري", label: "مصري" },
+  { value: "أردني", label: "أردني" },
+  { value: "سوري", label: "سوري" },
+  { value: "لبناني", label: "لبناني" },
+  { value: "عراقي", label: "عراقي" },
+  { value: "يمني", label: "يمني" },
+  { value: "فلسطيني", label: "فلسطيني" },
+  { value: "ليبي", label: "ليبي" },
+  { value: "تونسي", label: "تونسي" },
+  { value: "جزائري", label: "جزائري" },
+  { value: "مغربي", label: "مغربي" },
+  { value: "سوداني", label: "سوداني" },
+  { value: "إماراتي", label: "إماراتي" },
+  { value: "كويتي", label: "كويتي" },
+  { value: "بحريني", label: "بحريني" },
+  { value: "قطري", label: "قطري" },
+  { value: "عُماني", label: "عُماني" },
+  { value: "موريتاني", label: "موريتاني" },
+  { value: "جيبوتي", label: "جيبوتي" },
+  { value: "صومالي", label: "صومالي" },
+  { value: "باكستاني", label: "باكستاني" },
+  { value: "هندي", label: "هندي" },
+  { value: "بنغلاديشي", label: "بنغلاديشي" },
+  { value: "فلبيني", label: "فلبيني" },
+  { value: "إندونيسي", label: "إندونيسي" },
+  { value: "نيجيري", label: "نيجيري" },
+  { value: "إثيوبي", label: "إثيوبي" },
+  { value: "أخرى", label: "أخرى" },
 ]
 
 const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
@@ -482,7 +515,13 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel>الجنسية</FormLabel>
                       <FormControl>
-                        <DInput placeholder="اختر الجنسية" {...field} />
+                        <Combobox
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          options={NATIONALITIES}
+                          placeholder="اختر الجنسية"
+                          searchPlaceholder="ابحث عن جنسية…"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
