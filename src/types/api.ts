@@ -38,6 +38,14 @@ export interface SubmitApplicationBody {
   };
 }
 
+/** Response from POST /requests (self-apply) */
+export interface SubmitApplicationResponse {
+  id: string;
+  referenceNumber: string | null;
+  status: string;
+  createdAt: string;
+}
+
 export type RequestStatus =
   | "new"
   | "review"

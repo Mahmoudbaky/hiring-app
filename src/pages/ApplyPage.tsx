@@ -37,15 +37,19 @@ const schema = z.object({
   }),
   qualificationTypeId: z.string().optional(),
   qualificationYear: z.string().optional(),
-  jobProfile: z.object({
-    departmentId: z.string().optional(),
-    professionalGradeId: z.string().optional(),
-    generalSpecialtyId: z.string().optional(),
-    yearsOfExperience: z.string().optional(),
-    additionalInfo: z.string().optional(),
-  }).optional(),
+  jobProfile: z
+    .object({
+      departmentId: z.string().optional(),
+      professionalGradeId: z.string().optional(),
+      generalSpecialtyId: z.string().optional(),
+      yearsOfExperience: z.string().optional(),
+      additionalInfo: z.string().optional(),
+    })
+    .optional(),
   cvUrl: z.string().optional(),
-  agreedToTerms: z.boolean().refine((v) => v === true, "يجب الموافقة على الشروط"),
+  agreedToTerms: z
+    .boolean()
+    .refine((v) => v === true, "يجب الموافقة على الشروط"),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -110,7 +114,9 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-center gap-3 border-b border-border pb-4">
-      <div className={`tone-${tone} flex h-10 w-10 items-center justify-center rounded-lg`}>
+      <div
+        className={`tone-${tone} flex h-10 w-10 items-center justify-center rounded-lg`}
+      >
         <Icon name={icon as never} size={18} />
       </div>
       <div>
@@ -135,8 +141,16 @@ export function ApplyPage() {
     mutate: submit,
     isPending,
     isSuccess,
+    data: submitData,
     error: submitError,
   } = useSubmitApplication()
+
+  // Capture resolved label names at submission time for the success card
+  const [submittedInfo, setSubmittedInfo] = useState<{
+    name: string
+    jobLabel: string
+    specialtyLabel: string
+  } | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -164,9 +178,12 @@ export function ApplyPage() {
     },
   })
 
-  const selectedDepartmentId = form.watch("jobProfile.departmentId") || undefined
-  const { data: professionalGrades = [] } = useProfessionalGrades(selectedDepartmentId)
-  const { data: generalSpecialties = [] } = useGeneralSpecialties(selectedDepartmentId)
+  const selectedDepartmentId =
+    form.watch("jobProfile.departmentId") || undefined
+  const { data: professionalGrades = [] } =
+    useProfessionalGrades(selectedDepartmentId)
+  const { data: generalSpecialties = [] } =
+    useGeneralSpecialties(selectedDepartmentId)
 
   // Reset cascading selects when department changes
   const [prevDeptId, setPrevDeptId] = useState(selectedDepartmentId)
@@ -184,17 +201,33 @@ export function ApplyPage() {
   }, [preselectedCode, form])
 
   const onSubmit = (values: FormValues) => {
-    const qualifications =
-      values.qualificationTypeId
-        ? [
-            {
-              qualificationTypeId: values.qualificationTypeId,
-              yearObtained: values.qualificationYear
-                ? parseInt(values.qualificationYear, 10)
-                : undefined,
-            },
-          ]
-        : []
+    const qualifications = values.qualificationTypeId
+      ? [
+          {
+            qualificationTypeId: values.qualificationTypeId,
+            yearObtained: values.qualificationYear
+              ? parseInt(values.qualificationYear, 10)
+              : undefined,
+          },
+        ]
+      : []
+
+    const dept = departments.find(
+      (d) => d.id === values.jobProfile?.departmentId
+    )
+    const grade = professionalGrades.find(
+      (g) => g.id === values.jobProfile?.professionalGradeId
+    )
+    const specialty = generalSpecialties.find(
+      (s) => s.id === values.jobProfile?.generalSpecialtyId
+    )
+
+    const jobLabel = [dept?.name, grade?.name].filter(Boolean).join(" — ")
+    setSubmittedInfo({
+      name: values.applicant.name,
+      jobLabel,
+      specialtyLabel: specialty?.name ?? "",
+    })
 
     submit({
       hiringCompanyCode: values.hiringCompanyCode,
@@ -203,7 +236,8 @@ export function ApplyPage() {
       qualifications,
       jobProfile: {
         departmentId: values.jobProfile?.departmentId || undefined,
-        professionalGradeId: values.jobProfile?.professionalGradeId || undefined,
+        professionalGradeId:
+          values.jobProfile?.professionalGradeId || undefined,
         generalSpecialtyId: values.jobProfile?.generalSpecialtyId || undefined,
         yearsOfExperience: values.jobProfile?.yearsOfExperience || undefined,
         additionalInfo: values.jobProfile?.additionalInfo || undefined,
@@ -212,45 +246,112 @@ export function ApplyPage() {
   }
 
   /* ── Success screen ─────────────────────────────────────────────── */
-  if (isSuccess) {
+  if (isSuccess && submitData) {
+    const submittedAt = new Date(submitData.createdAt).toLocaleString("ar-EG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+
     return (
-      <div className="min-h-screen bg-background" dir="rtl">
-        <div className="mx-auto max-w-[860px] px-6 py-10">
-          <Card className="overflow-hidden">
-            <div className="public-header-bg flex items-center justify-between border-b border-border px-8 py-6">
-              <div className="flex items-center gap-3">
-                <BrandLogo size={40} />
-                <div className="border-s border-border ps-3">
-                  <div className="text-[18px] font-bold">منصة التوظيف</div>
-                  <div className="text-[12.5px] text-muted-foreground">
-                    نظام إدارة الموارد البشرية
-                  </div>
-                </div>
+      <div
+        className="flex min-h-screen items-start justify-center bg-muted/30 px-4 py-10"
+        dir="rtl"
+      >
+        <div className="w-full max-w-[520px]">
+          <p className="mb-4 text-center text-[13px] font-medium text-muted-foreground">
+            منصة التوظيف
+          </p>
+          <Card className="overflow-hidden shadow-lg">
+            <div className="px-8 pt-10 pb-6 text-center">
+              {/* Check circle */}
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-red-100 bg-red-50">
+                <Icon
+                  name="check"
+                  size={28}
+                  className="text-muted-foreground"
+                />
               </div>
-              <Badge tone="emerald" className="h-7">
-                <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.6_0.15_155)]" />
-                متاح حالياً
-              </Badge>
-            </div>
 
-            <div className="p-12 text-center">
-              <div className="tone-emerald mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                <Icon name="check" size={28} />
-              </div>
-              <h2 className="mb-2 text-[22px] font-bold">تم إرسال طلبك بنجاح</h2>
-              <p className="mx-auto max-w-md text-[14px] text-muted-foreground">
-                شكراً لاهتمامك بالانضمام إلى فريقنا. سيقوم فريق الموارد البشرية
-                بمراجعة طلبك والتواصل معك خلال 3-5 أيام عمل.
+              <h2 className="mb-1 text-[22px] font-bold">
+                تم إرسال طلبك بنجاح!
+              </h2>
+              <p className="mx-auto max-w-xs text-[13px] leading-relaxed text-muted-foreground">
+                سيتم مراجعة ملفك وعرضه على الشركات والمكاتب المناسبة قريباً
               </p>
-              <div className="mt-6 flex justify-center gap-3">
-                <Btn variant="outline" onClick={() => navigate("/careers")}>
-                  <Icon name="briefcase" size={14} /> استعراض الوظائف
-                </Btn>
+
+              {/* Reference number box */}
+              <div className="mt-6 rounded-xl border border-border bg-muted/30 px-6 py-4">
+                <p className="mb-1 text-[11.5px] text-muted-foreground">
+                  رقمك المرجعي
+                </p>
+                <p className="text-[22px] font-bold tracking-wide text-destructive">
+                  {submitData.referenceNumber ?? "—"}
+                </p>
+              </div>
+
+              {/* Status badge */}
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <span className="text-[13px] font-medium text-amber-600">
+                  قيد المراجعة
+                </span>
               </div>
             </div>
 
-            <div className="border-t border-border px-8 py-4 text-center text-[11.5px] text-muted-foreground">
-              © 2026 جميع الحقوق محفوظة — منصة التوظيف
+            {/* Details */}
+            <div className="mx-6 mb-2 border-t border-border" />
+            <div className="space-y-3 px-8 pb-4">
+              {submittedInfo?.name && (
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-muted-foreground">الاسم</span>
+                  <span className="font-semibold">{submittedInfo.name}</span>
+                </div>
+              )}
+              {submittedInfo?.jobLabel && (
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-muted-foreground">الوظيفة</span>
+                  <span className="font-semibold text-destructive">
+                    {submittedInfo.jobLabel}
+                  </span>
+                </div>
+              )}
+              {submittedInfo?.specialtyLabel && (
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-muted-foreground">التخصص</span>
+                  <span className="font-semibold text-destructive">
+                    {submittedInfo.specialtyLabel}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-muted-foreground">تاريخ الإرسال</span>
+                <span className="font-medium">{submittedAt}</span>
+              </div>
+            </div>
+
+            {/* Info note */}
+            {/* <div className="mx-6 mb-5 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 text-[12.5px] text-amber-700 text-center">
+              📱 تم إرسال الرقم المرجعي على جوالك وبريدك الإلكتروني
+            </div> */}
+
+            {/* Actions */}
+            <div className="flex flex-col gap-3 px-6 pb-8">
+              <Btn
+                className="w-full bg-destructive text-white hover:bg-destructive/90"
+                onClick={() => navigate("/careers")}
+              >
+                <Icon name="search" size={15} /> تتبع حالة طلبي
+              </Btn>
+              <Btn
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/")}
+              >
+                العودة للرئيسية
+              </Btn>
             </div>
           </Card>
         </div>
@@ -287,10 +388,14 @@ export function ApplyPage() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
             {/* ── Company card ────────────────────────────────────── */}
             <Card className="space-y-5 p-6">
-              <SectionHeading icon="briefcase" title="معلومات الطلب" subtitle="أدخل كود الشركة للمتابعة" tone="amber" />
+              <SectionHeading
+                icon="briefcase"
+                title="معلومات الطلب"
+                subtitle="أدخل كود الشركة للمتابعة"
+                tone="amber"
+              />
               <FormField
                 control={form.control}
                 name="hiringCompanyCode"
@@ -308,7 +413,12 @@ export function ApplyPage() {
 
             {/* ── Personal info card ──────────────────────────────── */}
             <Card className="space-y-5 p-6">
-              <SectionHeading icon="user" title="البيانات الشخصية" subtitle="معلومات أساسية للتواصل" tone="sky" />
+              <SectionHeading
+                icon="user"
+                title="البيانات الشخصية"
+                subtitle="معلومات أساسية للتواصل"
+                tone="sky"
+              />
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -317,7 +427,11 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel required>الاسم الكامل</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="user" size={14} />} placeholder="أدخل اسمك الكامل" {...field} />
+                        <DInput
+                          icon={<Icon name="user" size={14} />}
+                          placeholder="أدخل اسمك الكامل"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -331,7 +445,11 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel required>رقم الجوال</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="phone" size={14} />} placeholder="+966 5XX XXX XXXX" {...field} />
+                        <DInput
+                          icon={<Icon name="phone" size={14} />}
+                          placeholder="+966 5XX XXX XXXX"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -345,7 +463,12 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel required>البريد الإلكتروني</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@email.com" {...field} />
+                        <DInput
+                          icon={<Icon name="mail" size={14} />}
+                          type="email"
+                          placeholder="example@email.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -389,7 +512,10 @@ export function ApplyPage() {
                       <FormControl>
                         <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
                           {(["male", "female"] as const).map((val) => (
-                            <label key={val} className="flex cursor-pointer items-center gap-2">
+                            <label
+                              key={val}
+                              className="flex cursor-pointer items-center gap-2"
+                            >
                               <input
                                 type="radio"
                                 name="gender"
@@ -398,7 +524,9 @@ export function ApplyPage() {
                                 onChange={() => field.onChange(val)}
                                 className="accent-primary"
                               />
-                              <span className="text-[13.5px]">{val === "male" ? "ذكر" : "أنثى"}</span>
+                              <span className="text-[13.5px]">
+                                {val === "male" ? "ذكر" : "أنثى"}
+                              </span>
                             </label>
                           ))}
                         </div>
@@ -419,7 +547,10 @@ export function ApplyPage() {
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="اختر المؤهل"
-                          options={qualTypes.map((q) => ({ value: q.id, label: q.name }))}
+                          options={qualTypes.map((q) => ({
+                            value: q.id,
+                            label: q.name,
+                          }))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -450,7 +581,12 @@ export function ApplyPage() {
 
             {/* ── Job profile card ────────────────────────────────── */}
             <Card className="space-y-5 p-6">
-              <SectionHeading icon="briefcase" title="بيانات الوظيفة المطلوبة" subtitle="حدد قطاعك ودرجتك وتخصصك بدقة" tone="violet" />
+              <SectionHeading
+                icon="briefcase"
+                title="بيانات الوظيفة المطلوبة"
+                subtitle="حدد قطاعك ودرجتك وتخصصك بدقة"
+                tone="violet"
+              />
 
               {/* Cascading selects row */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -461,7 +597,9 @@ export function ApplyPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">1</span>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
+                          1
+                        </span>
                         القطاع
                       </FormLabel>
                       <FormControl>
@@ -469,7 +607,10 @@ export function ApplyPage() {
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="اختر القطاع"
-                          options={departments.map((d) => ({ value: d.id, label: d.name }))}
+                          options={departments.map((d) => ({
+                            value: d.id,
+                            label: d.name,
+                          }))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -484,7 +625,9 @@ export function ApplyPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">2</span>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
+                          2
+                        </span>
                         الدرجة المهنية
                       </FormLabel>
                       <FormControl>
@@ -493,7 +636,10 @@ export function ApplyPage() {
                           onChange={field.onChange}
                           placeholder="اختر الدرجة"
                           disabled={!selectedDepartmentId}
-                          options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
+                          options={professionalGrades.map((g) => ({
+                            value: g.id,
+                            label: g.name,
+                          }))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -508,7 +654,9 @@ export function ApplyPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">3</span>
+                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
+                          3
+                        </span>
                         التخصص العام
                       </FormLabel>
                       <FormControl>
@@ -517,7 +665,10 @@ export function ApplyPage() {
                           onChange={field.onChange}
                           placeholder="اختر التخصص"
                           disabled={!selectedDepartmentId}
-                          options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
+                          options={generalSpecialties.map((s) => ({
+                            value: s.id,
+                            label: s.name,
+                          }))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -569,7 +720,12 @@ export function ApplyPage() {
 
             {/* ── CV Upload card ───────────────────────────────────── */}
             <Card className="space-y-5 p-6">
-              <SectionHeading icon="upload" title="السيرة الذاتية" subtitle="ارفع ملف سيرتك الذاتية" tone="emerald" />
+              <SectionHeading
+                icon="upload"
+                title="السيرة الذاتية"
+                subtitle="ارفع ملف سيرتك الذاتية"
+                tone="emerald"
+              />
               <FormField
                 control={form.control}
                 name="cvUrl"
@@ -597,11 +753,13 @@ export function ApplyPage() {
                           type="checkbox"
                           checked={field.value}
                           onChange={(e) => field.onChange(e.target.checked)}
-                          className="accent-primary h-4 w-4"
+                          className="h-4 w-4 accent-primary"
                         />
                         <span>
                           أوافق على{" "}
-                          <span className="text-primary underline">سياسة الخصوصية وشروط الاستخدام</span>
+                          <span className="text-primary underline">
+                            سياسة الخصوصية وشروط الاستخدام
+                          </span>
                           . وأقر بصحة جميع البيانات المدخلة
                         </span>
                       </label>
@@ -623,17 +781,35 @@ export function ApplyPage() {
 
             {/* ── Actions ──────────────────────────────────────────── */}
             <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-              <Btn type="submit" disabled={isPending} className="flex-1 sm:flex-none sm:px-10">
+              <Btn
+                type="submit"
+                disabled={isPending}
+                className="flex-1 sm:flex-none sm:px-10"
+              >
                 {isPending ? (
                   <>
-                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
-                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      className="animate-spin"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray="30 60"
+                      />
                     </svg>
                     جاري الإرسال…
                   </>
                 ) : (
                   <>
-                    <Icon name="send" size={14} /> مراجعة البيانات وإرسال الطلب ✓
+                    <Icon name="send" size={14} /> مراجعة البيانات وإرسال الطلب
+                    ✓
                   </>
                 )}
               </Btn>

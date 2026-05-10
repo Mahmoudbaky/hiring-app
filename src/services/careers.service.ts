@@ -7,6 +7,7 @@ import type {
   ProfessionalGrade,
   GeneralSpecialty,
   SubmitApplicationBody,
+  SubmitApplicationResponse,
 } from '@/types/api';
 
 export const careersService = {
@@ -45,7 +46,8 @@ export const careersService = {
   },
 
   /** POST /requests — public self-apply with company code */
-  async submitApplication(body: SubmitApplicationBody): Promise<void> {
-    await api.post('/requests', body);
+  async submitApplication(body: SubmitApplicationBody): Promise<SubmitApplicationResponse> {
+    const res = await api.post<ApiResponse<SubmitApplicationResponse>>('/requests', body);
+    return res.data.data;
   },
 };
