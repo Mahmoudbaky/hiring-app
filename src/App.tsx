@@ -17,6 +17,8 @@ import { LoginPage } from "@/pages/LoginPage"
 import { RegisterPage } from "@/pages/RegisterPage"
 import { ProfilePage } from "@/pages/ProfilePage"
 import { HomePage } from "@/pages/HomePage"
+import { ContactPage } from "@/pages/ContactPage"
+import { ContactMessagesPage } from "@/pages/ContactMessagesPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -278,6 +280,15 @@ export default function App() {
         />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/contact-messages"
+          element={
+            <>
+              <SuperAdminOnly />
+              <ContactMessagesPage />
+            </>
+          }
+        />
       </Route>
 
       {/* Public routes — pages are self-contained */}
@@ -285,6 +296,7 @@ export default function App() {
       <Route path="/careers/:id" element={<JobDetailPage />} />
       <Route path="/apply" element={<ApplyPage />} />
       <Route path="/company/:code" element={<CompanyCardPage />} />
+      <Route path="/contact" element={<ContactPage />} />
 
       {/* Fallback */}
       <Route

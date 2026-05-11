@@ -333,6 +333,12 @@ const allNavItems = [
     superAdminOnly: true,
   },
   {
+    key: "contact-messages",
+    label: "رسائل التواصل",
+    icon: "mail",
+    superAdminOnly: true,
+  },
+  {
     key: "settings",
     label: "الإعدادات",
     icon: "settings",

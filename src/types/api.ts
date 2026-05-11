@@ -259,3 +259,24 @@ export interface CreateJobBody {
   isPublished: boolean;
   deadline?: string | null;
 }
+
+/** Body for POST /contact (public) */
+export interface SubmitContactBody {
+  fullName: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
+/** Contact message from GET /contact (super admin only) */
+export interface ContactMessage {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}

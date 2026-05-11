@@ -140,6 +140,14 @@ export function HomePage() {
               <span className="hidden md:inline text-[13.5px] font-medium">دخول الأدمن</span>
             </button>
 
+            <button
+              onClick={() => navigate("/contact")}
+              className="h-10 rounded-full bg-[var(--card)] border border-[var(--border)] hover:border-[var(--primary)] text-[var(--foreground)] flex items-center gap-2 transition-colors px-3 md:px-5"
+            >
+              <Icon name="mail" size={14} className="text-[var(--primary)]" />
+              <span className="hidden md:inline text-[13.5px] font-medium">اتصل بنا</span>
+            </button>
+
             <ThemeToggle />
           </div>
         </div>
@@ -218,6 +226,27 @@ export function HomePage() {
             cta="دخول الأدمن" tone="violet" icon="settings"
             onClick={() => navigate("/login")}
           />
+        </div>
+      </section>
+
+      {/* ── Contact CTA ───────────────────────────────────────────── */}
+      <section className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 pb-10 sm:pb-12">
+        <div className="rounded-2xl bg-[var(--primary)] px-6 py-8 sm:px-10 sm:py-10 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-[0_12px_40px_-12px_oklch(0.55_0.18_30/0.45)]">
+          <div className="text-center sm:text-start">
+            <h2 className="text-[20px] sm:text-[22px] font-bold text-white">
+              هل لديك استفسار؟
+            </h2>
+            <p className="mt-1 text-[13px] sm:text-[13.5px] text-white/75">
+              تواصل معنا وسيتم الرد عليك في أسرع وقت ممكن
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/contact")}
+            className="shrink-0 flex items-center gap-2.5 rounded-xl bg-white px-6 py-3 text-[14px] font-bold text-[var(--primary)] transition-opacity hover:opacity-90"
+          >
+            <Icon name="mail" size={16} />
+            اتصل بنا
+          </button>
         </div>
       </section>
 
