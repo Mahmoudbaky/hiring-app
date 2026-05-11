@@ -1,3 +1,13 @@
+/** Public company card returned by GET /companies/public/:code */
+export interface PublicCompany {
+  companyName: string;
+  uniqueCode: string;
+  logo: string | null;
+  phoneNumber: string | null;
+  address: string | null;
+  managerName: string | null;
+}
+
 /** Published job ad returned by GET /jobs/public */
 export interface PublicJob {
   id: string;

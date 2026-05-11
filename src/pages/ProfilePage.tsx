@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import { useApp } from "@/context/AppContext"
 import { PageHeader, Btn, DInput, DLabel } from "@/components/shell"
 import { Icon } from "@/components/icons"
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   useMyProfile,
@@ -103,6 +104,50 @@ function SavedBanner({ show }: { show: boolean }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[13px] text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
       <Icon name="check" size={14} /> تم الحفظ بنجاح
+    </div>
+  )
+}
+
+/* ── Share card banner ────────────────────────────────────────────── */
+function ShareCardBanner({ uniqueCode }: { uniqueCode?: string | null }) {
+  const [copied, setCopied] = useState(false)
+  if (!uniqueCode) return null
+
+  const cardUrl = `${window.location.origin}/company/${uniqueCode}`
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(cardUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="mb-6 flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10">
+          <Icon name="link" size={14} className="text-[var(--primary)]" />
+        </div>
+        <div>
+          <div className="text-[13px] font-medium">بطاقة الشركة العامة</div>
+          <div className="truncate font-mono text-[11px] text-[var(--muted-foreground)]">{cardUrl}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 self-end sm:self-auto">
+        <Btn type="button" variant="outline" size="sm" onClick={() => window.open(cardUrl, '_blank')}>
+          <Icon name="eye" size={13} /> معاينة
+        </Btn>
+        <Btn
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleCopy}
+          className={copied ? "text-emerald-600 border-emerald-300" : ""}
+        >
+          <Icon name={copied ? "check" : "link"} size={13} />
+          {copied ? "تم النسخ!" : "نسخ الرابط"}
+        </Btn>
+      </div>
     </div>
   )
 }
@@ -324,6 +369,8 @@ function CompanyTab() {
   }
 
   return (
+    <>
+    <ShareCardBanner uniqueCode={company?.uniqueCode} />
     <form onSubmit={handleSubmit}>
       <div className="grid gap-8 sm:grid-cols-[180px_1fr]">
         {/* Logo upload */}
@@ -407,6 +454,7 @@ function CompanyTab() {
         </div>
       </div>
     </form>
+    </>
   )
 }
 

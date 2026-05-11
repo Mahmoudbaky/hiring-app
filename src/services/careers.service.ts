@@ -1,6 +1,7 @@
 import api from '@/lib/api';
 import type {
   ApiResponse,
+  PublicCompany,
   PublicJob,
   QualificationType,
   Department,
@@ -11,6 +12,12 @@ import type {
 } from '@/types/api';
 
 export const careersService = {
+  /** GET /companies/public/:code — no auth required */
+  async getCompanyByCode(code: string): Promise<PublicCompany> {
+    const res = await api.get<ApiResponse<PublicCompany>>(`/companies/public/${code}`);
+    return res.data.data;
+  },
+
   /** GET /jobs/public — no auth required */
   async getPublishedJobs(): Promise<PublicJob[]> {
     const res = await api.get<ApiResponse<PublicJob[]>>('/jobs/public');

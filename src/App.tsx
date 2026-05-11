@@ -11,6 +11,7 @@ import { IncomingPage } from "@/pages/IncomingPage"
 import { JobsPage } from "@/pages/JobsPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { CareersPage, JobDetailPage } from "@/pages/CareersPage"
+import { CompanyCardPage } from "@/pages/CompanyCardPage"
 import { ApplyPage } from "@/pages/ApplyPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { RegisterPage } from "@/pages/RegisterPage"
@@ -283,6 +284,7 @@ export default function App() {
       <Route path="/careers" element={<CareersPage />} />
       <Route path="/careers/:id" element={<JobDetailPage />} />
       <Route path="/apply" element={<ApplyPage />} />
+      <Route path="/company/:code" element={<CompanyCardPage />} />
 
       {/* Fallback */}
       <Route
