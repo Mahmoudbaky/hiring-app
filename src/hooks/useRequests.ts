@@ -48,6 +48,16 @@ export function useSubmitManualApplication(onSuccess?: () => void, onError?: () 
   });
 }
 
+export function useMarkRequestViewed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => requestsService.markViewed(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: REQUESTS_QUERY_KEY });
+    },
+  });
+}
+
 export function usePrefetchRequests() {
   const queryClient = useQueryClient();
   return () => {

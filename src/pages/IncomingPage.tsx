@@ -19,6 +19,7 @@ import {
   useRequestDetail,
   useUpdateRequestStatus,
   useSubmitManualApplication,
+  useMarkRequestViewed,
 } from "@/hooks/useRequests"
 import { usePublishedJobs, useQualificationTypes } from "@/hooks/useCareers"
 import { useCompanies } from "@/hooks/useSettings"
@@ -797,6 +798,8 @@ export function IncomingPage() {
     () => toast({ title: "فشل تغيير الحالة", tone: "error" })
   )
 
+  const { mutate: markViewed } = useMarkRequestViewed()
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [manualApplyOpen, setManualApplyOpen] = useState(false)
   const [globalFilter, setGlobalFilter] = useState("")
@@ -850,12 +853,17 @@ export function IncomingPage() {
         id: "applicant",
         header: "المتقدم",
         cell: (info) => {
-          const { applicant } = info.row.original
+          const { applicant, isViewedByAdmin } = info.row.original
           return (
             <div className="flex items-center gap-3">
-              <Avatar name={applicant.name} size={34} />
+              <div className="relative shrink-0">
+                <Avatar name={applicant.name} size={34} />
+                {isSuperAdmin && !isViewedByAdmin && (
+                  <span className="absolute -end-0.5 -top-0.5 block h-2.5 w-2.5 rounded-full bg-[var(--primary)] ring-2 ring-[var(--card)]" />
+                )}
+              </div>
               <div>
-                <div className="text-[13.5px] font-medium">
+                <div className={cn("text-[13.5px]", isSuperAdmin && !isViewedByAdmin && "font-semibold")}>
                   {applicant.name}
                 </div>
                 <div className="text-[11.5px] text-muted-foreground">
@@ -967,7 +975,10 @@ export function IncomingPage() {
                 variant="ghost"
                 size="iconSm"
                 title="عرض التفاصيل"
-                onClick={() => setSelectedId(id)}
+                onClick={() => {
+                  setSelectedId(id)
+                  if (isSuperAdmin && !row.original.isViewedByAdmin) markViewed(id)
+                }}
               >
                 <Icon name="eye" size={15} />
               </Btn>
@@ -1046,7 +1057,11 @@ export function IncomingPage() {
       <PageHeader
         icon="users"
         title="إدارة طلبات التوظيف"
-        desc="راجع وصنّف طلبات المتقدمين للوظائف الشاغرة"
+        desc={
+          isSuperAdmin && requests.filter((r) => !r.isViewedByAdmin).length > 0
+            ? `${requests.filter((r) => !r.isViewedByAdmin).length} طلب لم تتم مراجعته بعد`
+            : "راجع وصنّف طلبات المتقدمين للوظائف الشاغرة"
+        }
         actions={
           <Btn onClick={() => setManualApplyOpen(true)}>
             <Icon name="plus" size={14} /> إضافة طلب يدوي

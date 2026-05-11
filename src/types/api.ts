@@ -71,6 +71,7 @@ export interface JobRequest {
   submissionType: "self" | "manual";
   cvUrl: string | null;
   notes: string | null;
+  isViewedByAdmin: boolean;
   createdAt: string;
   updatedAt: string;
   applicant: {

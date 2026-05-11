@@ -19,4 +19,8 @@ export const requestsService = {
   async submitManual(body: ManualApplicationBody): Promise<void> {
     await api.post("/requests/manual", body);
   },
+
+  async markViewed(id: string): Promise<void> {
+    await api.patch(`/requests/${id}/view`);
+  },
 };
