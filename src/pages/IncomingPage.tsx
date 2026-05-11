@@ -1,4 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from "react"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import type { DateRange } from "react-day-picker"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -1001,6 +1006,7 @@ export function IncomingPage() {
   const [specialtyFilter, setSpecialtyFilter] = useState("all")
   const [experienceFilter, setExperienceFilter] = useState("all")
   const [qualificationFilter, setQualificationFilter] = useState("all")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [sortField, setSortField] = useState<
     "date" | "name" | "status" | "company"
   >("date")
@@ -1020,6 +1026,7 @@ export function IncomingPage() {
     setSpecialtyFilter("all")
     setExperienceFilter("all")
     setQualificationFilter("all")
+    setDateRange(undefined)
     setSortField("date")
     setSortDir("desc")
     table.setPageIndex(0)
@@ -1121,6 +1128,14 @@ export function IncomingPage() {
       data = data.filter((r) =>
         r.qualifications.some((q) => q.name === qualificationFilter)
       )
+    if (dateRange?.from) {
+      const from = dateRange.from.getTime()
+      const to = dateRange.to ? dateRange.to.getTime() + 86399999 : from + 86399999
+      data = data.filter((r) => {
+        const t = new Date(r.createdAt).getTime()
+        return t >= from && t <= to
+      })
+    }
 
     data = [...data].sort((a, b) => {
       let av = ""
@@ -1153,6 +1168,7 @@ export function IncomingPage() {
     specialtyFilter,
     experienceFilter,
     qualificationFilter,
+    dateRange,
     sortField,
     sortDir,
   ])
@@ -1415,7 +1431,8 @@ export function IncomingPage() {
     gradeFilter !== "all" ||
     specialtyFilter !== "all" ||
     experienceFilter !== "all" ||
-    qualificationFilter !== "all"
+    qualificationFilter !== "all" ||
+    !!dateRange?.from
 
   return (
     <div>
@@ -1518,6 +1535,49 @@ export function IncomingPage() {
               { value: "female", label: "أنثى" },
             ]}
           />
+
+          {/* Date range */}
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] transition-colors",
+                    dateRange?.from
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border bg-card text-foreground hover:bg-accent"
+                  )}
+                />
+              }
+            >
+              <CalendarIcon size={14} />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                    {format(dateRange.to, "dd/MM/yyyy")}
+                  </>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy")
+                )
+              ) : (
+                <span className="text-muted-foreground">نطاق التاريخ</span>
+              )}
+            </PopoverTrigger>
+            <PopoverPopup>
+              <Calendar
+                defaultMonth={dateRange?.from}
+                mode="range"
+                numberOfMonths={2}
+                selected={dateRange}
+                onSelect={(range) => {
+                  setDateRange(range)
+                  table.setPageIndex(0)
+                }}
+              />
+            </PopoverPopup>
+          </Popover>
 
           {/* Unviewed toggle — super_admin only */}
           {isSuperAdmin && (
