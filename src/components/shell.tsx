@@ -320,12 +320,12 @@ const allNavItems = [
     icon: "briefcase",
     superAdminOnly: false,
   },
-  {
-    key: "jobs",
-    label: "الوظائف المتاحة",
-    icon: "globe",
-    superAdminOnly: true,
-  },
+  // {
+  //   key: "jobs",
+  //   label: "الوظائف المتاحة",
+  //   icon: "globe",
+  //   superAdminOnly: true,
+  // },
   {
     key: "dashboard",
     label: "الإحصائيات",

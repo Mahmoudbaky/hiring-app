@@ -33,6 +33,7 @@ export function Icon({ name, size = 16, className = '', strokeWidth = 1.6 }: Ico
     x:        <><path d="M6 6l12 12M6 18 18 6"/></>,
     trash:    <><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></>,
     undo:     <><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 1 1 0 10h-3"/></>,
+    sort:     <><path d="M3 6h18M7 12h10M11 18h2"/></>,
     chevDown: <><path d="m6 9 6 6 6-6"/></>,
     chevLeft: <><path d="m15 6-6 6 6 6"/></>,
     chevRight:<><path d="m9 6 6 6-6 6"/></>,

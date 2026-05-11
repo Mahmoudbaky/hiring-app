@@ -72,6 +72,7 @@ export interface JobRequest {
   cvUrl: string | null;
   notes: string | null;
   isViewedByAdmin: boolean;
+  yearsOfExperience: string | null;
   createdAt: string;
   updatedAt: string;
   applicant: {
@@ -80,6 +81,7 @@ export interface JobRequest {
     email: string;
     phone: string;
     gender: "male" | "female" | null;
+    nationality: string | null;
     currentJobLocation: string | null;
   };
   jobAd: {
@@ -90,10 +92,14 @@ export interface JobRequest {
     id: string;
     companyName: string;
   };
+  department: { id: string; name: string } | null;
+  professionalGrade: { id: string; name: string } | null;
+  generalSpecialty: { id: string; name: string } | null;
+  qualifications: { id: string; name: string }[];
 }
 
 /** Full request detail returned by GET /requests/:id (includes qualifications) */
-export interface JobRequestDetail extends Omit<JobRequest, "applicant"> {
+export interface JobRequestDetail extends Omit<JobRequest, "applicant" | "qualifications"> {
   applicant: JobRequest["applicant"] & {
     dateOfBirth: string | null;
     nationality: string | null;

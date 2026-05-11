@@ -40,6 +40,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { CvUpload } from "@/components/cv-upload"
+import { DSelect } from "@/components/ui/dselect"
 import { cn } from "@/lib/utils"
 import type { JobRequest, RequestStatus } from "@/types/api"
 
@@ -104,19 +105,17 @@ function FilterSelect({
   options: string[]
   placeholder: string
 }) {
+  const selectOptions = [
+    { value: "all", label: placeholder },
+    ...options.map((o) => ({ value: o, label: o })),
+  ]
   return (
-    <select
+    <DSelect
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 rounded-md border border-input bg-card px-2.5 text-[13px] text-foreground focus:outline-none"
-    >
-      <option value="all">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
+      onChange={(v) => onChange(String(v))}
+      options={selectOptions}
+      placeholder={placeholder}
+    />
   )
 }
 
@@ -285,32 +284,55 @@ function RequestDetailDialog({
               </div>
               {data.notes && (
                 <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
-                  <p className="mb-1 text-[11px] text-muted-foreground">ملاحظات</p>
+                  <p className="mb-1 text-[11px] text-muted-foreground">
+                    ملاحظات
+                  </p>
                   <p className="text-[13px]">{data.notes}</p>
                 </div>
               )}
             </Section>
 
             {/* Job profile */}
-            {(data.department || data.professionalGrade || data.generalSpecialty || data.yearsOfExperience) && (
+            {(data.department ||
+              data.professionalGrade ||
+              data.generalSpecialty ||
+              data.yearsOfExperience) && (
               <Section title="بيانات الوظيفة المطلوبة">
                 <div className="grid grid-cols-2 gap-4">
                   {data.department && (
-                    <InfoItem icon="briefcase" label="القطاع" value={data.department.name} />
+                    <InfoItem
+                      icon="briefcase"
+                      label="القطاع"
+                      value={data.department.name}
+                    />
                   )}
                   {data.professionalGrade && (
-                    <InfoItem icon="sparkles" label="الدرجة المهنية" value={data.professionalGrade.name} />
+                    <InfoItem
+                      icon="sparkles"
+                      label="الدرجة المهنية"
+                      value={data.professionalGrade.name}
+                    />
                   )}
                   {data.generalSpecialty && (
-                    <InfoItem icon="globe" label="التخصص العام" value={data.generalSpecialty.name} />
+                    <InfoItem
+                      icon="globe"
+                      label="التخصص العام"
+                      value={data.generalSpecialty.name}
+                    />
                   )}
                   {data.yearsOfExperience && (
-                    <InfoItem icon="clock" label="سنوات الخبرة" value={data.yearsOfExperience} />
+                    <InfoItem
+                      icon="clock"
+                      label="سنوات الخبرة"
+                      value={data.yearsOfExperience}
+                    />
                   )}
                 </div>
                 {data.additionalInfo && (
                   <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
-                    <p className="mb-1 text-[11px] text-muted-foreground">معلومات إضافية</p>
+                    <p className="mb-1 text-[11px] text-muted-foreground">
+                      معلومات إضافية
+                    </p>
                     <p className="text-[13px]">{data.additionalInfo}</p>
                   </div>
                 )}
@@ -429,7 +451,11 @@ function ManualApplyDialog({
   const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
   const { data: qualTypes = [] } = useQualificationTypes()
   const { data: companies = [] } = useCompanies()
-  const { mutate: submit, isPending, error: submitError } = useSubmitManualApplication(
+  const {
+    mutate: submit,
+    isPending,
+    error: submitError,
+  } = useSubmitManualApplication(
     () => {
       toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
       onClose()
@@ -497,7 +523,9 @@ function ManualApplyDialog({
       applicant: values.applicant,
       qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
         qualificationTypeId: typeId,
-        yearObtained: det.yearObtained ? parseInt(det.yearObtained, 10) : undefined,
+        yearObtained: det.yearObtained
+          ? parseInt(det.yearObtained, 10)
+          : undefined,
         instituteName: det.instituteName || undefined,
       })),
     })
@@ -529,7 +557,10 @@ function ManualApplyDialog({
       {/* Scrollable form */}
       <div className="max-h-[75vh] overflow-y-auto">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-5">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 p-5"
+          >
             {/* Company selection — super_admin only */}
             {isSuperAdmin && (
               <div className="space-y-3">
@@ -544,7 +575,10 @@ function ManualApplyDialog({
                     value={selectedCompanyId}
                     onChange={setSelectedCompanyId}
                     placeholder="اختر الشركة"
-                    options={companies.map((c) => ({ value: c.id, label: c.companyName }))}
+                    options={companies.map((c) => ({
+                      value: c.id,
+                      label: c.companyName,
+                    }))}
                   />
                 </div>
               </div>
@@ -565,8 +599,13 @@ function ManualApplyDialog({
                       <NativeSelect
                         value={field.value}
                         onChange={field.onChange}
-                        placeholder={jobsLoading ? "جاري التحميل…" : "اختر وظيفة"}
-                        options={jobs.map((j) => ({ value: j.id, label: j.adTitle }))}
+                        placeholder={
+                          jobsLoading ? "جاري التحميل…" : "اختر وظيفة"
+                        }
+                        options={jobs.map((j) => ({
+                          value: j.id,
+                          label: j.adTitle,
+                        }))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -588,7 +627,11 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel required>الاسم الكامل</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="user" size={14} />} placeholder="الاسم الثلاثي" {...field} />
+                        <DInput
+                          icon={<Icon name="user" size={14} />}
+                          placeholder="الاسم الثلاثي"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -601,7 +644,12 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel required>البريد الإلكتروني</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@domain.com" {...field} />
+                        <DInput
+                          icon={<Icon name="mail" size={14} />}
+                          type="email"
+                          placeholder="example@domain.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -614,7 +662,11 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel required>رقم الهاتف</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="phone" size={14} />} placeholder="05xxxxxxxx" {...field} />
+                        <DInput
+                          icon={<Icon name="phone" size={14} />}
+                          placeholder="05xxxxxxxx"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -661,7 +713,11 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel>مكان العمل الحالي</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="globe" size={14} />} placeholder="مثال: الرياض" {...field} />
+                        <DInput
+                          icon={<Icon name="globe" size={14} />}
+                          placeholder="مثال: الرياض"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -701,7 +757,10 @@ function ManualApplyDialog({
                     const checked = qt.id in qualDetails
                     const det = qualDetails[qt.id]
                     return (
-                      <div key={qt.id} className={idx > 0 ? "border-t border-border" : ""}>
+                      <div
+                        key={qt.id}
+                        className={idx > 0 ? "border-t border-border" : ""}
+                      >
                         <button
                           type="button"
                           onClick={() => toggleQual(qt.id)}
@@ -709,34 +768,63 @@ function ManualApplyDialog({
                         >
                           <div
                             className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                              checked ? "border-primary bg-primary" : "border-muted-foreground"
+                              checked
+                                ? "border-primary bg-primary"
+                                : "border-muted-foreground"
                             }`}
                           >
                             {checked && (
-                              <svg viewBox="0 0 10 8" width="10" height="8" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <svg
+                                viewBox="0 0 10 8"
+                                width="10"
+                                height="8"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
                                 <path d="M1 4l3 3 5-6" />
                               </svg>
                             )}
                           </div>
-                          <span className="text-[13.5px] text-foreground">{qt.name}</span>
+                          <span className="text-[13.5px] text-foreground">
+                            {qt.name}
+                          </span>
                         </button>
                         {checked && (
                           <div className="grid grid-cols-1 gap-4 border-t border-border bg-muted/40 px-4 py-4 sm:grid-cols-2">
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[12.5px] font-medium text-foreground">سنة الحصول</label>
+                              <label className="text-[12.5px] font-medium text-foreground">
+                                سنة الحصول
+                              </label>
                               <DInput
                                 type="number"
                                 placeholder="مثال: 2020"
                                 value={det.yearObtained}
-                                onChange={(e) => setQualField(qt.id, "yearObtained", e.target.value)}
+                                onChange={(e) =>
+                                  setQualField(
+                                    qt.id,
+                                    "yearObtained",
+                                    e.target.value
+                                  )
+                                }
                               />
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[12.5px] font-medium text-foreground">اسم المؤسسة التعليمية</label>
+                              <label className="text-[12.5px] font-medium text-foreground">
+                                اسم المؤسسة التعليمية
+                              </label>
                               <DInput
                                 placeholder="مثال: جامعة الملك سعود"
                                 value={det.instituteName}
-                                onChange={(e) => setQualField(qt.id, "instituteName", e.target.value)}
+                                onChange={(e) =>
+                                  setQualField(
+                                    qt.id,
+                                    "instituteName",
+                                    e.target.value
+                                  )
+                                }
                               />
                             </div>
                           </div>
@@ -752,7 +840,9 @@ function ManualApplyDialog({
             {submitError && (
               <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
                 <Icon name="info" size={13} />
-                {submitError instanceof Error ? submitError.message : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
+                {submitError instanceof Error
+                  ? submitError.message
+                  : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
               </div>
             )}
 
@@ -764,8 +854,21 @@ function ManualApplyDialog({
               <Btn type="submit" disabled={isPending}>
                 {isPending ? (
                   <>
-                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
-                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      className="animate-spin"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeDasharray="30 60"
+                      />
                     </svg>
                     جاري الإرسال…
                   </>
@@ -786,6 +889,43 @@ function ManualApplyDialog({
 /* ── Column helper ───────────────────────────────────────────────── */
 const col = createColumnHelper<JobRequest>()
 
+/* ── Stats strip ─────────────────────────────────────────────────── */
+function StatCard({
+  label,
+  value,
+  active,
+  onClick,
+}: {
+  label: string
+  value: number
+  active?: boolean
+  onClick?: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-center gap-1 rounded-xl border px-4 py-3 text-center transition-all",
+        onClick && "cursor-pointer hover:shadow-sm",
+        active
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "border-border bg-card hover:bg-accent/40"
+      )}
+    >
+      <span
+        className={cn(
+          "tabular text-[22px] leading-none font-bold",
+          active ? "text-primary" : "text-foreground"
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-[11.5px] text-muted-foreground">{label}</span>
+    </button>
+  )
+}
+
 /* ── Main page ───────────────────────────────────────────────────── */
 export function IncomingPage() {
   const { user } = useApp()
@@ -803,30 +943,175 @@ export function IncomingPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [manualApplyOpen, setManualApplyOpen] = useState(false)
   const [globalFilter, setGlobalFilter] = useState("")
-  const [jobFilter, setJobFilter] = useState("all")
   const [companyFilter, setCompanyFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all")
+  const [sourceFilter, setSourceFilter] = useState<"all" | "self" | "manual">(
+    "all"
+  )
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">(
+    "all"
+  )
+  const [nationalityFilter, setNationalityFilter] = useState("all")
+  const [departmentFilter, setDepartmentFilter] = useState("all")
+  const [gradeFilter, setGradeFilter] = useState("all")
+  const [specialtyFilter, setSpecialtyFilter] = useState("all")
+  const [experienceFilter, setExperienceFilter] = useState("all")
+  const [qualificationFilter, setQualificationFilter] = useState("all")
+  const [sortField, setSortField] = useState<
+    "date" | "name" | "status" | "company"
+  >("date")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const { openCv } = useOpenCv()
 
+  const resetFilters = () => {
+    setGlobalFilter("")
+    setCompanyFilter("all")
+    setStatusFilter("all")
+    setSourceFilter("all")
+    setGenderFilter("all")
+    setNationalityFilter("all")
+    setDepartmentFilter("all")
+    setGradeFilter("all")
+    setSpecialtyFilter("all")
+    setExperienceFilter("all")
+    setQualificationFilter("all")
+    setSortField("date")
+    setSortDir("desc")
+    table.setPageIndex(0)
+  }
+
+  /* Stats computed from all requests */
+  const stats = useMemo(() => {
+    const total = requests.length
+    const byStatus = Object.fromEntries(
+      Object.keys(STATUS_META).map((s) => [
+        s,
+        requests.filter((r) => r.status === s).length,
+      ])
+    ) as Record<RequestStatus, number>
+    const hiredCount = byStatus.hired ?? 0
+    const employmentRate =
+      total > 0 ? Math.round((hiredCount / total) * 100) : 0
+    return { total, byStatus, employmentRate }
+  }, [requests])
+
   /* Dropdown options derived from raw data */
-  const uniqueJobTitles = useMemo(
-    () => [...new Set(requests.map((r) => r.jobAd?.adTitle ?? "—"))].sort(),
-    [requests]
-  )
   const uniqueCompanies = useMemo(
     () => [...new Set(requests.map((r) => r.company.companyName))].sort(),
     [requests]
   )
+  const uniqueNationalities = useMemo(
+    () =>
+      [
+        ...new Set(
+          requests.map((r) => r.applicant.nationality).filter(Boolean)
+        ),
+      ].sort() as string[],
+    [requests]
+  )
+  const uniqueDepartments = useMemo(
+    () =>
+      [
+        ...new Set(requests.map((r) => r.department?.name).filter(Boolean)),
+      ].sort() as string[],
+    [requests]
+  )
+  const uniqueGrades = useMemo(
+    () =>
+      [
+        ...new Set(
+          requests.map((r) => r.professionalGrade?.name).filter(Boolean)
+        ),
+      ].sort() as string[],
+    [requests]
+  )
+  const uniqueSpecialties = useMemo(
+    () =>
+      [
+        ...new Set(
+          requests.map((r) => r.generalSpecialty?.name).filter(Boolean)
+        ),
+      ].sort() as string[],
+    [requests]
+  )
+  const uniqueExperiences = useMemo(
+    () =>
+      [
+        ...new Set(requests.map((r) => r.yearsOfExperience).filter(Boolean)),
+      ].sort() as string[],
+    [requests]
+  )
+  const uniqueQualifications = useMemo(
+    () =>
+      [
+        ...new Set(
+          requests.flatMap((r) => r.qualifications.map((q) => q.name))
+        ),
+      ].sort(),
+    [requests]
+  )
 
-  /* Pre-filter by dropdowns before handing to TanStack Table */
+  /* Pre-filter + sort before handing to TanStack Table */
   const preFiltered = useMemo(() => {
     let data = requests
-    if (jobFilter !== "all")
-      data = data.filter((r) => (r.jobAd?.adTitle ?? "—") === jobFilter)
     if (companyFilter !== "all")
       data = data.filter((r) => r.company.companyName === companyFilter)
+    if (statusFilter !== "all")
+      data = data.filter((r) => r.status === statusFilter)
+    if (sourceFilter !== "all")
+      data = data.filter((r) => r.submissionType === sourceFilter)
+    if (genderFilter !== "all")
+      data = data.filter((r) => r.applicant.gender === genderFilter)
+    if (nationalityFilter !== "all")
+      data = data.filter((r) => r.applicant.nationality === nationalityFilter)
+    if (departmentFilter !== "all")
+      data = data.filter((r) => r.department?.name === departmentFilter)
+    if (gradeFilter !== "all")
+      data = data.filter((r) => r.professionalGrade?.name === gradeFilter)
+    if (specialtyFilter !== "all")
+      data = data.filter((r) => r.generalSpecialty?.name === specialtyFilter)
+    if (experienceFilter !== "all")
+      data = data.filter((r) => r.yearsOfExperience === experienceFilter)
+    if (qualificationFilter !== "all")
+      data = data.filter((r) =>
+        r.qualifications.some((q) => q.name === qualificationFilter)
+      )
+
+    data = [...data].sort((a, b) => {
+      let av = ""
+      let bv = ""
+      if (sortField === "date") {
+        av = a.createdAt
+        bv = b.createdAt
+      } else if (sortField === "name") {
+        av = a.applicant.name
+        bv = b.applicant.name
+      } else if (sortField === "status") {
+        av = a.status
+        bv = b.status
+      } else {
+        av = a.company.companyName
+        bv = b.company.companyName
+      }
+      return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av)
+    })
     return data
-  }, [requests, jobFilter, companyFilter])
+  }, [
+    requests,
+    companyFilter,
+    statusFilter,
+    sourceFilter,
+    genderFilter,
+    nationalityFilter,
+    departmentFilter,
+    gradeFilter,
+    specialtyFilter,
+    experienceFilter,
+    qualificationFilter,
+    sortField,
+    sortDir,
+  ])
 
   /* Column definitions */
   const columns = useMemo(
@@ -863,7 +1148,12 @@ export function IncomingPage() {
                 )}
               </div>
               <div>
-                <div className={cn("text-[13.5px]", isSuperAdmin && !isViewedByAdmin && "font-semibold")}>
+                <div
+                  className={cn(
+                    "text-[13.5px]",
+                    isSuperAdmin && !isViewedByAdmin && "font-semibold"
+                  )}
+                >
                   {applicant.name}
                 </div>
                 <div className="text-[11.5px] text-muted-foreground">
@@ -977,7 +1267,8 @@ export function IncomingPage() {
                 title="عرض التفاصيل"
                 onClick={() => {
                   setSelectedId(id)
-                  if (isSuperAdmin && !row.original.isViewedByAdmin) markViewed(id)
+                  if (isSuperAdmin && !row.original.isViewedByAdmin)
+                    markViewed(id)
                 }}
               >
                 <Icon name="eye" size={15} />
@@ -1052,6 +1343,18 @@ export function IncomingPage() {
   const { pageIndex, pageSize } = table.getState().pagination
   const pageCount = table.getPageCount()
 
+  const hasActiveFilters =
+    globalFilter !== "" ||
+    companyFilter !== "all" ||
+    sourceFilter !== "all" ||
+    genderFilter !== "all" ||
+    nationalityFilter !== "all" ||
+    departmentFilter !== "all" ||
+    gradeFilter !== "all" ||
+    specialtyFilter !== "all" ||
+    experienceFilter !== "all" ||
+    qualificationFilter !== "all"
+
   return (
     <div>
       <PageHeader
@@ -1069,35 +1372,181 @@ export function IncomingPage() {
         }
       />
 
+      {/* ── Stats cards ─────────────────────────────────────────── */}
+      {!isLoading && requests.length > 0 && (
+        <div className="mb-4 grid grid-cols-4 gap-3 md:grid-cols-8">
+          <StatCard
+            label="الإجمالي"
+            value={stats.total}
+            active={statusFilter === "all"}
+            onClick={() => {
+              setStatusFilter("all")
+              table.setPageIndex(0)
+            }}
+          />
+          {(Object.entries(STATUS_META) as [RequestStatus, { label: string }][]).map(([key, meta]) => (
+            <StatCard
+              key={key}
+              label={meta.label}
+              value={stats.byStatus[key] ?? 0}
+              active={statusFilter === key}
+              onClick={() => {
+                setStatusFilter(key)
+                table.setPageIndex(0)
+              }}
+            />
+          ))}
+          <div className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card px-4 py-3 text-center">
+            <span className="tabular text-[22px] leading-none font-bold text-emerald-600">
+              {stats.employmentRate}%
+            </span>
+            <span className="text-[11.5px] text-muted-foreground">
+              معدل التوظيف
+            </span>
+          </div>
+        </div>
+      )}
+
       <Card className="overflow-hidden">
-        {/* ── Toolbar ────────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
+        {/* ── Row 1: Search + primary filters ────────────────────── */}
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-3">
           {/* Search */}
-          <div className="relative min-w-[200px] flex-1">
+          <div className="relative min-w-[220px] flex-1">
             <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               <Icon name="search" size={14} />
             </span>
             <input
               type="text"
               value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value)
+                table.setPageIndex(0)
+              }}
               placeholder="بحث بالاسم أو البريد أو الجوال…"
-              className="h-9 w-full rounded-md border border-[var(--input)] bg-card ps-3 pe-9 text-[13px] text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+              className="h-9 w-full rounded-md border border-input bg-card ps-3 pe-9 text-[13px] text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus:outline-none"
             />
           </div>
 
-          {/* Job filter */}
-          <FilterSelect
-            value={jobFilter}
-            onChange={(v) => {
-              setJobFilter(v)
-              table.setPageIndex(0)
-            }}
-            options={uniqueJobTitles}
-            placeholder="كل الوظائف"
+          {/* Source */}
+          <DSelect
+            value={sourceFilter}
+            onChange={(v) => { setSourceFilter(v as typeof sourceFilter); table.setPageIndex(0) }}
+            options={[
+              { value: "all", label: "كل المصادر" },
+              { value: "self", label: "ذاتي" },
+              { value: "manual", label: "يدوي" },
+            ]}
           />
 
-          {/* Company filter — super_admin only */}
+          {/* Gender */}
+          <DSelect
+            value={genderFilter}
+            onChange={(v) => { setGenderFilter(v as typeof genderFilter); table.setPageIndex(0) }}
+            options={[
+              { value: "all", label: "كل الجنس" },
+              { value: "male", label: "ذكر" },
+              { value: "female", label: "أنثى" },
+            ]}
+          />
+
+          {/* Unviewed toggle — super_admin only */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("all")
+                setGlobalFilter("")
+                setSourceFilter("all")
+                setGenderFilter("all")
+                setNationalityFilter("all")
+                // setJobFilter("all")
+                setCompanyFilter("all")
+              }}
+              className={cn(
+                "flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] transition-colors",
+                "border-border bg-card text-foreground hover:bg-accent"
+              )}
+            >
+              <Icon name="bell" size={14} />
+              غير مراجَعة
+              {requests.filter((r) => !r.isViewedByAdmin).length > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                  {requests.filter((r) => !r.isViewedByAdmin).length}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Reset */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              <Icon name="x" size={13} />
+              إعادة تعيين
+            </button>
+          )}
+
+          {/* Result count */}
+          <span className="tabular me-auto text-[12.5px] text-muted-foreground">
+            {filteredCount} طلب
+          </span>
+        </div>
+
+        {/* ── Row 2: Sort controls ────────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/30 px-5 py-2">
+          <span className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+            <Icon name="sort" size={13} />
+            ترتيب:
+          </span>
+          {(
+            [
+              { key: "date", label: "التاريخ" },
+              { key: "name", label: "الاسم" },
+              { key: "status", label: "الحالة" },
+              { key: "company", label: "الشركة" },
+            ] as { key: typeof sortField; label: string }[]
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                if (sortField === key)
+                  setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+                else {
+                  setSortField(key)
+                  setSortDir("desc")
+                }
+              }}
+              className={cn(
+                "flex h-7 items-center gap-1 rounded-md border px-2.5 text-[12.5px] transition-colors",
+                sortField === key
+                  ? "border-primary bg-primary/5 font-medium text-primary"
+                  : "border-border bg-card text-foreground hover:bg-accent"
+              )}
+            >
+              {label}
+              {sortField === key && (
+                <Icon
+                  name="chevDown"
+                  size={11}
+                  className={sortDir === "asc" ? "rotate-180" : ""}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Row 3: Advanced filters ─────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-2.5">
+          <span className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+            <Icon name="filter" size={13} />
+            فرز:
+          </span>
+
+          {/* Company — super_admin only */}
           {isSuperAdmin && (
             <FilterSelect
               value={companyFilter}
@@ -1110,24 +1559,181 @@ export function IncomingPage() {
             />
           )}
 
-          {/* Right side: badges + export */}
+          {/* Nationality */}
+          {uniqueNationalities.length > 0 && (
+            <FilterSelect
+              value={nationalityFilter}
+              onChange={(v) => { setNationalityFilter(v); table.setPageIndex(0) }}
+              options={uniqueNationalities}
+              placeholder="كل الجنسيات"
+            />
+          )}
+
+          {/* Status (duplicate of tabs for quick access in toolbar) */}
+          <DSelect
+            value={statusFilter}
+            onChange={(v) => { setStatusFilter(v as typeof statusFilter); table.setPageIndex(0) }}
+            options={[
+              { value: "all", label: "كل الحالات" },
+              ...(Object.entries(STATUS_META) as [RequestStatus, { label: string }][]).map(
+                ([k, m]) => ({ value: k, label: m.label })
+              ),
+            ]}
+          />
+
+          {/* Per-page + export on the right */}
           <div className="me-auto flex items-center gap-2">
-            {selectedCount > 0 && (
-              <Badge tone="sky" className="h-7 gap-1.5 px-2.5">
-                <span className="tabular font-semibold">{selectedCount}</span>
-                <span className="text-muted-foreground">محدد</span>
-              </Badge>
-            )}
-            <Badge tone="neutral" className="h-7 gap-1.5 px-2.5">
-              <span className="tabular font-semibold">{filteredCount}</span>
-              <span className="text-muted-foreground">طلب</span>
-            </Badge>
+            <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  table.setPageSize(Number(e.target.value))
+                  table.setPageIndex(0)
+                }}
+                className="h-8 rounded-md border border-input bg-card px-2 text-[13px] text-foreground focus:outline-none"
+              >
+                {[5, 10, 20, 50].map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <span>صف</span>
+            </div>
             <Btn variant="outline" size="sm" onClick={exportToExcel}>
               <Icon name="download" size={13} />
-              {selectedCount > 0 ? `تصدير (${selectedCount})` : "تصدير Excel"}
+              Excel
             </Btn>
           </div>
         </div>
+
+        {/* ── Row 4: Profile filters ───────────────────────────────── */}
+        {(uniqueDepartments.length > 0 ||
+          uniqueGrades.length > 0 ||
+          uniqueSpecialties.length > 0 ||
+          uniqueExperiences.length > 0 ||
+          uniqueQualifications.length > 0) && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-2.5">
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+              <Icon name="sparkles" size={13} />
+              الملف المهني:
+            </span>
+
+            {/* Department */}
+            {uniqueDepartments.length > 0 && (
+              <FilterSelect
+                value={departmentFilter}
+                onChange={(v) => {
+                  setDepartmentFilter(v)
+                  table.setPageIndex(0)
+                }}
+                options={uniqueDepartments}
+                placeholder="كل القطاعات"
+              />
+            )}
+
+            {/* Professional grade */}
+            {uniqueGrades.length > 0 && (
+              <FilterSelect
+                value={gradeFilter}
+                onChange={(v) => {
+                  setGradeFilter(v)
+                  table.setPageIndex(0)
+                }}
+                options={uniqueGrades}
+                placeholder="كل الدرجات المهنية"
+              />
+            )}
+
+            {/* General specialty */}
+            {uniqueSpecialties.length > 0 && (
+              <FilterSelect
+                value={specialtyFilter}
+                onChange={(v) => {
+                  setSpecialtyFilter(v)
+                  table.setPageIndex(0)
+                }}
+                options={uniqueSpecialties}
+                placeholder="كل التخصصات"
+              />
+            )}
+
+            {/* Years of experience */}
+            {uniqueExperiences.length > 0 && (
+              <FilterSelect
+                value={experienceFilter}
+                onChange={(v) => {
+                  setExperienceFilter(v)
+                  table.setPageIndex(0)
+                }}
+                options={uniqueExperiences}
+                placeholder="كل مستويات الخبرة"
+              />
+            )}
+
+            {/* Qualification type */}
+            {uniqueQualifications.length > 0 && (
+              <FilterSelect
+                value={qualificationFilter}
+                onChange={(v) => {
+                  setQualificationFilter(v)
+                  table.setPageIndex(0)
+                }}
+                options={uniqueQualifications}
+                placeholder="كل المؤهلات"
+              />
+            )}
+          </div>
+        )}
+
+        {/* ── Row 5: Bulk actions (when selection > 0) ───────────── */}
+        {selectedCount > 0 && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-[oklch(0.97_0.03_30)] px-5 py-2.5 dark:bg-[oklch(0.22_0.03_30)]">
+            <span className="text-[13px] font-medium text-primary">
+              ✓ تم تحديد {selectedCount} {selectedCount === 1 ? "طلب" : "طلبات"}
+            </span>
+            <div className="me-auto flex items-center gap-2">
+              {/* Bulk status change */}
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (!e.target.value) return
+                  const newStatus = e.target.value as RequestStatus
+                  table
+                    .getSelectedRowModel()
+                    .rows.forEach((row) =>
+                      changeStatus({ id: row.original.id, status: newStatus })
+                    )
+                  setRowSelection({})
+                  e.target.value = ""
+                }}
+                className="h-8 rounded-md border border-input bg-card px-2 text-[12.5px] text-foreground focus:outline-none"
+              >
+                <option value="">تحديث الحالة…</option>
+                {(
+                  Object.entries(STATUS_META) as [
+                    RequestStatus,
+                    { label: string },
+                  ][]
+                ).map(([k, m]) => (
+                  <option key={k} value={k}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <Btn variant="outline" size="sm" onClick={exportToExcel}>
+                <Icon name="download" size={13} /> تصدير ({selectedCount})
+              </Btn>
+              <button
+                type="button"
+                onClick={() => setRowSelection({})}
+                className="flex h-8 items-center gap-1 rounded-md border border-border bg-card px-2.5 text-[12.5px] text-muted-foreground hover:bg-accent"
+              >
+                <Icon name="x" size={12} /> إلغاء التحديد
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Table ──────────────────────────────────────────────── */}
         <div className="overflow-x-auto">
@@ -1206,28 +1812,8 @@ export function IncomingPage() {
           </table>
         </div>
 
-        {/* ── Footer: per-page + pagination ──────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-3">
-          {/* Rows per page */}
-          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-            <span>عرض</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value))
-                table.setPageIndex(0)
-              }}
-              className="h-8 rounded-md border border-[var(--input)] bg-card px-2 text-[13px] text-foreground focus:outline-none"
-            >
-              {[5, 10, 20].map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <span>صف لكل صفحة</span>
-          </div>
-
+        {/* ── Footer: pagination ─────────────────────────────────── */}
+        <div className="flex flex-wrap items-center justify-end gap-4 border-t border-border px-5 py-3">
           {/* Range label + nav buttons */}
           <div className="flex items-center gap-3">
             <span className="tabular text-[12px] text-muted-foreground">
