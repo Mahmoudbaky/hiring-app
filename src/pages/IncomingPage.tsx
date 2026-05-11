@@ -1134,6 +1134,15 @@ export function IncomingPage() {
         ),
       }),
 
+      col.accessor("referenceNumber", {
+        header: "الرقم المرجعي",
+        cell: (info) => (
+          <span className="tabular text-[12.5px] text-muted-foreground">
+            {info.getValue() ?? "—"}
+          </span>
+        ),
+      }),
+
       col.accessor((r) => r.applicant.name, {
         id: "applicant",
         header: "المتقدم",
@@ -1194,6 +1203,15 @@ export function IncomingPage() {
             }),
           ]
         : []),
+
+      col.accessor("submissionType", {
+        header: "المصدر",
+        cell: (info) => (
+          <Badge tone={info.getValue() === "self" ? "sky" : "amber"}>
+            {info.getValue() === "self" ? "ذاتي" : "يدوي"}
+          </Badge>
+        ),
+      }),
 
       col.accessor("status", {
         header: "الحالة",
@@ -1384,7 +1402,9 @@ export function IncomingPage() {
               table.setPageIndex(0)
             }}
           />
-          {(Object.entries(STATUS_META) as [RequestStatus, { label: string }][]).map(([key, meta]) => (
+          {(
+            Object.entries(STATUS_META) as [RequestStatus, { label: string }][]
+          ).map(([key, meta]) => (
             <StatCard
               key={key}
               label={meta.label}
@@ -1430,7 +1450,10 @@ export function IncomingPage() {
           {/* Source */}
           <DSelect
             value={sourceFilter}
-            onChange={(v) => { setSourceFilter(v as typeof sourceFilter); table.setPageIndex(0) }}
+            onChange={(v) => {
+              setSourceFilter(v as typeof sourceFilter)
+              table.setPageIndex(0)
+            }}
             options={[
               { value: "all", label: "كل المصادر" },
               { value: "self", label: "ذاتي" },
@@ -1441,7 +1464,10 @@ export function IncomingPage() {
           {/* Gender */}
           <DSelect
             value={genderFilter}
-            onChange={(v) => { setGenderFilter(v as typeof genderFilter); table.setPageIndex(0) }}
+            onChange={(v) => {
+              setGenderFilter(v as typeof genderFilter)
+              table.setPageIndex(0)
+            }}
             options={[
               { value: "all", label: "كل الجنس" },
               { value: "male", label: "ذكر" },
@@ -1563,7 +1589,10 @@ export function IncomingPage() {
           {uniqueNationalities.length > 0 && (
             <FilterSelect
               value={nationalityFilter}
-              onChange={(v) => { setNationalityFilter(v); table.setPageIndex(0) }}
+              onChange={(v) => {
+                setNationalityFilter(v)
+                table.setPageIndex(0)
+              }}
               options={uniqueNationalities}
               placeholder="كل الجنسيات"
             />
@@ -1572,12 +1601,18 @@ export function IncomingPage() {
           {/* Status (duplicate of tabs for quick access in toolbar) */}
           <DSelect
             value={statusFilter}
-            onChange={(v) => { setStatusFilter(v as typeof statusFilter); table.setPageIndex(0) }}
+            onChange={(v) => {
+              setStatusFilter(v as typeof statusFilter)
+              table.setPageIndex(0)
+            }}
             options={[
               { value: "all", label: "كل الحالات" },
-              ...(Object.entries(STATUS_META) as [RequestStatus, { label: string }][]).map(
-                ([k, m]) => ({ value: k, label: m.label })
-              ),
+              ...(
+                Object.entries(STATUS_META) as [
+                  RequestStatus,
+                  { label: string },
+                ][]
+              ).map(([k, m]) => ({ value: k, label: m.label })),
             ]}
           />
 

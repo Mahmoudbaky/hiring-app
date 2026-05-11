@@ -72,6 +72,7 @@ export interface JobRequest {
   cvUrl: string | null;
   notes: string | null;
   isViewedByAdmin: boolean;
+  referenceNumber: string | null;
   yearsOfExperience: string | null;
   createdAt: string;
   updatedAt: string;
