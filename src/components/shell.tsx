@@ -308,6 +308,12 @@ function UniqueCodeBadge({ code }: { code: string }) {
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 const allNavItems = [
+  // {
+  //   key: "profile",
+  //   label: "الملف الشخصي",
+  //   icon: "users",
+  //   superAdminOnly: false,
+  // },
   {
     key: "incoming",
     label: "طلبات التوظيف",
@@ -330,12 +336,6 @@ const allNavItems = [
     key: "settings",
     label: "الإعدادات",
     icon: "settings",
-    superAdminOnly: false,
-  },
-  {
-    key: "profile",
-    label: "الملف الشخصي",
-    icon: "users",
     superAdminOnly: false,
   },
 ]
