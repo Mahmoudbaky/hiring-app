@@ -31,6 +31,13 @@ export const settingsService = {
     const res = await api.post<ApiResponse<CompanyUser>>('/users', body);
     return res.data.data;
   },
+  async freezeUser(id: string, isFrozen: boolean): Promise<CompanyUser> {
+    const res = await api.patch<ApiResponse<CompanyUser>>(`/users/${id}`, { isFrozen });
+    return res.data.data;
+  },
+  async deleteUser(id: string): Promise<void> {
+    await api.delete(`/users/${id}`);
+  },
 
   // Job Titles
   async listJobTitles(): Promise<JobTitle[]> {

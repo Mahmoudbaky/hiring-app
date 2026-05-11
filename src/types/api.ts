@@ -213,6 +213,7 @@ export interface CompanyUser {
   name: string;
   email: string;
   phoneNumber: string | null;
+  isFrozen: boolean;
   role: 'super_admin' | 'company_user';
   hiringCompanyId: string | null;
   createdAt: string;

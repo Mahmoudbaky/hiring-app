@@ -30,6 +30,21 @@ export function useCreateUser(onSuccess?: () => void) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: USERS_QUERY_KEY }); onSuccess?.(); },
   });
 }
+export function useFreezeUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isFrozen }: { id: string; isFrozen: boolean }) =>
+      settingsService.freezeUser(id, isFrozen),
+    onSuccess: () => qc.invalidateQueries({ queryKey: USERS_QUERY_KEY }),
+  });
+}
+export function useDeleteUser(onSuccess?: () => void) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => settingsService.deleteUser(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: USERS_QUERY_KEY }); onSuccess?.(); },
+  });
+}
 
 // Job Titles
 export function useJobTitlesSettings() {
