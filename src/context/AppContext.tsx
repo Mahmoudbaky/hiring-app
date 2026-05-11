@@ -24,6 +24,7 @@ export interface RegisterCompanyData {
   name: string;
   email: string;
   password: string;
+  userPhoneNumber?: string;
 }
 
 interface AppCtx {

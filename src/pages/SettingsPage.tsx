@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useApp } from "@/context/AppContext"
 import { PageHeader, Btn, DInput, DLabel, Th, Td } from "@/components/shell"
 import { DSelect } from "@/components/ui/dselect"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { DDialog } from "@/components/ui/ddialog"
 import { DSwitch } from "@/components/ui/dswitch"
 import { Icon } from "@/components/icons"
@@ -259,6 +260,8 @@ function UsersTab() {
     name: "",
     email: "",
     password: "",
+    dialCode: "+966",
+    phoneNumber: "",
     hiringCompanyId: isSuperAdmin ? "" : (me?.hiringCompanyId ?? ""),
   }
   const [open, setOpen] = useState(false)
@@ -294,6 +297,7 @@ function UsersTab() {
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
+      phoneNumber: form.phoneNumber ? `${form.dialCode}${form.phoneNumber}` : undefined,
       hiringCompanyId: form.hiringCompanyId || undefined,
     })
   }
@@ -415,6 +419,15 @@ function UsersTab() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, password: e.target.value }))
                 }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <DLabel>رقم الهاتف</DLabel>
+              <PhoneInput
+                dialCode={form.dialCode}
+                onDialCodeChange={(v) => setForm((f) => ({ ...f, dialCode: v }))}
+                number={form.phoneNumber}
+                onNumberChange={(v) => setForm((f) => ({ ...f, phoneNumber: v }))}
               />
             </div>
             <div className="space-y-1.5">

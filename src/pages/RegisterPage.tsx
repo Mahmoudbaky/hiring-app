@@ -19,6 +19,8 @@ export function RegisterPage() {
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [userDialCode, setUserDialCode] = useState("+966")
+  const [userPhoneNumber, setUserPhoneNumber] = useState("")
   const [password, setPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
 
@@ -51,6 +53,7 @@ export function RegisterPage() {
         name,
         email,
         password,
+        userPhoneNumber: userPhoneNumber ? `${userDialCode}${userPhoneNumber}` : undefined,
       })
       navigate("/incoming", { replace: true })
     } catch (err) {
@@ -213,6 +216,16 @@ export function RegisterPage() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <DLabel>رقم الهاتف</DLabel>
+                <PhoneInput
+                  dialCode={userDialCode}
+                  onDialCodeChange={setUserDialCode}
+                  number={userPhoneNumber}
+                  onNumberChange={setUserPhoneNumber}
                 />
               </div>
 

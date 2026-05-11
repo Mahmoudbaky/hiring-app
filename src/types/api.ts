@@ -212,6 +212,7 @@ export interface CompanyUser {
   id: string;
   name: string;
   email: string;
+  phoneNumber: string | null;
   role: 'super_admin' | 'company_user';
   hiringCompanyId: string | null;
   createdAt: string;
@@ -222,6 +223,7 @@ export interface CreateUserBody {
   name: string;
   email: string;
   password: string;
+  phoneNumber?: string;
   hiringCompanyId?: string;
 }
 
