@@ -18,10 +18,15 @@ import {
   useRequests,
   useRequestDetail,
   useUpdateRequestStatus,
-  useSubmitManualApplication,
   useMarkRequestViewed,
 } from "@/hooks/useRequests"
-import { usePublishedJobs, useQualificationTypes } from "@/hooks/useCareers"
+import {
+  useQualificationTypes,
+  useDepartments,
+  useProfessionalGrades,
+  useGeneralSpecialties,
+  useSubmitApplication,
+} from "@/hooks/useCareers"
 import { useCompanies } from "@/hooks/useSettings"
 import { useOpenCv } from "@/hooks/useOpenCv"
 import { useToast } from "@/components/ui/toast"
@@ -41,6 +46,7 @@ import {
 } from "@/components/ui/form"
 import { CvUpload } from "@/components/cv-upload"
 import { DSelect } from "@/components/ui/dselect"
+import { Combobox } from "@/components/ui/combobox"
 import { cn } from "@/lib/utils"
 import type { JobRequest, RequestStatus } from "@/types/api"
 
@@ -395,47 +401,77 @@ function RequestDetailDialog({
   )
 }
 
-/* ── Manual apply schema ─────────────────────────────────────────── */
+/* ── Manual apply schema (mirrors self-apply) ────────────────────── */
 const manualSchema = z.object({
-  jobAdId: z.string().min(1, "الرجاء اختيار وظيفة"),
+  hiringCompanyCode: z.string().min(1),
   applicant: z.object({
     name: z.string().min(1, "الاسم مطلوب"),
     email: z.string().email("بريد إلكتروني غير صالح"),
     phone: z.string().min(1, "رقم الهاتف مطلوب"),
     gender: z.enum(["male", "female"]).optional(),
     dateOfBirth: z.string().optional(),
-    currentJobLocation: z.string().optional(),
+    nationality: z.string().optional(),
   }),
+  qualificationTypeId: z.string().optional(),
+  qualificationYear: z.string().optional(),
+  jobProfile: z
+    .object({
+      departmentId: z.string().optional(),
+      professionalGradeId: z.string().optional(),
+      generalSpecialtyId: z.string().optional(),
+      yearsOfExperience: z.string().optional(),
+      additionalInfo: z.string().optional(),
+    })
+    .optional(),
   cvUrl: z.string().optional(),
 })
 type ManualFormValues = z.infer<typeof manualSchema>
 
-function NativeSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  value: string
-  onChange: (v: string) => void
-  options: { value: string; label: string }[]
-  placeholder?: string
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="focus-ring h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] text-foreground"
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  )
-}
+
+const YEARS_OF_EXPERIENCE = [
+  { value: "less_than_1", label: "أقل من سنة" },
+  { value: "1_3", label: "1 - 3 سنوات" },
+  { value: "3_5", label: "3 - 5 سنوات" },
+  { value: "5_10", label: "5 - 10 سنوات" },
+  { value: "more_than_10", label: "أكثر من 10 سنوات" },
+]
+
+const NATIONALITIES = [
+  { value: "سعودي", label: "سعودي" },
+  { value: "مصري", label: "مصري" },
+  { value: "أردني", label: "أردني" },
+  { value: "سوري", label: "سوري" },
+  { value: "لبناني", label: "لبناني" },
+  { value: "عراقي", label: "عراقي" },
+  { value: "يمني", label: "يمني" },
+  { value: "فلسطيني", label: "فلسطيني" },
+  { value: "ليبي", label: "ليبي" },
+  { value: "تونسي", label: "تونسي" },
+  { value: "جزائري", label: "جزائري" },
+  { value: "مغربي", label: "مغربي" },
+  { value: "سوداني", label: "سوداني" },
+  { value: "إماراتي", label: "إماراتي" },
+  { value: "كويتي", label: "كويتي" },
+  { value: "بحريني", label: "بحريني" },
+  { value: "قطري", label: "قطري" },
+  { value: "عُماني", label: "عُماني" },
+  { value: "موريتاني", label: "موريتاني" },
+  { value: "جيبوتي", label: "جيبوتي" },
+  { value: "صومالي", label: "صومالي" },
+  { value: "باكستاني", label: "باكستاني" },
+  { value: "هندي", label: "هندي" },
+  { value: "بنغلاديشي", label: "بنغلاديشي" },
+  { value: "فلبيني", label: "فلبيني" },
+  { value: "إندونيسي", label: "إندونيسي" },
+  { value: "نيجيري", label: "نيجيري" },
+  { value: "إثيوبي", label: "إثيوبي" },
+  { value: "أخرى", label: "أخرى" },
+]
+
+const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
+  const year = new Date().getFullYear() - i
+  return { value: String(year), label: String(year) }
+})
 
 /* ── Manual apply dialog ─────────────────────────────────────────── */
 function ManualApplyDialog({
@@ -448,87 +484,98 @@ function ManualApplyDialog({
   const toast = useToast()
   const { user } = useApp()
   const isSuperAdmin = user?.role === "super_admin"
-  const { data: jobs = [], isLoading: jobsLoading } = usePublishedJobs()
   const { data: qualTypes = [] } = useQualificationTypes()
+  const { data: departments = [] } = useDepartments()
   const { data: companies = [] } = useCompanies()
-  const {
-    mutate: submit,
-    isPending,
-    error: submitError,
-  } = useSubmitManualApplication(
-    () => {
-      toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
-      onClose()
-    },
-    () => toast({ title: "فشل إضافة الطلب", tone: "error" })
-  )
+  const { mutate: submit, isPending, error: submitError } = useSubmitApplication()
 
-  const [selectedCompanyId, setSelectedCompanyId] = useState("")
-  const [qualDetails, setQualDetails] = useState<
-    Record<string, { yearObtained: string; instituteName: string }>
-  >({})
+  const [selectedCompanyCode, setSelectedCompanyCode] = useState("")
+  const companyCode = isSuperAdmin ? selectedCompanyCode : (user?.uniqueCode ?? "")
 
   const form = useForm<ManualFormValues>({
     resolver: zodResolver(manualSchema),
     defaultValues: {
-      jobAdId: "",
+      hiringCompanyCode: companyCode,
       cvUrl: "",
+      qualificationTypeId: "",
+      qualificationYear: "",
       applicant: {
         name: "",
         email: "",
         phone: "",
         gender: undefined,
         dateOfBirth: "",
-        currentJobLocation: "",
+        nationality: "",
+      },
+      jobProfile: {
+        departmentId: "",
+        professionalGradeId: "",
+        generalSpecialtyId: "",
+        yearsOfExperience: "",
+        additionalInfo: "",
       },
     },
   })
 
+  const selectedDepartmentId = form.watch("jobProfile.departmentId") || undefined
+  const { data: professionalGrades = [] } = useProfessionalGrades(selectedDepartmentId)
+  const { data: generalSpecialties = [] } = useGeneralSpecialties(selectedDepartmentId)
+
+  const [prevDeptId, setPrevDeptId] = useState(selectedDepartmentId)
+  useEffect(() => {
+    if (selectedDepartmentId !== prevDeptId) {
+      form.setValue("jobProfile.professionalGradeId", "")
+      form.setValue("jobProfile.generalSpecialtyId", "")
+      setPrevDeptId(selectedDepartmentId)
+    }
+  }, [selectedDepartmentId, prevDeptId, form])
+
   useEffect(() => {
     if (!open) {
       form.reset()
-      setQualDetails({})
-      setSelectedCompanyId("")
+      setSelectedCompanyCode("")
     }
   }, [open, form])
 
-  const toggleQual = (id: string) => {
-    setQualDetails((prev) => {
-      if (id in prev) {
-        const next = { ...prev }
-        delete next[id]
-        return next
-      }
-      return { ...prev, [id]: { yearObtained: "", instituteName: "" } }
-    })
-  }
-
-  const setQualField = (
-    id: string,
-    key: "yearObtained" | "instituteName",
-    value: string
-  ) => {
-    setQualDetails((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }))
-  }
-
   const onSubmit = (values: ManualFormValues) => {
-    if (isSuperAdmin && !selectedCompanyId) {
+    if (isSuperAdmin && !selectedCompanyCode) {
       toast({ title: "الرجاء اختيار الشركة", tone: "error" })
       return
     }
-    submit({
-      jobAdId: values.jobAdId,
-      companyId: isSuperAdmin ? selectedCompanyId : undefined,
-      cvUrl: values.cvUrl || undefined,
-      applicant: values.applicant,
-      qualifications: Object.entries(qualDetails).map(([typeId, det]) => ({
-        qualificationTypeId: typeId,
-        yearObtained: det.yearObtained
-          ? parseInt(det.yearObtained, 10)
-          : undefined,
-        instituteName: det.instituteName || undefined,
-      })),
-    })
+
+    const qualifications = values.qualificationTypeId
+      ? [
+          {
+            qualificationTypeId: values.qualificationTypeId,
+            yearObtained: values.qualificationYear
+              ? parseInt(values.qualificationYear, 10)
+              : undefined,
+          },
+        ]
+      : []
+
+    submit(
+      {
+        hiringCompanyCode: companyCode,
+        cvUrl: values.cvUrl || undefined,
+        applicant: values.applicant,
+        qualifications,
+        jobProfile: {
+          departmentId: values.jobProfile?.departmentId || undefined,
+          professionalGradeId: values.jobProfile?.professionalGradeId || undefined,
+          generalSpecialtyId: values.jobProfile?.generalSpecialtyId || undefined,
+          yearsOfExperience: values.jobProfile?.yearsOfExperience || undefined,
+          additionalInfo: values.jobProfile?.additionalInfo || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
+          onClose()
+        },
+        onError: () => toast({ title: "فشل إضافة الطلب", tone: "error" }),
+      }
+    )
   }
 
   return (
@@ -557,67 +604,35 @@ function ManualApplyDialog({
       {/* Scrollable form */}
       <div className="max-h-[75vh] overflow-y-auto">
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 p-5"
-          >
-            {/* Company selection — super_admin only */}
-            {isSuperAdmin && (
-              <div className="space-y-3">
-                <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-5">
+
+            {/* Company / code */}
+            {isSuperAdmin ? (
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
                   الشركة
-                </h3>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
-                    الشركة
-                  </label>
-                  <NativeSelect
-                    value={selectedCompanyId}
-                    onChange={setSelectedCompanyId}
-                    placeholder="اختر الشركة"
-                    options={companies.map((c) => ({
-                      value: c.id,
-                      label: c.companyName,
-                    }))}
-                  />
-                </div>
+                </label>
+                <DSelect
+                  value={selectedCompanyCode}
+                  onChange={(v) => setSelectedCompanyCode(String(v))}
+                  placeholder="اختر الشركة"
+                  options={companies.map((c) => ({
+                    value: c.uniqueCode,
+                    label: c.companyName,
+                  }))}
+                />
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-medium">كود الشركة</label>
+                <DInput value={companyCode} disabled />
               </div>
             )}
-
-            {/* Job selection */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                الوظيفة
-              </h3>
-              <FormField
-                control={form.control}
-                name="jobAdId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel required>الوظيفة المطلوبة</FormLabel>
-                    <FormControl>
-                      <NativeSelect
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder={
-                          jobsLoading ? "جاري التحميل…" : "اختر وظيفة"
-                        }
-                        options={jobs.map((j) => ({
-                          value: j.id,
-                          label: j.adTitle,
-                        }))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             {/* Personal info */}
             <div className="space-y-3">
               <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                المعلومات الشخصية
+                البيانات الشخصية
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
@@ -627,11 +642,20 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel required>الاسم الكامل</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="user" size={14} />}
-                          placeholder="الاسم الثلاثي"
-                          {...field}
-                        />
+                        <DInput icon={<Icon name="user" size={14} />} placeholder="الاسم الثلاثي" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="applicant.phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel required>رقم الجوال</FormLabel>
+                      <FormControl>
+                        <DInput icon={<Icon name="phone" size={14} />} placeholder="05xxxxxxxx" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -644,12 +668,7 @@ function ManualApplyDialog({
                     <FormItem>
                       <FormLabel required>البريد الإلكتروني</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="mail" size={14} />}
-                          type="email"
-                          placeholder="example@domain.com"
-                          {...field}
-                        />
+                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@domain.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -657,36 +676,17 @@ function ManualApplyDialog({
                 />
                 <FormField
                   control={form.control}
-                  name="applicant.phone"
+                  name="applicant.nationality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel required>رقم الهاتف</FormLabel>
+                      <FormLabel>الجنسية</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="phone" size={14} />}
-                          placeholder="05xxxxxxxx"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الجنس</FormLabel>
-                      <FormControl>
-                        <NativeSelect
+                        <Combobox
                           value={field.value ?? ""}
-                          onChange={(v) => field.onChange(v || undefined)}
-                          placeholder="اختر (اختياري)"
-                          options={[
-                            { value: "male", label: "ذكر" },
-                            { value: "female", label: "أنثى" },
-                          ]}
+                          onChange={field.onChange}
+                          options={NATIONALITIES}
+                          placeholder="اختر الجنسية"
+                          searchPlaceholder="ابحث عن جنسية…"
                         />
                       </FormControl>
                       <FormMessage />
@@ -708,15 +708,61 @@ function ManualApplyDialog({
                 />
                 <FormField
                   control={form.control}
-                  name="applicant.currentJobLocation"
+                  name="applicant.gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>مكان العمل الحالي</FormLabel>
+                      <FormLabel>الجنس</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="globe" size={14} />}
-                          placeholder="مثال: الرياض"
-                          {...field}
+                        <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
+                          {(["male", "female"] as const).map((val) => (
+                            <label key={val} className="flex cursor-pointer items-center gap-2">
+                              <input
+                                type="radio"
+                                name="gender"
+                                value={val}
+                                checked={field.value === val}
+                                onChange={() => field.onChange(val)}
+                                className="accent-primary"
+                              />
+                              <span className="text-[13.5px]">{val === "male" ? "ذكر" : "أنثى"}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="qualificationTypeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>أعلى مؤهل علمي</FormLabel>
+                      <FormControl>
+                        <DSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(String(v))}
+                          placeholder="اختر المؤهل"
+                          options={qualTypes.map((q) => ({ value: q.id, label: q.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="qualificationYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>سنة الحصول على المؤهل</FormLabel>
+                      <FormControl>
+                        <DSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(String(v))}
+                          placeholder="مثال: 2018"
+                          options={QUALIFICATION_YEARS}
                         />
                       </FormControl>
                       <FormMessage />
@@ -724,6 +770,107 @@ function ManualApplyDialog({
                   )}
                 />
               </div>
+            </div>
+
+            {/* Job profile */}
+            <div className="space-y-3">
+              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
+                بيانات الوظيفة المطلوبة
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <FormField
+                  control={form.control}
+                  name="jobProfile.departmentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>القطاع</FormLabel>
+                      <FormControl>
+                        <DSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(String(v))}
+                          placeholder="اختر القطاع"
+                          options={departments.map((d) => ({ value: d.id, label: d.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="jobProfile.professionalGradeId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الدرجة المهنية</FormLabel>
+                      <FormControl>
+                        <DSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(String(v))}
+                          placeholder="اختر الدرجة"
+                          disabled={!selectedDepartmentId}
+                          options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="jobProfile.generalSpecialtyId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>التخصص العام</FormLabel>
+                      <FormControl>
+                        <DSelect
+                          value={field.value ?? ""}
+                          onChange={(v) => field.onChange(String(v))}
+                          placeholder="اختر التخصص"
+                          disabled={!selectedDepartmentId}
+                          options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="jobProfile.yearsOfExperience"
+                render={({ field }) => (
+                  <FormItem className="max-w-sm">
+                    <FormLabel>سنوات الخبرة</FormLabel>
+                    <FormControl>
+                      <DSelect
+                        value={field.value ?? ""}
+                        onChange={(v) => field.onChange(String(v))}
+                        placeholder="اختر سنوات الخبرة"
+                        options={YEARS_OF_EXPERIENCE}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="jobProfile.additionalInfo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>معلومات إضافية</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        rows={3}
+                        placeholder="أي معلومات إضافية تود إضافتها..."
+                        className="focus-ring w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-[13.5px] text-foreground placeholder:text-muted-foreground"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* CV upload */}
@@ -746,96 +893,6 @@ function ManualApplyDialog({
               />
             </div>
 
-            {/* Qualifications */}
-            {qualTypes.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  المؤهل الأكاديمي
-                </h3>
-                <div className="overflow-hidden rounded-lg border border-border">
-                  {qualTypes.map((qt, idx) => {
-                    const checked = qt.id in qualDetails
-                    const det = qualDetails[qt.id]
-                    return (
-                      <div
-                        key={qt.id}
-                        className={idx > 0 ? "border-t border-border" : ""}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => toggleQual(qt.id)}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-right transition-colors hover:bg-muted"
-                        >
-                          <div
-                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                              checked
-                                ? "border-primary bg-primary"
-                                : "border-muted-foreground"
-                            }`}
-                          >
-                            {checked && (
-                              <svg
-                                viewBox="0 0 10 8"
-                                width="10"
-                                height="8"
-                                fill="none"
-                                stroke="white"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M1 4l3 3 5-6" />
-                              </svg>
-                            )}
-                          </div>
-                          <span className="text-[13.5px] text-foreground">
-                            {qt.name}
-                          </span>
-                        </button>
-                        {checked && (
-                          <div className="grid grid-cols-1 gap-4 border-t border-border bg-muted/40 px-4 py-4 sm:grid-cols-2">
-                            <div className="flex flex-col gap-1.5">
-                              <label className="text-[12.5px] font-medium text-foreground">
-                                سنة الحصول
-                              </label>
-                              <DInput
-                                type="number"
-                                placeholder="مثال: 2020"
-                                value={det.yearObtained}
-                                onChange={(e) =>
-                                  setQualField(
-                                    qt.id,
-                                    "yearObtained",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                              <label className="text-[12.5px] font-medium text-foreground">
-                                اسم المؤسسة التعليمية
-                              </label>
-                              <DInput
-                                placeholder="مثال: جامعة الملك سعود"
-                                value={det.instituteName}
-                                onChange={(e) =>
-                                  setQualField(
-                                    qt.id,
-                                    "instituteName",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Server error */}
             {submitError && (
               <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
@@ -854,21 +911,8 @@ function ManualApplyDialog({
               <Btn type="submit" disabled={isPending}>
                 {isPending ? (
                   <>
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      className="animate-spin"
-                    >
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeDasharray="30 60"
-                      />
+                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
+                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
                     </svg>
                     جاري الإرسال…
                   </>

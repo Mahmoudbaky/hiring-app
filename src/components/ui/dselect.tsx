@@ -13,9 +13,10 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
-export function DSelect({ value, onChange, options, placeholder, className = '' }: SelectProps) {
+export function DSelect({ value, onChange, options, placeholder, className = '', disabled = false }: SelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -33,8 +34,9 @@ export function DSelect({ value, onChange, options, placeholder, className = '' 
     <div ref={ref} className={cn('relative', className)}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="h-10 w-full rounded-md border border-[var(--input)] bg-[var(--card)] px-3 text-[13.5px] flex items-center justify-between focus-ring"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        disabled={disabled}
+        className="h-10 w-full rounded-md border border-[var(--input)] bg-[var(--card)] px-3 text-[13.5px] flex items-center justify-between focus-ring disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className={selected ? '' : 'text-[var(--muted-foreground)]'}>
           {selected ? selected.label : placeholder ?? 'اختر…'}
