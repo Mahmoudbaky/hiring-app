@@ -125,17 +125,6 @@ export function RegisterPage() {
 
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
-        <div className="flex items-center justify-between p-6">
-          <div className="text-[12.5px] text-muted-foreground">
-            لديك حساب بالفعل؟
-          </div>
-          <Link to="/login">
-            <Btn variant="outline" size="sm">
-              تسجيل الدخول
-            </Btn>
-          </Link>
-        </div>
-
         <div className="flex flex-1 items-start justify-center overflow-y-auto px-8 py-8 lg:px-12">
           <form onSubmit={submit} className="w-full max-w-[400px]">
             <h2 className="text-[26px] font-bold tracking-tight">
@@ -320,6 +309,17 @@ export function RegisterPage() {
                 بالنقر على "إنشاء الحساب" أنت توافق على شروط الخدمة وسياسة
                 الخصوصية.
               </p>
+
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <span className="text-[12.5px] text-muted-foreground">
+                  لديك حساب بالفعل؟
+                </span>
+                <Link to="/login">
+                  <Btn variant="outline" size="sm">
+                    تسجيل الدخول
+                  </Btn>
+                </Link>
+              </div>
             </div>
           </form>
         </div>

@@ -102,17 +102,6 @@ export function LoginPage() {
 
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
-        <div className="flex items-center justify-between p-6">
-          <div className="text-[12.5px] text-muted-foreground">
-            ليس لديك حساب؟
-          </div>
-          <Link to="/register">
-            <Btn variant="outline" size="sm">
-              إنشاء حساب
-            </Btn>
-          </Link>
-        </div>
-
         <div className="flex flex-1 items-center px-8 lg:px-12">
           <Form {...form}>
             <form
@@ -261,6 +250,17 @@ export function LoginPage() {
                     </>
                   )}
                 </Btn>
+
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <span className="text-[12.5px] text-muted-foreground">
+                    ليس لديك حساب؟
+                  </span>
+                  <Link to="/register">
+                    <Btn variant="outline" size="sm">
+                      إنشاء حساب
+                    </Btn>
+                  </Link>
+                </div>
               </div>
             </form>
           </Form>
