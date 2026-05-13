@@ -386,74 +386,358 @@ function RequestDetailDialog({
   )
 }
 
-
-
 /* ── Column helper ───────────────────────────────────────────────── */
 const col = createColumnHelper<JobRequest>()
+
+function nationalityFlag(nat: string | null): string {
+  if (!nat) return ""
+  const n = nat.trim()
+  if (n.includes("مصر")) return "🇪🇬"
+  if (n.includes("سعودي") || n.includes("السعودية")) return "🇸🇦"
+  if (n.includes("إمارات") || n.includes("إماراتي")) return "🇦🇪"
+  if (n.includes("أردن") || n.includes("أردني")) return "🇯🇴"
+  if (n.includes("كويت") || n.includes("كويتي")) return "🇰🇼"
+  if (n.includes("يمن") || n.includes("يمني")) return "🇾🇪"
+  if (n.includes("عراق") || n.includes("عراقي")) return "🇮🇶"
+  if (n.includes("سوريا") || n.includes("سوري")) return "🇸🇾"
+  if (n.includes("لبنان") || n.includes("لبناني")) return "🇱🇧"
+  if (n.includes("مغرب") || n.includes("مغربي")) return "🇲🇦"
+  if (n.includes("تونس") || n.includes("تونسي")) return "🇹🇳"
+  if (n.includes("ليبيا") || n.includes("ليبي")) return "🇱🇾"
+  if (n.includes("فلسطين") || n.includes("فلسطيني")) return "🇵🇸"
+  if (n.includes("باكستان") || n.includes("باكستاني")) return "🇵🇰"
+  if (n.includes("الهند") || n.includes("هندي")) return "🇮🇳"
+  if (n.includes("سودان") || n.includes("سوداني")) return "🇸🇩"
+  return ""
+}
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  const hours = Math.floor(mins / 60)
+  const days = Math.floor(hours / 24)
+  const weeks = Math.floor(days / 7)
+  const months = Math.floor(days / 30)
+  if (mins < 1) return "الآن"
+  if (mins < 60) return `منذ ${mins} دقيقة`
+  if (hours < 24) return `منذ ${hours} ساعة`
+  if (days === 1) return "منذ يوم"
+  if (days < 7) return `منذ ${days} أيام`
+  if (weeks === 1) return "منذ أسبوع"
+  if (weeks < 5) return `منذ ${weeks} أسابيع`
+  if (months === 1) return "منذ شهر"
+  return `منذ ${months} أشهر`
+}
 
 /* ── Company banner ──────────────────────────────────────────────── */
 function CompanyBanner({
   user,
   stats,
-  activeJobsCount,
+  // activeJobsCount,
 }: {
   user: import("@/context/AppContext").AuthUser
-  stats: { total: number; byStatus: Record<string, number>; employmentRate: number }
+  stats: {
+    total: number
+    byStatus: Record<string, number>
+    employmentRate: number
+  }
   activeJobsCount: number
 }) {
+  const memberSince = user.companyCreatedAt
+    ? new Date(user.companyCreatedAt).toLocaleDateString("ar-SA", {
+        month: "long",
+        year: "numeric",
+      })
+    : null
+
   const chips = [
-    { label: "معروض حالياً", value: activeJobsCount, highlight: false },
-    { label: "معدل التوظيف", value: `${stats.employmentRate}%`, highlight: false },
-    { label: "تم توظيفهم", value: stats.byStatus.hired ?? 0, highlight: false },
-    { label: "إجمالي المرشحين", value: stats.total, highlight: false },
+    // { label: "معروض حالياً", value: activeJobsCount },
+    { label: "معدل التوظيف", value: `${stats.employmentRate}%` },
+    { label: "تم توظيفهم", value: stats.byStatus.hired ?? 0 },
+    { label: "إجمالي المرشحين", value: stats.total },
   ]
 
   return (
     <div
-      className="mb-5 overflow-hidden rounded-xl"
+      className="relative mb-5 overflow-hidden rounded-2xl"
       style={{
-        background: "linear-gradient(135deg, #312e81 0%, #1e1b4b 45%, #2d2566 100%)",
+        background:
+          "linear-gradient(135deg, #2d2777 0%, #1a1650 50%, #261e6e 100%)",
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4" dir="rtl">
-        {/* Right: company info */}
-        <div className="text-right text-white">
-          <p className="mb-0.5 text-[11px] opacity-60">مرحباً بك</p>
-          <h2 className="text-[20px] font-bold leading-tight">
-            {user.companyName ?? user.name}
-          </h2>
-          <div className="mt-1.5 flex items-center justify-end gap-3 text-[11.5px] text-white/60">
-            <span className="flex items-center gap-1">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              {user.email}
-            </span>
+      {/* subtle radial glow top-right */}
+      <div
+        className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full opacity-20"
+        style={{
+          background: "radial-gradient(circle, #a78bfa, transparent 70%)",
+        }}
+      />
+      {/* subtle radial glow bottom-left */}
+      <div
+        className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full opacity-10"
+        style={{
+          background: "radial-gradient(circle, #818cf8, transparent 70%)",
+        }}
+      />
+
+      <div
+        className="relative flex flex-wrap items-center justify-between gap-5 px-7 py-5"
+        dir="rtl"
+      >
+        {/* ── Right: company identity ── */}
+        <div className="flex items-center gap-4">
+          {/* logo / avatar */}
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-[22px] font-bold text-white"
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              backdropFilter: "blur(6px)",
+            }}
+          >
+            {user.companyLogo ? (
+              <img
+                src={user.companyLogo}
+                alt=""
+                className="h-full w-full rounded-xl object-cover"
+              />
+            ) : (
+              (user.companyName ?? user.name).charAt(0)
+            )}
+          </div>
+
+          {/* text block */}
+          <div className="text-right">
+            <p className="mb-0.5 text-[11px] font-medium tracking-wide text-white/50">
+              مرحباً بك
+            </p>
+            <h2 className="text-[22px] leading-tight font-extrabold tracking-tight text-white">
+              {user.companyName ?? user.name}
+            </h2>
+
+            {/* meta row */}
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+              {user.companyAddress && (
+                <span className="flex items-center gap-1 text-[11.5px] text-white/60">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {user.companyAddress}
+                </span>
+              )}
+              {memberSince && (
+                <span className="flex items-center gap-1 text-[11.5px] text-white/60">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="5" width="18" height="16" rx="2" />
+                    <path d="M3 9h18M8 3v4M16 3v4" />
+                  </svg>
+                  عضو منذ {memberSince}
+                </span>
+              )}
+              {user.companyPhone && (
+                <span className="flex items-center gap-1 text-[11.5px] text-white/60">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" />
+                  </svg>
+                  {user.companyPhone}
+                </span>
+              )}
+              <span className="flex items-center gap-1 text-[11.5px] text-white/60">
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="16" x="2" y="4" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+                {user.email}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Left: stat chips */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Unique code chip */}
-          <div
-            className="flex flex-col items-center gap-0.5 rounded-lg px-4 py-2.5 text-center text-white"
-            style={{ background: "rgba(139, 60, 100, 0.55)" }}
-          >
-            <span className="text-[17px] font-bold leading-none tracking-wide">
-              {user.uniqueCode ?? "—"}
-            </span>
-            <span className="mt-1 text-[9.5px] opacity-70">الكود الفريد</span>
-          </div>
+        {/* ── Left: stat chips ── */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* unique code — distinct accent chip */}
+          {user.uniqueCode && (
+            <div
+              className="flex flex-col items-center gap-0.5 rounded-xl px-4 py-3 text-center text-white"
+              style={{
+                background: "rgba(167, 100, 150, 0.45)",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              <span className="text-[18px] leading-none font-black tracking-widest">
+                {user.uniqueCode}
+              </span>
+              <span className="mt-1 text-[9px] font-medium tracking-wider uppercase opacity-60">
+                الكود الفريد
+              </span>
+            </div>
+          )}
 
           {chips.map((chip) => (
             <div
               key={chip.label}
-              className="flex flex-col items-center gap-0.5 rounded-lg px-4 py-2.5 text-center text-white"
-              style={{ background: "rgba(255,255,255,0.1)" }}
+              className="flex flex-col items-center gap-0.5 rounded-xl px-4 py-3 text-center text-white"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
             >
-              <span className="text-[17px] font-bold leading-none">{chip.value}</span>
-              <span className="mt-1 text-[9.5px] opacity-70">{chip.label}</span>
+              <span className="tabular text-[18px] leading-none font-black">
+                {chip.value}
+              </span>
+              <span className="mt-1 text-[9px] font-medium tracking-wider uppercase opacity-60">
+                {chip.label}
+              </span>
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Department stats strip ──────────────────────────────────────── */
+const DEPT_PALETTE = [
+  {
+    bar: "bg-amber-400",
+    iconBg: "bg-amber-50  dark:bg-amber-950/40",
+    iconColor: "text-amber-500",
+  },
+  {
+    bar: "bg-emerald-400",
+    iconBg: "bg-emerald-50 dark:bg-emerald-950/40",
+    iconColor: "text-emerald-500",
+  },
+  {
+    bar: "bg-blue-500",
+    iconBg: "bg-blue-50   dark:bg-blue-950/40",
+    iconColor: "text-blue-500",
+  },
+  {
+    bar: "bg-rose-400",
+    iconBg: "bg-rose-50   dark:bg-rose-950/40",
+    iconColor: "text-rose-500",
+  },
+  {
+    bar: "bg-violet-400",
+    iconBg: "bg-violet-50 dark:bg-violet-950/40",
+    iconColor: "text-violet-500",
+  },
+  {
+    bar: "bg-sky-400",
+    iconBg: "bg-sky-50    dark:bg-sky-950/40",
+    iconColor: "text-sky-500",
+  },
+]
+
+const DEPT_ICON_MAP: [string, string][] = [
+  ["مالية", "briefcase"],
+  ["محاسبة", "briefcase"],
+  ["تقنية", "globe"],
+  ["معلومات", "globe"],
+  ["طب", "users"],
+  ["صحة", "users"],
+  ["تمريض", "sparkles"],
+  ["صيدلة", "sparkles"],
+  ["إدارة", "settings"],
+  ["موارد", "users"],
+  ["هندسة", "settings"],
+  ["قانون", "briefcase"],
+]
+
+function deptIconName(name: string): string {
+  for (const [kw, icon] of DEPT_ICON_MAP) {
+    if (name.includes(kw)) return icon
+  }
+  return "chart"
+}
+
+function DeptCard({
+  name,
+  count,
+  total,
+  idx,
+}: {
+  name: string
+  count: number
+  total: number
+  idx: number
+}) {
+  const p = DEPT_PALETTE[idx % DEPT_PALETTE.length]
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0
+
+  return (
+    <div className="flex min-w-[175px] flex-1 flex-col justify-between rounded-xl border border-border bg-card px-4 py-3.5">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        {/* icon */}
+        <div
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+            p.iconBg
+          )}
+        >
+          <Icon name={deptIconName(name)} size={20} className={p.iconColor} />
+        </div>
+        {/* text — rtl */}
+        <div className="text-right">
+          <p className="text-[12.5px] leading-snug font-medium text-foreground">
+            {name}
+          </p>
+          <p className="tabular mt-0.5 text-[26px] leading-none font-bold">
+            {count}
+          </p>
+        </div>
+      </div>
+      {/* progress */}
+      <div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              p.bar
+            )}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="mt-1.5 text-right text-[11px] text-muted-foreground">
+          {pct}% من الإجمالي
+        </p>
       </div>
     </div>
   )
@@ -554,6 +838,18 @@ export function IncomingPage() {
     table.setPageIndex(0)
   }
 
+  /* Department stats */
+  const deptStats = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const r of requests) {
+      if (r.department?.name)
+        map.set(r.department.name, (map.get(r.department.name) ?? 0) + 1)
+    }
+    return [...map.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+  }, [requests])
+
   /* Stats computed from all requests */
   const stats = useMemo(() => {
     const total = requests.length
@@ -652,7 +948,9 @@ export function IncomingPage() {
       )
     if (dateRange?.from) {
       const from = dateRange.from.getTime()
-      const to = dateRange.to ? dateRange.to.getTime() + 86399999 : from + 86399999
+      const to = dateRange.to
+        ? dateRange.to.getTime() + 86399999
+        : from + 86399999
       data = data.filter((r) => {
         const t = new Date(r.createdAt).getTime()
         return t >= from && t <= to
@@ -698,6 +996,7 @@ export function IncomingPage() {
   /* Column definitions */
   const columns = useMemo(
     () => [
+      /* ── 1. Checkbox ── */
       col.display({
         id: "select",
         header: ({ table }) => (
@@ -716,76 +1015,110 @@ export function IncomingPage() {
         ),
       }),
 
-      col.accessor("referenceNumber", {
-        header: "الرقم المرجعي",
-        cell: (info) => (
-          <span className="tabular text-[12.5px] text-muted-foreground">
-            {info.getValue() ?? "—"}
-          </span>
-        ),
-      }),
-
+      /* ── 2. المرشح ── */
       col.accessor((r) => r.applicant.name, {
         id: "applicant",
-        header: "المتقدم",
+        header: "المرشح",
         cell: (info) => {
           const { applicant, isViewedByAdmin } = info.row.original
+          const flag = nationalityFlag(applicant.nationality)
           return (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div className="relative shrink-0">
-                <Avatar name={applicant.name} size={34} />
+                <Avatar name={applicant.name} size={36} />
                 {isSuperAdmin && !isViewedByAdmin && (
-                  <span className="absolute -end-0.5 -top-0.5 block h-2.5 w-2.5 rounded-full bg-[var(--primary)] ring-2 ring-[var(--card)]" />
+                  <span className="absolute -end-0.5 -top-0.5 block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
                 )}
               </div>
               <div>
                 <div
                   className={cn(
-                    "text-[13.5px]",
-                    isSuperAdmin && !isViewedByAdmin && "font-semibold"
+                    "flex items-center gap-1 text-[13px] leading-snug",
+                    isSuperAdmin && !isViewedByAdmin
+                      ? "font-semibold"
+                      : "font-medium"
                   )}
                 >
                   {applicant.name}
+                  {flag && <span className="text-[13px]">{flag}</span>}
                 </div>
-                <div className="text-[11.5px] text-muted-foreground">
-                  {applicant.email}
-                </div>
+                {applicant.nationality && (
+                  <div className="text-[11px] text-muted-foreground">
+                    {applicant.nationality}
+                  </div>
+                )}
               </div>
             </div>
           )
         },
       }),
 
-      col.accessor((r) => r.applicant.phone, {
-        id: "phone",
-        header: "الجوال",
-        cell: (info) => (
-          <span className="tabular text-[13px] text-muted-foreground">
-            {info.getValue()}
-          </span>
-        ),
+      /* ── 3. الرقم المرجعي ── */
+      col.accessor("referenceNumber", {
+        header: "الرقم المرجعي",
+        cell: (info) => {
+          const v = info.getValue()
+          return v ? (
+            <span className="tabular rounded bg-muted px-2 py-0.5 text-[12px] font-semibold text-foreground">
+              {v}
+            </span>
+          ) : (
+            <span className="text-[12px] text-muted-foreground">—</span>
+          )
+        },
       }),
 
-      col.accessor((r) => r.jobAd?.adTitle ?? "—", {
-        id: "jobTitle",
-        header: "الوظيفة",
-        cell: (info) => (
-          <span className="text-[13px] font-medium">{info.getValue()}</span>
-        ),
+      /* ── 4. القطاع / التخصص / الدرجة ── */
+      col.display({
+        id: "profile",
+        header: "القطاع / التخصص / الدرجة",
+        cell: ({ row }) => {
+          const {
+            department,
+            professionalGrade,
+            generalSpecialty,
+            yearsOfExperience,
+            qualifications,
+          } = row.original
+          if (
+            !department &&
+            !professionalGrade &&
+            !generalSpecialty &&
+            !yearsOfExperience
+          )
+            return <span className="text-[12px] text-muted-foreground">—</span>
+          return (
+            <div className="flex flex-col gap-0.5">
+              {department && (
+                <span className="text-[13px] leading-snug font-bold">
+                  {department.name}
+                </span>
+              )}
+              {(professionalGrade || generalSpecialty) && (
+                <span className="text-[11.5px] text-muted-foreground">
+                  {[professionalGrade?.name, generalSpecialty?.name]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              )}
+              <div className="mt-1 flex flex-wrap gap-1">
+                {qualifications[0] && (
+                  <span className="inline-flex h-5 items-center rounded-md border border-amber-200 bg-amber-50 px-1.5 text-[10.5px] font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+                    {qualifications[0].name}
+                  </span>
+                )}
+                {yearsOfExperience && (
+                  <span className="inline-flex h-5 items-center rounded-md border border-blue-200 bg-blue-50 px-1.5 text-[10.5px] font-medium text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-400">
+                    {yearsOfExperience}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        },
       }),
 
-      ...(isSuperAdmin
-        ? [
-            col.accessor((r) => r.company.companyName, {
-              id: "company",
-              header: "الشركة",
-              cell: (info) => (
-                <span className="text-[13px]">{info.getValue()}</span>
-              ),
-            }),
-          ]
-        : []),
-
+      /* ── 5. المصدر ── */
       col.accessor("submissionType", {
         header: "المصدر",
         cell: (info) => (
@@ -795,72 +1128,101 @@ export function IncomingPage() {
         ),
       }),
 
+      /* ── 6. الحالة ── */
       col.accessor("status", {
-        header: "الحالة",
+        header: "الحالة ↑",
         cell: (info) => {
-          const meta = STATUS_META[info.getValue()]
-          return <Badge tone={meta.tone as any}>{meta.label}</Badge>
+          const { id, status } = info.row.original
+          const statusOptions = (
+            Object.entries(STATUS_META) as [RequestStatus, { label: string }][]
+          ).map(([key, { label }]) => ({ value: key, label }))
+          const triggerColor = {
+            new: "border-sky-200     bg-sky-50     text-sky-700",
+            review: "border-amber-200   bg-amber-50   text-amber-700",
+            shortlisted: "border-emerald-200 bg-emerald-50 text-emerald-700",
+            interview: "border-violet-200  bg-violet-50  text-violet-700",
+            rejected: "border-rose-200    bg-rose-50    text-rose-700",
+            hired: "border-green-200   bg-green-50   text-green-700",
+          }[status]
+          return (
+            <DSelect
+              value={status}
+              onChange={(v) => changeStatus({ id, status: v as RequestStatus })}
+              options={statusOptions}
+              className="w-[140px]"
+              triggerClassName={triggerColor}
+            />
+          )
         },
       }),
 
-      col.accessor("createdAt", {
-        header: "تاريخ التقديم",
-        cell: (info) => (
-          <span className="tabular text-[12.5px] text-muted-foreground">
-            {new Date(info.getValue()).toLocaleDateString("ar-SA")}
-          </span>
-        ),
+      /* ── 7. الشركة (super_admin only) ── */
+      ...(isSuperAdmin
+        ? [
+            col.accessor((r) => r.company.companyName, {
+              id: "company",
+              header: "الشركة",
+              cell: (info) => (
+                <span className="text-[13px] font-medium">
+                  {info.getValue()}
+                </span>
+              ),
+            }),
+          ]
+        : []),
+
+      /* ── 8. الملاحظات ── */
+      col.accessor("notes", {
+        header: "الملاحظات",
+        cell: (info) => {
+          const notes = info.getValue()
+          return notes ? (
+            <div className="flex max-w-[160px] items-start gap-1.5">
+              <Icon
+                name="send"
+                size={12}
+                className="mt-0.5 shrink-0 text-muted-foreground"
+              />
+              <p className="line-clamp-2 text-[11.5px] leading-snug text-foreground">
+                {notes}
+              </p>
+            </div>
+          ) : (
+            <span className="text-[12px] text-muted-foreground">—</span>
+          )
+        },
       }),
 
+      /* ── 9. التاريخ ── */
+      col.accessor("createdAt", {
+        header: "التاريخ ↑",
+        cell: (info) => {
+          const v = info.getValue()
+          return (
+            <div>
+              <div className="text-[12.5px] font-medium">
+                {new Date(v).toLocaleDateString("ar-SA", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {relativeTime(v)}
+              </div>
+            </div>
+          )
+        },
+      }),
+
+      /* ── 10. الإجراءات ── */
       col.display({
         id: "actions",
-        header: "",
+        header: "الإجراءات",
         cell: ({ row }) => {
-          const { id, status, cvUrl } = row.original
+          const { id, cvUrl } = row.original
           return (
-            <div className="flex items-center gap-1.5">
-              {/* CV attachment */}
-              {cvUrl ? (
-                <Btn
-                  variant="ghost"
-                  size="iconSm"
-                  title="عرض السيرة الذاتية"
-                  onClick={() => openCv(cvUrl)}
-                >
-                  <Icon name="link" size={14} />
-                </Btn>
-              ) : (
-                <Btn
-                  variant="ghost"
-                  size="iconSm"
-                  disabled
-                  title="لا توجد سيرة ذاتية"
-                >
-                  <Icon name="link" size={14} className="opacity-30" />
-                </Btn>
-              )}
-
-              {/* Status select */}
-              <select
-                value={status}
-                onChange={(e) =>
-                  changeStatus({ id, status: e.target.value as RequestStatus })
-                }
-                className="h-8 rounded-md border border-input bg-card px-2 text-[12px] text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-              >
-                {(
-                  Object.entries(STATUS_META) as [
-                    RequestStatus,
-                    { label: string },
-                  ][]
-                ).map(([key, { label }]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-
-              {/* View details */}
+            <div className="flex items-center gap-0.5">
               <Btn
                 variant="ghost"
                 size="iconSm"
@@ -871,14 +1233,36 @@ export function IncomingPage() {
                     markViewed(id)
                 }}
               >
-                <Icon name="eye" size={15} />
+                <Icon name="eye" size={14} />
+              </Btn>
+              {cvUrl ? (
+                <Btn
+                  variant="ghost"
+                  size="iconSm"
+                  title="فتح السيرة الذاتية"
+                  onClick={() => openCv(cvUrl)}
+                >
+                  <Icon name="pdf" size={14} />
+                </Btn>
+              ) : (
+                <Btn
+                  variant="ghost"
+                  size="iconSm"
+                  disabled
+                  title="لا توجد سيرة ذاتية"
+                >
+                  <Icon name="pdf" size={14} className="opacity-25" />
+                </Btn>
+              )}
+              <Btn variant="ghost" size="iconSm" title="طباعة">
+                <Icon name="download" size={14} />
               </Btn>
             </div>
           )
         },
       }),
     ],
-    [isSuperAdmin, changeStatus, setSelectedId, openCv]
+    [isSuperAdmin, changeStatus, setSelectedId, openCv, markViewed]
   )
 
   /* TanStack Table instance */
@@ -959,13 +1343,6 @@ export function IncomingPage() {
   return (
     <div>
       {/* ── Welcome banner ──────────────────────────────────────── */}
-      {user && (
-        <CompanyBanner
-          user={user}
-          stats={stats}
-          activeJobsCount={activeJobsCount}
-        />
-      )}
 
       <PageHeader
         icon="users"
@@ -976,6 +1353,28 @@ export function IncomingPage() {
             : "راجع وصنّف طلبات المتقدمين للوظائف الشاغرة"
         }
       />
+      {user && (
+        <CompanyBanner
+          user={user}
+          stats={stats}
+          activeJobsCount={activeJobsCount}
+        />
+      )}
+
+      {/* ── Department stats strip ──────────────────────────────── */}
+      {!isLoading && deptStats.length > 0 && (
+        <div className="mb-4 flex gap-3 overflow-x-auto pb-1" dir="rtl">
+          {deptStats.map((d, i) => (
+            <DeptCard
+              key={d.name}
+              name={d.name}
+              count={d.count}
+              total={requests.length}
+              idx={i}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── Stats cards ─────────────────────────────────────────── */}
       {!isLoading && requests.length > 0 && (
@@ -1035,7 +1434,7 @@ export function IncomingPage() {
           </div>
 
           {/* Source */}
-          <DSelect
+          {/* <DSelect
             value={sourceFilter}
             onChange={(v) => {
               setSourceFilter(v as typeof sourceFilter)
@@ -1046,65 +1445,11 @@ export function IncomingPage() {
               { value: "self", label: "ذاتي" },
               { value: "manual", label: "يدوي" },
             ]}
-          />
-
-          {/* Gender */}
-          <DSelect
-            value={genderFilter}
-            onChange={(v) => {
-              setGenderFilter(v as typeof genderFilter)
-              table.setPageIndex(0)
-            }}
-            options={[
-              { value: "all", label: "كل الجنس" },
-              { value: "male", label: "ذكر" },
-              { value: "female", label: "أنثى" },
-            ]}
-          />
-
-          {/* Date range */}
-          <Popover>
-            <PopoverTrigger
-              render={
-                <button
-                  type="button"
-                  className={cn(
-                    "flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] transition-colors",
-                    dateRange?.from
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border bg-card text-foreground hover:bg-accent"
-                  )}
-                />
-              }
-            >
-              <CalendarIcon size={14} />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "dd/MM/yyyy")} -{" "}
-                    {format(dateRange.to, "dd/MM/yyyy")}
-                  </>
-                ) : (
-                  format(dateRange.from, "dd/MM/yyyy")
-                )
-              ) : (
-                <span className="text-muted-foreground">نطاق التاريخ</span>
-              )}
-            </PopoverTrigger>
-            <PopoverPopup>
-              <Calendar
-                defaultMonth={dateRange?.from}
-                mode="range"
-                numberOfMonths={2}
-                selected={dateRange}
-                onSelect={(range) => {
-                  setDateRange(range)
-                  table.setPageIndex(0)
-                }}
-              />
-            </PopoverPopup>
-          </Popover>
-
+          /> */}
+          <Btn variant="outline" size="sm" onClick={exportToExcel}>
+            <Icon name="download" size={13} />
+            Excel
+          </Btn>
           {/* Unviewed toggle — super_admin only */}
           {isSuperAdmin && (
             <button
@@ -1246,30 +1591,91 @@ export function IncomingPage() {
             ]}
           />
 
-          {/* Per-page + export on the right */}
-          <div className="me-auto flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  table.setPageSize(Number(e.target.value))
+          {/* Source */}
+          <DSelect
+            value={sourceFilter}
+            onChange={(v) => {
+              setSourceFilter(v as typeof sourceFilter)
+              table.setPageIndex(0)
+            }}
+            options={[
+              { value: "all", label: "كل المصادر" },
+              { value: "self", label: "ذاتي" },
+              { value: "manual", label: "يدوي" },
+            ]}
+          />
+
+          <DSelect
+            value={genderFilter}
+            onChange={(v) => {
+              setGenderFilter(v as typeof genderFilter)
+              table.setPageIndex(0)
+            }}
+            options={[
+              { value: "all", label: "كل الجنس" },
+              { value: "male", label: "ذكر" },
+              { value: "female", label: "أنثى" },
+            ]}
+          />
+
+          {/* Gender */}
+          <DSelect
+            value={genderFilter}
+            onChange={(v) => {
+              setGenderFilter(v as typeof genderFilter)
+              table.setPageIndex(0)
+            }}
+            options={[
+              { value: "all", label: "كل الجنس" },
+              { value: "male", label: "ذكر" },
+              { value: "female", label: "أنثى" },
+            ]}
+          />
+
+          {/* Date range */}
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    "flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] transition-colors",
+                    dateRange?.from
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border bg-card text-foreground hover:bg-accent"
+                  )}
+                />
+              }
+            >
+              <CalendarIcon size={14} />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                    {format(dateRange.to, "dd/MM/yyyy")}
+                  </>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy")
+                )
+              ) : (
+                <span className="text-muted-foreground">نطاق التاريخ</span>
+              )}
+            </PopoverTrigger>
+            <PopoverPopup>
+              <Calendar
+                defaultMonth={dateRange?.from}
+                mode="range"
+                numberOfMonths={2}
+                selected={dateRange}
+                onSelect={(range) => {
+                  setDateRange(range)
                   table.setPageIndex(0)
                 }}
-                className="h-8 rounded-md border border-input bg-card px-2 text-[13px] text-foreground focus:outline-none"
-              >
-                {[5, 10, 20, 50].map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <span>صف</span>
-            </div>
-            <Btn variant="outline" size="sm" onClick={exportToExcel}>
-              <Icon name="download" size={13} />
-              Excel
-            </Btn>
-          </div>
+              />
+            </PopoverPopup>
+          </Popover>
+
+          <div className="me-auto" />
         </div>
 
         {/* ── Row 4: Profile filters ───────────────────────────────── */}
@@ -1478,7 +1884,25 @@ export function IncomingPage() {
         </div>
 
         {/* ── Footer: pagination ─────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-end gap-4 border-t border-border px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-3">
+          {/* Per-page selector — far right (start in RTL) */}
+          <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <DSelect
+              value={pageSize}
+              onChange={(v) => {
+                table.setPageSize(Number(v))
+                table.setPageIndex(0)
+              }}
+              options={[5, 10, 20, 50].map((s) => ({
+                value: s,
+                label: String(s),
+              }))}
+              className="w-[80px]"
+              placement="top"
+            />
+            <span>صف في الصفحة</span>
+          </div>
+
           {/* Range label + nav buttons */}
           <div className="flex items-center gap-3">
             <span className="tabular text-[12px] text-muted-foreground">
@@ -1529,7 +1953,6 @@ export function IncomingPage() {
         id={selectedId}
         onClose={() => setSelectedId(null)}
       />
-
     </div>
   )
 }

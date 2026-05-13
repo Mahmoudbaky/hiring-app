@@ -13,6 +13,10 @@ export interface AuthUser {
   companyName: string | null;
   uniqueCode: string | null;
   companyLogo: string | null;
+  companyAddress: string | null;
+  companyPhone: string | null;
+  companyManagerName: string | null;
+  companyCreatedAt: string | null;
 }
 
 export interface RegisterCompanyData {
@@ -43,11 +47,19 @@ interface AppCtx {
 
 const Ctx = createContext<AppCtx | null>(null);
 
+interface CompanyInfo {
+  companyName: string | null;
+  uniqueCode: string | null;
+  companyLogo: string | null;
+  companyAddress: string | null;
+  companyPhone: string | null;
+  companyManagerName: string | null;
+  companyCreatedAt: string | null;
+}
+
 function toAuthUser(
   u: Record<string, unknown>,
-  companyName: string | null = null,
-  uniqueCode: string | null = null,
-  companyLogo: string | null = null,
+  company: Partial<CompanyInfo> = {},
 ): AuthUser {
   return {
     id: u.id as string,
@@ -56,24 +68,33 @@ function toAuthUser(
     image: (u.image as string) ?? null,
     role: (u.role as AuthUser['role']) ?? 'company_user',
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
-    companyName,
-    uniqueCode,
-    companyLogo,
+    companyName: company.companyName ?? null,
+    uniqueCode: company.uniqueCode ?? null,
+    companyLogo: company.companyLogo ?? null,
+    companyAddress: company.companyAddress ?? null,
+    companyPhone: company.companyPhone ?? null,
+    companyManagerName: company.companyManagerName ?? null,
+    companyCreatedAt: company.companyCreatedAt ?? null,
   };
 }
 
-async function fetchCompanyInfo(companyId: string | null): Promise<{ companyName: string | null; uniqueCode: string | null; companyLogo: string | null }> {
-  if (!companyId) return { companyName: null, uniqueCode: null, companyLogo: null };
+async function fetchCompanyInfo(companyId: string | null): Promise<CompanyInfo> {
+  const empty: CompanyInfo = { companyName: null, uniqueCode: null, companyLogo: null, companyAddress: null, companyPhone: null, companyManagerName: null, companyCreatedAt: null };
+  if (!companyId) return empty;
   try {
     const res = await api.get('/companies/mine');
-    const data = res.data?.data;
+    const d = res.data?.data;
     return {
-      companyName: (data?.companyName as string) ?? null,
-      uniqueCode: (data?.uniqueCode as string) ?? null,
-      companyLogo: (data?.logo as string) ?? null,
+      companyName: (d?.companyName as string) ?? null,
+      uniqueCode: (d?.uniqueCode as string) ?? null,
+      companyLogo: (d?.logo as string) ?? null,
+      companyAddress: (d?.address as string) ?? null,
+      companyPhone: (d?.phoneNumber as string) ?? null,
+      companyManagerName: (d?.managerName as string) ?? null,
+      companyCreatedAt: (d?.createdAt as string) ?? null,
     };
   } catch {
-    return { companyName: null, uniqueCode: null, companyLogo: null };
+    return empty;
   }
 }
 
@@ -89,8 +110,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (res.data?.user) {
           const u = res.data.user;
-          const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-          setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
+          const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+          setUser(toAuthUser(u, company));
         }
       })
       .catch(() => { /* no session — stay logged out */ })
@@ -100,8 +121,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, rememberMe = false) => {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
     const u = res.data.user;
-    const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-    setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
+    const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, company));
   };
 
   const register = async (data: RegisterCompanyData) => {
@@ -115,8 +136,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshProfile = async () => {
     const res = await api.get('/profile/me');
     const u = res.data.data;
-    const { companyName, uniqueCode, companyLogo } = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-    setUser(toAuthUser(u, companyName, uniqueCode, companyLogo));
+    const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    setUser(toAuthUser(u, company));
   };
 
   const logout = async () => {

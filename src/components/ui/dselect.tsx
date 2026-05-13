@@ -13,10 +13,12 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
   disabled?: boolean;
+  placement?: 'bottom' | 'top';
 }
 
-export function DSelect({ value, onChange, options, placeholder, className = '', disabled = false }: SelectProps) {
+export function DSelect({ value, onChange, options, placeholder, className = '', triggerClassName = '', disabled = false, placement = 'bottom' }: SelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,7 @@ export function DSelect({ value, onChange, options, placeholder, className = '',
         type="button"
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
-        className="h-10 w-full rounded-md border border-[var(--input)] bg-[var(--card)] px-3 text-[13.5px] flex items-center justify-between focus-ring disabled:cursor-not-allowed disabled:opacity-50"
+        className={cn("h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] flex items-center justify-between focus-ring disabled:cursor-not-allowed disabled:opacity-50", triggerClassName)}
       >
         <span className={selected ? '' : 'text-[var(--muted-foreground)]'}>
           {selected ? selected.label : placeholder ?? 'اختر…'}
@@ -44,7 +46,7 @@ export function DSelect({ value, onChange, options, placeholder, className = '',
         <Icon name="chevDown" size={14} className="text-[var(--muted-foreground)]" />
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 right-0 left-0 bg-[var(--card)] border border-[var(--border)] rounded-md elev-shadow py-1 anim-pop max-h-60 overflow-y-auto">
+        <div className={cn("absolute z-30 right-0 left-0 bg-card border border-border rounded-md elev-shadow py-1 anim-pop max-h-60 overflow-y-auto", placement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1')}>
           {options.map((o) => (
             <button
               key={String(o.value)}
