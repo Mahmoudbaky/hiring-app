@@ -4,9 +4,6 @@ import { CalendarIcon } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import {
   useReactTable,
   getCoreRowModel,
@@ -25,14 +22,7 @@ import {
   useUpdateRequestStatus,
   useMarkRequestViewed,
 } from "@/hooks/useRequests"
-import {
-  useQualificationTypes,
-  useDepartments,
-  useProfessionalGrades,
-  useGeneralSpecialties,
-  useSubmitApplication,
-} from "@/hooks/useCareers"
-import { useCompanies } from "@/hooks/useSettings"
+import { useJobs } from "@/hooks/useJobs"
 import { useOpenCv } from "@/hooks/useOpenCv"
 import { useToast } from "@/components/ui/toast"
 import { Icon } from "@/components/icons"
@@ -40,18 +30,8 @@ import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { DDialog } from "@/components/ui/ddialog"
-import { Btn, Th, Td, PageHeader, DInput } from "@/components/shell"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { CvUpload } from "@/components/cv-upload"
+import { Btn, Th, Td, PageHeader } from "@/components/shell"
 import { DSelect } from "@/components/ui/dselect"
-import { Combobox } from "@/components/ui/combobox"
 import { cn } from "@/lib/utils"
 import type { JobRequest, RequestStatus } from "@/types/api"
 
@@ -406,537 +386,78 @@ function RequestDetailDialog({
   )
 }
 
-/* ── Manual apply schema (mirrors self-apply) ────────────────────── */
-const manualSchema = z.object({
-  hiringCompanyCode: z.string().min(1),
-  applicant: z.object({
-    name: z.string().min(1, "الاسم مطلوب"),
-    email: z.string().email("بريد إلكتروني غير صالح"),
-    phone: z.string().min(1, "رقم الهاتف مطلوب"),
-    gender: z.enum(["male", "female"]).optional(),
-    dateOfBirth: z.string().optional(),
-    nationality: z.string().optional(),
-  }),
-  qualificationTypeId: z.string().optional(),
-  qualificationYear: z.string().optional(),
-  jobProfile: z
-    .object({
-      departmentId: z.string().optional(),
-      professionalGradeId: z.string().optional(),
-      generalSpecialtyId: z.string().optional(),
-      yearsOfExperience: z.string().optional(),
-      additionalInfo: z.string().optional(),
-    })
-    .optional(),
-  cvUrl: z.string().optional(),
-})
-type ManualFormValues = z.infer<typeof manualSchema>
 
-
-const YEARS_OF_EXPERIENCE = [
-  { value: "less_than_1", label: "أقل من سنة" },
-  { value: "1_3", label: "1 - 3 سنوات" },
-  { value: "3_5", label: "3 - 5 سنوات" },
-  { value: "5_10", label: "5 - 10 سنوات" },
-  { value: "more_than_10", label: "أكثر من 10 سنوات" },
-]
-
-const NATIONALITIES = [
-  { value: "سعودي", label: "سعودي" },
-  { value: "مصري", label: "مصري" },
-  { value: "أردني", label: "أردني" },
-  { value: "سوري", label: "سوري" },
-  { value: "لبناني", label: "لبناني" },
-  { value: "عراقي", label: "عراقي" },
-  { value: "يمني", label: "يمني" },
-  { value: "فلسطيني", label: "فلسطيني" },
-  { value: "ليبي", label: "ليبي" },
-  { value: "تونسي", label: "تونسي" },
-  { value: "جزائري", label: "جزائري" },
-  { value: "مغربي", label: "مغربي" },
-  { value: "سوداني", label: "سوداني" },
-  { value: "إماراتي", label: "إماراتي" },
-  { value: "كويتي", label: "كويتي" },
-  { value: "بحريني", label: "بحريني" },
-  { value: "قطري", label: "قطري" },
-  { value: "عُماني", label: "عُماني" },
-  { value: "موريتاني", label: "موريتاني" },
-  { value: "جيبوتي", label: "جيبوتي" },
-  { value: "صومالي", label: "صومالي" },
-  { value: "باكستاني", label: "باكستاني" },
-  { value: "هندي", label: "هندي" },
-  { value: "بنغلاديشي", label: "بنغلاديشي" },
-  { value: "فلبيني", label: "فلبيني" },
-  { value: "إندونيسي", label: "إندونيسي" },
-  { value: "نيجيري", label: "نيجيري" },
-  { value: "إثيوبي", label: "إثيوبي" },
-  { value: "أخرى", label: "أخرى" },
-]
-
-const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
-  const year = new Date().getFullYear() - i
-  return { value: String(year), label: String(year) }
-})
-
-/* ── Manual apply dialog ─────────────────────────────────────────── */
-function ManualApplyDialog({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) {
-  const toast = useToast()
-  const { user } = useApp()
-  const isSuperAdmin = user?.role === "super_admin"
-  const { data: qualTypes = [] } = useQualificationTypes()
-  const { data: departments = [] } = useDepartments()
-  const { data: companies = [] } = useCompanies()
-  const { mutate: submit, isPending, error: submitError } = useSubmitApplication()
-
-  const [selectedCompanyCode, setSelectedCompanyCode] = useState("")
-  const companyCode = isSuperAdmin ? selectedCompanyCode : (user?.uniqueCode ?? "")
-
-  const form = useForm<ManualFormValues>({
-    resolver: zodResolver(manualSchema),
-    defaultValues: {
-      hiringCompanyCode: companyCode,
-      cvUrl: "",
-      qualificationTypeId: "",
-      qualificationYear: "",
-      applicant: {
-        name: "",
-        email: "",
-        phone: "",
-        gender: undefined,
-        dateOfBirth: "",
-        nationality: "",
-      },
-      jobProfile: {
-        departmentId: "",
-        professionalGradeId: "",
-        generalSpecialtyId: "",
-        yearsOfExperience: "",
-        additionalInfo: "",
-      },
-    },
-  })
-
-  const selectedDepartmentId = form.watch("jobProfile.departmentId") || undefined
-  const { data: professionalGrades = [] } = useProfessionalGrades(selectedDepartmentId)
-  const { data: generalSpecialties = [] } = useGeneralSpecialties(selectedDepartmentId)
-
-  const [prevDeptId, setPrevDeptId] = useState(selectedDepartmentId)
-  useEffect(() => {
-    if (selectedDepartmentId !== prevDeptId) {
-      form.setValue("jobProfile.professionalGradeId", "")
-      form.setValue("jobProfile.generalSpecialtyId", "")
-      setPrevDeptId(selectedDepartmentId)
-    }
-  }, [selectedDepartmentId, prevDeptId, form])
-
-  useEffect(() => {
-    if (!open) {
-      form.reset()
-      setSelectedCompanyCode("")
-    }
-  }, [open, form])
-
-  const onSubmit = (values: ManualFormValues) => {
-    if (isSuperAdmin && !selectedCompanyCode) {
-      toast({ title: "الرجاء اختيار الشركة", tone: "error" })
-      return
-    }
-
-    const qualifications = values.qualificationTypeId
-      ? [
-          {
-            qualificationTypeId: values.qualificationTypeId,
-            yearObtained: values.qualificationYear
-              ? parseInt(values.qualificationYear, 10)
-              : undefined,
-          },
-        ]
-      : []
-
-    submit(
-      {
-        hiringCompanyCode: companyCode,
-        cvUrl: values.cvUrl || undefined,
-        applicant: values.applicant,
-        qualifications,
-        jobProfile: {
-          departmentId: values.jobProfile?.departmentId || undefined,
-          professionalGradeId: values.jobProfile?.professionalGradeId || undefined,
-          generalSpecialtyId: values.jobProfile?.generalSpecialtyId || undefined,
-          yearsOfExperience: values.jobProfile?.yearsOfExperience || undefined,
-          additionalInfo: values.jobProfile?.additionalInfo || undefined,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "تم إضافة الطلب بنجاح", tone: "success" })
-          onClose()
-        },
-        onError: () => toast({ title: "فشل إضافة الطلب", tone: "error" }),
-      }
-    )
-  }
-
-  return (
-    <DDialog open={open} onClose={onClose} size="lg">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="tone-sky flex h-9 w-9 items-center justify-center rounded-lg">
-            <Icon name="userPlus" size={16} />
-          </div>
-          <div>
-            <h2 className="text-[15px] font-bold">إضافة طلب يدوي</h2>
-            <p className="text-[12px] text-muted-foreground">
-              تقديم طلب توظيف نيابةً عن المتقدم
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
-        >
-          <Icon name="x" size={16} />
-        </button>
-      </div>
-
-      {/* Scrollable form */}
-      <div className="max-h-[75vh] overflow-y-auto">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-5">
-
-            {/* Company / code */}
-            {isSuperAdmin ? (
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
-                  الشركة
-                </label>
-                <DSelect
-                  value={selectedCompanyCode}
-                  onChange={(v) => setSelectedCompanyCode(String(v))}
-                  placeholder="اختر الشركة"
-                  options={companies.map((c) => ({
-                    value: c.uniqueCode,
-                    label: c.companyName,
-                  }))}
-                />
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium">كود الشركة</label>
-                <DInput value={companyCode} disabled />
-              </div>
-            )}
-
-            {/* Personal info */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                البيانات الشخصية
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="applicant.name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel required>الاسم الكامل</FormLabel>
-                      <FormControl>
-                        <DInput icon={<Icon name="user" size={14} />} placeholder="الاسم الثلاثي" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel required>رقم الجوال</FormLabel>
-                      <FormControl>
-                        <DInput icon={<Icon name="phone" size={14} />} placeholder="05xxxxxxxx" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel required>البريد الإلكتروني</FormLabel>
-                      <FormControl>
-                        <DInput icon={<Icon name="mail" size={14} />} type="email" placeholder="example@domain.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.nationality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الجنسية</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                          options={NATIONALITIES}
-                          placeholder="اختر الجنسية"
-                          searchPlaceholder="ابحث عن جنسية…"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.dateOfBirth"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تاريخ الميلاد</FormLabel>
-                      <FormControl>
-                        <DInput type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="applicant.gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الجنس</FormLabel>
-                      <FormControl>
-                        <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
-                          {(["male", "female"] as const).map((val) => (
-                            <label key={val} className="flex cursor-pointer items-center gap-2">
-                              <input
-                                type="radio"
-                                name="gender"
-                                value={val}
-                                checked={field.value === val}
-                                onChange={() => field.onChange(val)}
-                                className="accent-primary"
-                              />
-                              <span className="text-[13.5px]">{val === "male" ? "ذكر" : "أنثى"}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="qualificationTypeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>أعلى مؤهل علمي</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر المؤهل"
-                          options={qualTypes.map((q) => ({ value: q.id, label: q.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="qualificationYear"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>سنة الحصول على المؤهل</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="مثال: 2018"
-                          options={QUALIFICATION_YEARS}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Job profile */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                بيانات الوظيفة المطلوبة
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <FormField
-                  control={form.control}
-                  name="jobProfile.departmentId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>القطاع</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر القطاع"
-                          options={departments.map((d) => ({ value: d.id, label: d.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="jobProfile.professionalGradeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الدرجة المهنية</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر الدرجة"
-                          disabled={!selectedDepartmentId}
-                          options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="jobProfile.generalSpecialtyId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>التخصص العام</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر التخصص"
-                          disabled={!selectedDepartmentId}
-                          options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="jobProfile.yearsOfExperience"
-                render={({ field }) => (
-                  <FormItem className="max-w-sm">
-                    <FormLabel>سنوات الخبرة</FormLabel>
-                    <FormControl>
-                      <DSelect
-                        value={field.value ?? ""}
-                        onChange={(v) => field.onChange(String(v))}
-                        placeholder="اختر سنوات الخبرة"
-                        options={YEARS_OF_EXPERIENCE}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="jobProfile.additionalInfo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>معلومات إضافية</FormLabel>
-                    <FormControl>
-                      <textarea
-                        {...field}
-                        rows={3}
-                        placeholder="أي معلومات إضافية تود إضافتها..."
-                        className="focus-ring w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-[13.5px] text-foreground placeholder:text-muted-foreground"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* CV upload */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                السيرة الذاتية
-              </h3>
-              <FormField
-                control={form.control}
-                name="cvUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ملف السيرة الذاتية</FormLabel>
-                    <FormControl>
-                      <CvUpload value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Server error */}
-            {submitError && (
-              <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
-                <Icon name="info" size={13} />
-                {submitError instanceof Error
-                  ? submitError.message
-                  : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 border-t border-border pt-2">
-              <Btn variant="outline" type="button" onClick={onClose}>
-                إلغاء
-              </Btn>
-              <Btn type="submit" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <svg viewBox="0 0 24 24" width="14" height="14" className="animate-spin">
-                      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="30 60" />
-                    </svg>
-                    جاري الإرسال…
-                  </>
-                ) : (
-                  <>
-                    <Icon name="send" size={14} /> إضافة الطلب
-                  </>
-                )}
-              </Btn>
-            </div>
-          </form>
-        </Form>
-      </div>
-    </DDialog>
-  )
-}
 
 /* ── Column helper ───────────────────────────────────────────────── */
 const col = createColumnHelper<JobRequest>()
+
+/* ── Company banner ──────────────────────────────────────────────── */
+function CompanyBanner({
+  user,
+  stats,
+  activeJobsCount,
+}: {
+  user: import("@/context/AppContext").AuthUser
+  stats: { total: number; byStatus: Record<string, number>; employmentRate: number }
+  activeJobsCount: number
+}) {
+  const chips = [
+    { label: "معروض حالياً", value: activeJobsCount, highlight: false },
+    { label: "معدل التوظيف", value: `${stats.employmentRate}%`, highlight: false },
+    { label: "تم توظيفهم", value: stats.byStatus.hired ?? 0, highlight: false },
+    { label: "إجمالي المرشحين", value: stats.total, highlight: false },
+  ]
+
+  return (
+    <div
+      className="mb-5 overflow-hidden rounded-xl"
+      style={{
+        background: "linear-gradient(135deg, #312e81 0%, #1e1b4b 45%, #2d2566 100%)",
+      }}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4" dir="rtl">
+        {/* Right: company info */}
+        <div className="text-right text-white">
+          <p className="mb-0.5 text-[11px] opacity-60">مرحباً بك</p>
+          <h2 className="text-[20px] font-bold leading-tight">
+            {user.companyName ?? user.name}
+          </h2>
+          <div className="mt-1.5 flex items-center justify-end gap-3 text-[11.5px] text-white/60">
+            <span className="flex items-center gap-1">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              {user.email}
+            </span>
+          </div>
+        </div>
+
+        {/* Left: stat chips */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Unique code chip */}
+          <div
+            className="flex flex-col items-center gap-0.5 rounded-lg px-4 py-2.5 text-center text-white"
+            style={{ background: "rgba(139, 60, 100, 0.55)" }}
+          >
+            <span className="text-[17px] font-bold leading-none tracking-wide">
+              {user.uniqueCode ?? "—"}
+            </span>
+            <span className="mt-1 text-[9.5px] opacity-70">الكود الفريد</span>
+          </div>
+
+          {chips.map((chip) => (
+            <div
+              key={chip.label}
+              className="flex flex-col items-center gap-0.5 rounded-lg px-4 py-2.5 text-center text-white"
+              style={{ background: "rgba(255,255,255,0.1)" }}
+            >
+              <span className="text-[17px] font-bold leading-none">{chip.value}</span>
+              <span className="mt-1 text-[9.5px] opacity-70">{chip.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /* ── Stats strip ─────────────────────────────────────────────────── */
 function StatCard({
@@ -981,6 +502,8 @@ export function IncomingPage() {
   const isSuperAdmin = user?.role === "super_admin"
 
   const { data: requests = [], isLoading } = useRequests()
+  const { data: jobs = [] } = useJobs()
+  const activeJobsCount = jobs.filter((j) => j.isPublished).length
   const toast = useToast()
   const { mutate: changeStatus } = useUpdateRequestStatus(
     () => toast({ title: "تم تغيير الحالة بنجاح", tone: "success" }),
@@ -990,7 +513,6 @@ export function IncomingPage() {
   const { mutate: markViewed } = useMarkRequestViewed()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [manualApplyOpen, setManualApplyOpen] = useState(false)
   const [globalFilter, setGlobalFilter] = useState("")
   const [companyFilter, setCompanyFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all")
@@ -1436,6 +958,15 @@ export function IncomingPage() {
 
   return (
     <div>
+      {/* ── Welcome banner ──────────────────────────────────────── */}
+      {user && (
+        <CompanyBanner
+          user={user}
+          stats={stats}
+          activeJobsCount={activeJobsCount}
+        />
+      )}
+
       <PageHeader
         icon="users"
         title="إدارة طلبات التوظيف"
@@ -1443,11 +974,6 @@ export function IncomingPage() {
           isSuperAdmin && requests.filter((r) => !r.isViewedByAdmin).length > 0
             ? `${requests.filter((r) => !r.isViewedByAdmin).length} طلب لم تتم مراجعته بعد`
             : "راجع وصنّف طلبات المتقدمين للوظائف الشاغرة"
-        }
-        actions={
-          <Btn onClick={() => setManualApplyOpen(true)}>
-            <Icon name="plus" size={14} /> إضافة طلب يدوي
-          </Btn>
         }
       />
 
@@ -2004,10 +1530,6 @@ export function IncomingPage() {
         onClose={() => setSelectedId(null)}
       />
 
-      <ManualApplyDialog
-        open={manualApplyOpen}
-        onClose={() => setManualApplyOpen(false)}
-      />
     </div>
   )
 }

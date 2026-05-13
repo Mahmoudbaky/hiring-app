@@ -320,6 +320,12 @@ const allNavItems = [
     icon: "briefcase",
     superAdminOnly: false,
   },
+  {
+    key: "manual-apply",
+    label: "إضافة طلب يدوي",
+    icon: "userPlus",
+    superAdminOnly: false,
+  },
   // {
   //   key: "jobs",
   //   label: "الوظائف المتاحة",

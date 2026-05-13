@@ -19,6 +19,7 @@ import { ProfilePage } from "@/pages/ProfilePage"
 import { HomePage } from "@/pages/HomePage"
 import { ContactPage } from "@/pages/ContactPage"
 import { ContactMessagesPage } from "@/pages/ContactMessagesPage"
+import { ManualApplyPage } from "@/pages/ManualApplyPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -269,6 +270,7 @@ export default function App() {
           }
         />
         <Route path="/incoming" element={<IncomingRoute />} />
+        <Route path="/manual-apply" element={<ManualApplyPage />} />
         <Route
           path="/jobs"
           element={
