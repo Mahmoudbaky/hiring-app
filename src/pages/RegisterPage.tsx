@@ -22,7 +22,9 @@ export function RegisterPage() {
   const [userDialCode, setUserDialCode] = useState("+966")
   const [userPhoneNumber, setUserPhoneNumber] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
+  const [showConfirmPw, setShowConfirmPw] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -41,6 +43,10 @@ export function RegisterPage() {
       setError("كلمة المرور يجب أن تكون 8 أحرف على الأقل")
       return
     }
+    if (password !== confirmPassword) {
+      setError("كلمتا المرور غير متطابقتين")
+      return
+    }
     setError("")
     setLoading(true)
     try {
@@ -53,7 +59,9 @@ export function RegisterPage() {
         name,
         email,
         password,
-        userPhoneNumber: userPhoneNumber ? `${userDialCode}${userPhoneNumber}` : undefined,
+        userPhoneNumber: userPhoneNumber
+          ? `${userDialCode}${userPhoneNumber}`
+          : undefined,
       })
       navigate("/incoming", { replace: true })
     } catch (err) {
@@ -153,12 +161,11 @@ export function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <DLabel>رقم الهاتف</DLabel>
-                <PhoneInput
-                  dialCode={dialCode}
-                  onDialCodeChange={setDialCode}
-                  number={phoneNumber}
-                  onNumberChange={setPhoneNumber}
+                <DLabel>رقم الترخيص</DLabel>
+                <DInput
+                  placeholder="رقم الترخيص"
+                  value={companyRecord}
+                  onChange={(e) => setCompanyRecord(e.target.value)}
                 />
               </div>
 
@@ -172,20 +179,21 @@ export function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
+                <DLabel>رقم الهاتف</DLabel>
+                <PhoneInput
+                  dialCode={dialCode}
+                  onDialCodeChange={setDialCode}
+                  number={phoneNumber}
+                  onNumberChange={setPhoneNumber}
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <DLabel>العنوان</DLabel>
                 <DInput
                   placeholder="المدينة، الحي"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <DLabel>السجل التجاري</DLabel>
-                <DInput
-                  placeholder="رقم السجل التجاري"
-                  value={companyRecord}
-                  onChange={(e) => setCompanyRecord(e.target.value)}
                 />
               </div>
             </div>
@@ -242,6 +250,26 @@ export function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPw((s) => !s)}
+                    className="absolute inset-y-0 inset-e-0 flex items-center pe-3 text-muted-foreground hover:text-foreground"
+                  >
+                    <Icon name="eye" size={15} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <DLabel required>تأكيد كلمة المرور</DLabel>
+                <div className="relative">
+                  <DInput
+                    type={showConfirmPw ? "text" : "password"}
+                    placeholder="أعد إدخال كلمة المرور"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pe-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw((s) => !s)}
                     className="absolute inset-y-0 inset-e-0 flex items-center pe-3 text-muted-foreground hover:text-foreground"
                   >
                     <Icon name="eye" size={15} />
