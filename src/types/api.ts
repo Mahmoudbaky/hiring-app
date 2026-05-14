@@ -219,10 +219,10 @@ export interface ManualApplicationBody {
 /** Body for POST /companies */
 export interface CreateCompanyBody {
   companyName: string;
-  uniqueCode: string;
+  companyRecord?: string;
+  managerName?: string;
   phoneNumber?: string;
   address?: string;
-  managerName?: string;
 }
 
 /** User from GET /users */

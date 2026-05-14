@@ -25,36 +25,28 @@ import {
 } from "@/hooks/useSettings"
 import type { CompanyUser } from "@/types/api"
 
-function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
-}
-
 /* ── Companies Tab ─────────────────────────────────────────────────── */
 function CompaniesTab() {
   const { data: companies = [], isLoading } = useCompanies()
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({
+  const emptyCompanyForm = {
     companyName: "",
-    uniqueCode: generateCode(),
+    companyRecord: "",
+    managerName: "",
+    dialCode: "+966",
     phoneNumber: "",
     address: "",
-    managerName: "",
-  })
+  }
+  const [form, setForm] = useState(emptyCompanyForm)
   const [error, setError] = useState("")
   const { mutate: create, isPending } = useCreateCompany(() => {
     setOpen(false)
-    setForm({
-      companyName: "",
-      uniqueCode: generateCode(),
-      phoneNumber: "",
-      address: "",
-      managerName: "",
-    })
+    setForm(emptyCompanyForm)
     setError("")
   })
 
   function openDialog() {
-    setForm((f) => ({ ...f, uniqueCode: generateCode() }))
+    setForm(emptyCompanyForm)
     setError("")
     setOpen(true)
   }
@@ -65,12 +57,13 @@ function CompaniesTab() {
       setError("اسم الشركة مطلوب")
       return
     }
+    const phone = form.phoneNumber ? `${form.dialCode}${form.phoneNumber}` : undefined
     create({
       companyName: form.companyName.trim(),
-      uniqueCode: form.uniqueCode,
-      phoneNumber: form.phoneNumber || undefined,
-      address: form.address || undefined,
+      companyRecord: form.companyRecord || undefined,
       managerName: form.managerName || undefined,
+      phoneNumber: phone,
+      address: form.address || undefined,
     })
   }
 
@@ -155,90 +148,57 @@ function CompaniesTab() {
           <div className="border-b border-border p-5">
             <h2 className="text-[16px] font-semibold">إنشاء شركة توظيف</h2>
           </div>
-          <div className="space-y-4 p-5">
+          <div className="p-5">
             {error && (
-              <p className="text-[13px] text-[var(--destructive)]">{error}</p>
+              <p className="mb-4 text-[13px] text-destructive">{error}</p>
             )}
-            <div className="space-y-1.5">
-              <DLabel required>اسم الشركة</DLabel>
-              <DInput
-                placeholder="مثال: شركة النجم للتوظيف"
-                value={form.companyName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, companyName: e.target.value }))
-                }
-              />
-            </div>
-            <div className="space-y-1.5">
-              <DLabel required>الكود الفريد</DLabel>
-              <div className="flex gap-2">
-                <DInput
-                  className="font-mono"
-                  value={form.uniqueCode}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      uniqueCode: e.target.value.toUpperCase(),
-                    }))
-                  }
-                  maxLength={50}
-                />
-                <Btn
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setForm((f) => ({ ...f, uniqueCode: generateCode() }))
-                  }
-                  className="shrink-0"
-                >
-                  <Icon name="undo" size={14} />
-                </Btn>
-              </div>
-              <p className="text-[12px] text-[var(--muted-foreground)]">
-                يُستخدم لربط طلبات التوظيف بهذه الشركة
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            <p className="mb-3 text-[13px] font-medium text-muted-foreground">معلومات الشركة</p>
+            <div className="space-y-4">
               <div className="space-y-1.5">
-                <DLabel>اسم المدير</DLabel>
+                <DLabel required>اسم الشركة</DLabel>
                 <DInput
-                  placeholder="اختياري"
+                  placeholder="مثال: شركة الأفق للتقنية"
+                  value={form.companyName}
+                  onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <DLabel>رقم الترخيص</DLabel>
+                <DInput
+                  placeholder="رقم الترخيص"
+                  value={form.companyRecord}
+                  onChange={(e) => setForm((f) => ({ ...f, companyRecord: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <DLabel>اسم المدير المسؤول</DLabel>
+                <DInput
+                  placeholder="الاسم الكامل"
                   value={form.managerName}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, managerName: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, managerName: e.target.value }))}
                 />
               </div>
               <div className="space-y-1.5">
                 <DLabel>رقم الهاتف</DLabel>
+                <PhoneInput
+                  dialCode={form.dialCode}
+                  onDialCodeChange={(v) => setForm((f) => ({ ...f, dialCode: v }))}
+                  number={form.phoneNumber}
+                  onNumberChange={(v) => setForm((f) => ({ ...f, phoneNumber: v }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <DLabel>العنوان</DLabel>
                 <DInput
-                  placeholder="اختياري"
-                  value={form.phoneNumber}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, phoneNumber: e.target.value }))
-                  }
+                  placeholder="المدينة، الحي"
+                  value={form.address}
+                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <DLabel>العنوان</DLabel>
-              <DInput
-                placeholder="اختياري"
-                value={form.address}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, address: e.target.value }))
-                }
-              />
-            </div>
           </div>
           <div className="flex justify-end gap-2 border-t border-border p-4">
-            <Btn
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setOpen(false)}
-            >
+            <Btn type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
               إلغاء
             </Btn>
             <Btn type="submit" size="sm" disabled={isPending}>
