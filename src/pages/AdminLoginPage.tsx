@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,7 +25,7 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>
 
-export function LoginPage() {
+export function AdminLoginPage() {
   const { login } = useApp()
   const navigate = useNavigate()
   const [showPw, setShowPw] = useState(false)
@@ -40,7 +40,7 @@ export function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       await login(values.email, values.password, values.remember)
-      navigate("/incoming", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (err) {
       form.setError("root", {
         message: err instanceof Error ? err.message : "حدث خطأ غير متوقع",
@@ -54,21 +54,13 @@ export function LoginPage() {
       dir="rtl"
     >
       {/* ── Left dark panel ──────────────────────────────────────── */}
-      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_30)] text-white lg:block">
+      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_250)] text-white lg:block">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 0% 100%, oklch(0.55 0.22 30 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 350 / 0.35), transparent 55%)",
+              "radial-gradient(120% 80% at 0% 100%, oklch(0.45 0.2 250 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.35 0.15 280 / 0.35), transparent 55%)",
           }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.08]"
-          // style={{
-          //   backgroundImage:
-          //     "linear-gradient(oklch(0.95 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(0.95 0 0 / 0.6) 1px, transparent 1px)",
-          //   backgroundSize: "44px 44px",
-          // }}
         />
 
         <div className="relative flex h-full flex-col p-12">
@@ -76,21 +68,21 @@ export function LoginPage() {
 
           <div className="flex max-w-[480px] flex-1 flex-col justify-center">
             <Badge
-              tone="rose"
+              tone="success"
               className="mb-5 w-fit border-white/15 bg-white/10 text-white"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-              منصة إدارة التوظيف
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              لوحة تحكم المشرف العام
             </Badge>
 
             <h1 className="text-[42px] leading-[1.15] font-bold tracking-tight text-balance">
-              أدر طلبات التوظيف
+              مرحباً بك في
               <br />
-              من <span className="text-[oklch(0.78_0.18_30)]">مكان واحد</span>.
+              <span className="text-[oklch(0.72_0.18_250)]">مركز الإدارة</span>.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-white/70">
-              راجع المتقدمين، صنّف السير الذاتية، وانشر الوظائف الجديدة. كل ما
-              تحتاجه لبناء فريقك في واجهة واحدة بسيطة.
+              أدر الشركات والوظائف والمتقدمين من مكان واحد. هذه الواجهة مخصصة
+              للمشرفين العامين فقط.
             </p>
           </div>
 
@@ -109,10 +101,10 @@ export function LoginPage() {
               className="mx-auto w-full max-w-[400px]"
             >
               <h2 className="text-[26px] font-bold tracking-tight">
-                تسجيل الدخول
+                دخول المشرف العام
               </h2>
               <p className="mt-1 text-[13.5px] text-muted-foreground">
-                أدخل بيانات حساب شركتك للمتابعة.
+                هذه الصفحة مخصصة للمشرفين العامين فقط.
               </p>
 
               <div className="my-5" />
@@ -129,7 +121,7 @@ export function LoginPage() {
                         <DInput
                           icon={<Icon name="mail" size={14} />}
                           type="email"
-                          placeholder="name@company.com"
+                          placeholder="admin@example.com"
                           {...field}
                         />
                       </FormControl>
@@ -144,15 +136,7 @@ export function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel required>كلمة المرور</FormLabel>
-                        <button
-                          type="button"
-                          className="text-[12px] text-[var(--primary)] hover:underline"
-                        >
-                          نسيت كلمة المرور؟
-                        </button>
-                      </div>
+                      <FormLabel required>كلمة المرور</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <DInput
@@ -246,21 +230,10 @@ export function LoginPage() {
                     </>
                   ) : (
                     <>
-                      تسجيل الدخول <Icon name="chevLeft" size={14} />
+                      دخول <Icon name="chevLeft" size={14} />
                     </>
                   )}
                 </Btn>
-
-                <div className="flex items-center justify-center gap-2 pt-1">
-                  <span className="text-[12.5px] text-muted-foreground">
-                    ليس لديك حساب؟
-                  </span>
-                  <Link to="/register">
-                    <Btn variant="outline" size="sm">
-                      إنشاء حساب
-                    </Btn>
-                  </Link>
-                </div>
               </div>
             </form>
           </Form>

@@ -15,6 +15,7 @@ import { CompanyCardPage } from "@/pages/CompanyCardPage"
 import { ApplyPage } from "@/pages/ApplyPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { RegisterPage } from "@/pages/RegisterPage"
+import { AdminLoginPage } from "@/pages/AdminLoginPage"
 import { ProfilePage } from "@/pages/ProfilePage"
 import { HomePage } from "@/pages/HomePage"
 import { ContactPage } from "@/pages/ContactPage"
@@ -246,7 +247,7 @@ export default function App() {
       {/* Public home page */}
       <Route path="/" element={<HomePage />} />
 
-      {/* Redirect already-logged-in users away from /login and /register */}
+      {/* Redirect already-logged-in users away from auth pages */}
       <Route
         path="/login"
         element={loggedIn ? <Navigate to="/incoming" replace /> : <LoginPage />}
@@ -255,6 +256,12 @@ export default function App() {
         path="/register"
         element={
           loggedIn ? <Navigate to="/incoming" replace /> : <RegisterPage />
+        }
+      />
+      <Route
+        path="/admin/login"
+        element={
+          loggedIn ? <Navigate to="/dashboard" replace /> : <AdminLoginPage />
         }
       />
 
