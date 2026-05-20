@@ -334,7 +334,7 @@ const allNavItems = [
   // },
   {
     key: "dashboard",
-    label: "الإحصائيات",
+    label: "لوحة المعلومات",
     icon: "chart",
     superAdminOnly: true,
   },

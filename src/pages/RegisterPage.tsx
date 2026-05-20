@@ -11,8 +11,6 @@ export function RegisterPage() {
   const navigate = useNavigate()
 
   const [companyName, setCompanyName] = useState("")
-  const [dialCode, setDialCode] = useState("+966")
-  const [phoneNumber, setPhoneNumber] = useState("")
   const [address, setAddress] = useState("")
   const [managerName, setManagerName] = useState("")
   const [companyRecord, setCompanyRecord] = useState("")
@@ -52,7 +50,6 @@ export function RegisterPage() {
     try {
       await register({
         companyName,
-        phoneNumber: phoneNumber ? `${dialCode}${phoneNumber}` : undefined,
         address: address || undefined,
         managerName: managerName || undefined,
         companyRecord: companyRecord || undefined,
@@ -141,9 +138,9 @@ export function RegisterPage() {
               </p>
 
               <div className="space-y-1.5">
-                <DLabel required>اسم الشركة</DLabel>
+                <DLabel required>اسم الجهة</DLabel>
                 <DInput
-                  placeholder="مثال: شركة الأفق للتقنية"
+                  placeholder="مثال: مجمع الصاعدي الطبي"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                 />
@@ -159,9 +156,9 @@ export function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <DLabel>اسم المدير المسؤول</DLabel>
+                <DLabel>اسم المفوض</DLabel>
                 <DInput
-                  placeholder="الاسم الكامل"
+                  placeholder="اسم المفوض"
                   value={managerName}
                   onChange={(e) => setManagerName(e.target.value)}
                 />
@@ -170,10 +167,10 @@ export function RegisterPage() {
               <div className="space-y-1.5">
                 <DLabel>رقم الهاتف</DLabel>
                 <PhoneInput
-                  dialCode={dialCode}
-                  onDialCodeChange={setDialCode}
-                  number={phoneNumber}
-                  onNumberChange={setPhoneNumber}
+                  dialCode={userDialCode}
+                  onDialCodeChange={setUserDialCode}
+                  number={userPhoneNumber}
+                  onNumberChange={setUserPhoneNumber}
                 />
               </div>
 
@@ -213,16 +210,6 @@ export function RegisterPage() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <DLabel>رقم الهاتف</DLabel>
-                <PhoneInput
-                  dialCode={userDialCode}
-                  onDialCodeChange={setUserDialCode}
-                  number={userPhoneNumber}
-                  onNumberChange={setUserPhoneNumber}
                 />
               </div>
 
