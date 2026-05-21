@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   useCompanies,
   useCreateCompany,
+  useFreezeCompany,
   useUsers,
   useCreateUser,
   useFreezeUser,
@@ -28,6 +29,8 @@ import type { CompanyUser } from "@/types/api"
 /* ── Companies Tab ─────────────────────────────────────────────────── */
 function CompaniesTab() {
   const { data: companies = [], isLoading } = useCompanies()
+  const { mutate: freeze, isPending: isFreezing } = useFreezeCompany()
+  const [search, setSearch] = useState("")
   const [open, setOpen] = useState(false)
   const emptyCompanyForm = {
     companyName: "",
@@ -67,12 +70,29 @@ function CompaniesTab() {
     })
   }
 
+  const q = search.trim().toLowerCase()
+  const filtered = companies.filter((c) =>
+    !q ||
+    c.companyName.toLowerCase().includes(q) ||
+    c.uniqueCode.toLowerCase().includes(q) ||
+    (c.managerName ?? "").toLowerCase().includes(q) ||
+    (c.phoneNumber ?? "").toLowerCase().includes(q)
+  )
+
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-[13.5px] text-[var(--muted-foreground)]">
-          إدارة شركات التوظيف وأكوادها الفريدة
-        </p>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <span className="pointer-events-none absolute inset-y-0 inset-e-3 flex items-center text-muted-foreground">
+            <Icon name="search" size={14} />
+          </span>
+          <DInput
+            placeholder="بحث باسم الشركة أو الكود أو المدير أو الهاتف…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pe-9"
+          />
+        </div>
         <Btn size="sm" onClick={openDialog}>
           <Icon name="plus" size={14} />
           إنشاء شركة
@@ -88,30 +108,31 @@ function CompaniesTab() {
               <Th>المدير</Th>
               <Th>الهاتف</Th>
               <Th>الحالة</Th>
+              <Th className="w-[80px]"></Th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
                 <Td
-                  colSpan={5}
+                  colSpan={6}
                   className="py-10 text-center text-[var(--muted-foreground)]"
                 >
                   جاري التحميل…
                 </Td>
               </tr>
-            ) : companies.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <tr>
                 <Td
-                  colSpan={5}
+                  colSpan={6}
                   className="py-10 text-center text-[var(--muted-foreground)]"
                 >
-                  لا توجد شركات بعد
+                  {q ? "لا توجد نتائج مطابقة" : "لا توجد شركات بعد"}
                 </Td>
               </tr>
             ) : (
-              companies.map((c) => (
-                <tr key={c.id}>
+              filtered.map((c) => (
+                <tr key={c.id} className={c.isActive ? "" : "opacity-60"}>
                   <Td className="font-medium">{c.companyName}</Td>
                   <Td>
                     <span className="inline-flex items-center gap-1.5 rounded bg-[var(--muted)]/60 px-2 py-0.5 font-mono text-[13px]">
@@ -135,6 +156,16 @@ function CompaniesTab() {
                     >
                       {c.isActive ? "نشطة" : "غير نشطة"}
                     </span>
+                  </Td>
+                  <Td>
+                    <button
+                      onClick={() => freeze({ id: c.id, isActive: !c.isActive })}
+                      disabled={isFreezing}
+                      className={`rounded p-1.5 transition-colors ${c.isActive ? "text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20" : "text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"}`}
+                      title={c.isActive ? "تجميد الشركة" : "تفعيل الشركة"}
+                    >
+                      <Icon name={c.isActive ? "ban" : "check"} size={14} />
+                    </button>
                   </Td>
                 </tr>
               ))

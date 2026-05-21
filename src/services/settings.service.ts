@@ -21,6 +21,10 @@ export const settingsService = {
     const res = await api.post<ApiResponse<HiringCompany>>('/companies', body);
     return res.data.data;
   },
+  async freezeCompany(id: string, isActive: boolean): Promise<HiringCompany> {
+    const res = await api.patch<ApiResponse<HiringCompany>>(`/companies/${id}`, { isActive });
+    return res.data.data;
+  },
 
   // Users
   async listUsers(): Promise<CompanyUser[]> {

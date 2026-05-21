@@ -79,23 +79,18 @@ function toAuthUser(
 }
 
 async function fetchCompanyInfo(companyId: string | null): Promise<CompanyInfo> {
-  const empty: CompanyInfo = { companyName: null, uniqueCode: null, companyLogo: null, companyAddress: null, companyPhone: null, companyManagerName: null, companyCreatedAt: null };
-  if (!companyId) return empty;
-  try {
-    const res = await api.get('/companies/mine');
-    const d = res.data?.data;
-    return {
-      companyName: (d?.companyName as string) ?? null,
-      uniqueCode: (d?.uniqueCode as string) ?? null,
-      companyLogo: (d?.logo as string) ?? null,
-      companyAddress: (d?.address as string) ?? null,
-      companyPhone: (d?.phoneNumber as string) ?? null,
-      companyManagerName: (d?.managerName as string) ?? null,
-      companyCreatedAt: (d?.createdAt as string) ?? null,
-    };
-  } catch {
-    return empty;
-  }
+  if (!companyId) return { companyName: null, uniqueCode: null, companyLogo: null, companyAddress: null, companyPhone: null, companyManagerName: null, companyCreatedAt: null };
+  const res = await api.get('/companies/mine');
+  const d = res.data?.data;
+  return {
+    companyName: (d?.companyName as string) ?? null,
+    uniqueCode: (d?.uniqueCode as string) ?? null,
+    companyLogo: (d?.logo as string) ?? null,
+    companyAddress: (d?.address as string) ?? null,
+    companyPhone: (d?.phoneNumber as string) ?? null,
+    companyManagerName: (d?.managerName as string) ?? null,
+    companyCreatedAt: (d?.createdAt as string) ?? null,
+  };
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -110,8 +105,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (res.data?.user) {
           const u = res.data.user;
-          const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-          setUser(toAuthUser(u, company));
+          try {
+            const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+            setUser(toAuthUser(u, company));
+          } catch {
+            // Company frozen or inaccessible — invalidate the session
+            await api.post('/auth/sign-out').catch(() => {});
+          }
         }
       })
       .catch(() => { /* no session — stay logged out */ })
@@ -121,8 +121,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, rememberMe = false) => {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
     const u = res.data.user;
-    const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
-    setUser(toAuthUser(u, company));
+    try {
+      const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+      setUser(toAuthUser(u, company));
+    } catch (err) {
+      // Company frozen — clean up the session and surface the error to the caller
+      await api.post('/auth/sign-out').catch(() => {});
+      throw err;
+    }
   };
 
   const register = async (data: RegisterCompanyData) => {

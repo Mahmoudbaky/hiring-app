@@ -18,6 +18,14 @@ export function useCreateCompany(onSuccess?: () => void) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: COMPANIES_QUERY_KEY }); onSuccess?.(); },
   });
 }
+export function useFreezeCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      settingsService.freezeCompany(id, isActive),
+    onSuccess: () => qc.invalidateQueries({ queryKey: COMPANIES_QUERY_KEY }),
+  });
+}
 
 // Users
 export function useUsers() {
