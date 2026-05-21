@@ -212,8 +212,7 @@ function AdminLayout() {
 
 /* ── Route wrappers: pull from context, pass as props ─────────────── */
 function DashboardRoute() {
-  const { applications, setViewing } = useApp()
-  return <DashboardPage applications={applications} onOpenApp={setViewing} />
+  return <DashboardPage />
 }
 
 // function ApplicationsRoute() {

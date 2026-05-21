@@ -45,6 +45,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
   shortlisted: { label: 'تم الترشيح',   tone: 'emerald' },
   interview:   { label: 'موعد مقابلة',  tone: 'violet' },
   rejected:    { label: 'مرفوض',        tone: 'rose' },
+  hired:       { label: 'تم التعيين',   tone: 'success' },
 };
 
 export const SEED_JOBS: Job[] = [

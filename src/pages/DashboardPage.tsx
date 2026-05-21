@@ -10,10 +10,11 @@ import {
   CardDesc,
   CardBody,
 } from "@/components/ui/card"
-import { Btn, PageHeader, Th, Td, AttachIcon, DInput } from "@/components/shell"
+import { Btn, PageHeader, Th, Td, DInput } from "@/components/shell"
 import { DSelect } from "@/components/ui/dselect"
 import { STATUS_META } from "@/data"
-import type { Application } from "@/types"
+import { useDashboard } from "@/hooks/useDashboard"
+import type { DashboardChartEntry, DashboardDepartment, DashboardRecentRequest } from "@/types/api"
 
 /* ── Stat card ────────────────────────────────────────────────────── */
 function StatCard({
@@ -27,9 +28,9 @@ function StatCard({
   tone: string
   icon: string
   label: string
-  value: string
+  value: string | number
   sub?: string
-  trend?: string
+  trend?: string | null
 }) {
   return (
     <Card className="p-5">
@@ -42,24 +43,25 @@ function StatCard({
         >
           <Icon name={icon} size={20} />
         </div>
-        {trend && (
-          <div className="flex items-center gap-1 text-[12px] font-medium text-[oklch(0.5_0.13_155)]">
-            <Icon name="trendUp" size={13} />
-            <span>{trend}</span>
+        {trend != null && (
+          <div className={cn(
+            "flex items-center gap-1 text-[12px] font-medium",
+            Number(trend) >= 0
+              ? "text-[oklch(0.5_0.13_155)]"
+              : "text-[oklch(0.5_0.18_25)]"
+          )}>
+            <Icon name={Number(trend) >= 0 ? "trendUp" : "trendUp"} size={13} />
+            <span>{Number(trend) >= 0 ? "+" : ""}{trend}%</span>
           </div>
         )}
       </div>
       <div className="mt-4">
-        <div className="text-[13px] text-[var(--muted-foreground)]">
-          {label}
-        </div>
+        <div className="text-[13px] text-[var(--muted-foreground)]">{label}</div>
         <div className="tabular mt-0.5 text-[28px] font-bold tracking-tight">
-          {value}
+          {typeof value === "number" ? value.toLocaleString("ar-SA") : value}
         </div>
         {sub && (
-          <div className="mt-0.5 text-[12px] text-[var(--muted-foreground)]">
-            {sub}
-          </div>
+          <div className="mt-0.5 text-[12px] text-[var(--muted-foreground)]">{sub}</div>
         )}
       </div>
     </Card>
@@ -67,43 +69,58 @@ function StatCard({
 }
 
 /* ── Bar chart ────────────────────────────────────────────────────── */
-function BarChart() {
-  const data = [
-    { d: "15", n: 22, s: 14, r: 4 },
-    { d: "16", n: 30, s: 20, r: 8 },
-    { d: "17", n: 18, s: 12, r: 3 },
-    { d: "18", n: 42, s: 25, r: 10 },
-    { d: "19", n: 28, s: 18, r: 6 },
-    { d: "20", n: 36, s: 22, r: 7 },
-    { d: "21", n: 48, s: 30, r: 12 },
-  ]
-  const max = 60
+function BarChart({ data }: { data: DashboardChartEntry[] }) {
+  if (!data.length) {
+    return (
+      <div className="flex h-48 items-center justify-center text-[13px] text-[var(--muted-foreground)]">
+        لا توجد بيانات في هذه الفترة
+      </div>
+    )
+  }
+
+  const max = Math.max(...data.map((d) => d.new + d.shortlisted + d.rejected), 1)
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso)
+    return d.getDate().toString()
+  }
+
+  const monthLabel = (iso: string) => {
+    const d = new Date(iso)
+    return d.toLocaleDateString("ar-SA", { month: "long" })
+  }
+
   return (
     <div>
-      <div className="flex h-48 items-end gap-4" dir="ltr">
+      <div className="flex h-48 items-end gap-2" dir="ltr">
         {data.map((d, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-2">
-            <div className="flex h-40 w-full items-end justify-center gap-1">
+            <div className="flex h-40 w-full items-end justify-center gap-0.5">
               <div
                 className="w-3 rounded-t-sm bg-[oklch(0.85_0.08_230)]"
-                style={{ height: `${(d.r / max) * 100}%` }}
+                style={{ height: `${(d.rejected / max) * 100}%` }}
               />
               <div
                 className="w-3 rounded-t-sm bg-[oklch(0.78_0.1_155)]"
-                style={{ height: `${(d.s / max) * 100}%` }}
+                style={{ height: `${(d.shortlisted / max) * 100}%` }}
               />
               <div
                 className="w-3 rounded-t-sm bg-[var(--primary)]"
-                style={{ height: `${(d.n / max) * 100}%` }}
+                style={{ height: `${(d.new / max) * 100}%` }}
               />
             </div>
             <div className="tabular text-[11px] text-[var(--muted-foreground)]">
-              {d.d} أبريل
+              {formatDate(d.date)}
             </div>
           </div>
         ))}
       </div>
-      <div className="mt-4 flex items-center gap-5 text-[12px] text-[var(--muted-foreground)]">
+      {data[0] && (
+        <div className="mb-2 text-center text-[11px] text-[var(--muted-foreground)]">
+          {monthLabel(data[0].date)}
+        </div>
+      )}
+      <div className="mt-2 flex items-center gap-5 text-[12px] text-[var(--muted-foreground)]">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-[var(--primary)]" />
           طلبات جديدة
@@ -121,21 +138,142 @@ function BarChart() {
   )
 }
 
-/* ── Dashboard page ───────────────────────────────────────────────── */
-interface Props {
-  applications: Application[]
-  onOpenApp: (a: Application) => void
+/* ── Top departments ──────────────────────────────────────────────── */
+function TopDepartments({ data }: { data: DashboardDepartment[] }) {
+  if (!data.length) {
+    return (
+      <div className="py-6 text-center text-[13px] text-[var(--muted-foreground)]">
+        لا توجد بيانات
+      </div>
+    )
+  }
+
+  const max = Math.max(...data.map((d) => d.count), 1)
+
+  return (
+    <div className="space-y-3">
+      {data.map((d, i) => (
+        <div key={d.departmentId}>
+          <div className="mb-1 flex items-center justify-between text-[12.5px]">
+            <span>{d.name}</span>
+            <span className="tabular text-[var(--muted-foreground)]">{d.count}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-[var(--muted)]">
+            <div
+              className="h-full rounded-full bg-[var(--primary)]"
+              style={{
+                width: `${(d.count / max) * 100}%`,
+                opacity: 0.7 + (i === 0 ? 0.3 : 0),
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
-export function DashboardPage({ applications, onOpenApp }: Props) {
-  const [q, setQ] = useState("")
+/* ── Recent requests table ────────────────────────────────────────── */
+function RecentRequests({
+  data,
+  q,
+}: {
+  data: DashboardRecentRequest[]
+  q: string
+}) {
+  const filtered = data.filter(
+    (r) =>
+      !q ||
+      r.applicant.name.includes(q) ||
+      r.applicant.email.includes(q) ||
+      r.jobAd?.adTitle.includes(q)
+  )
 
-  const recent = applications
-    .slice(0, 4)
-    .filter(
-      (a) =>
-        !q || a.name.includes(q) || a.job.includes(q) || a.email.includes(q)
+  if (!filtered.length) {
+    return (
+      <div className="py-8 text-center text-[13px] text-[var(--muted-foreground)]">
+        لا توجد طلبات
+      </div>
     )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[580px]">
+        <thead>
+          <tr>
+            <Th>المتقدم</Th>
+            <Th>الوظيفة</Th>
+            <Th>الرقم المرجعي</Th>
+            <Th>الحالة</Th>
+            <Th>الإجراءات</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((r) => (
+            <tr key={r.id} className="row">
+              <Td>
+                <div className="flex items-center gap-3">
+                  <Avatar name={r.applicant.name} />
+                  <div>
+                    <div className="font-medium">{r.applicant.name}</div>
+                    <div className="text-[12px] text-[var(--muted-foreground)]">
+                      {r.applicant.email}
+                    </div>
+                  </div>
+                </div>
+              </Td>
+              <Td>{r.jobAd?.adTitle ?? "—"}</Td>
+              <Td>
+                <span className="tabular text-[12.5px] text-[var(--muted-foreground)]">
+                  {r.referenceNumber ?? "—"}
+                </span>
+              </Td>
+              <Td>
+                <Badge tone={STATUS_META[r.status]?.tone as any}>
+                  {STATUS_META[r.status]?.label ?? r.status}
+                </Badge>
+              </Td>
+              <Td>
+                <div className="flex items-center gap-1">
+                  <Btn variant="ghost" size="iconSm">
+                    <Icon name="eye" size={15} />
+                  </Btn>
+                  <Btn variant="ghost" size="iconSm">
+                    <Icon
+                      name="check"
+                      size={15}
+                      className="text-[oklch(0.5_0.13_155)]"
+                    />
+                  </Btn>
+                </div>
+              </Td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+/* ── Skeleton loader ──────────────────────────────────────────────── */
+function StatSkeleton() {
+  return (
+    <Card className="p-5">
+      <div className="h-11 w-11 animate-pulse rounded-lg bg-[var(--muted)]" />
+      <div className="mt-4 space-y-2">
+        <div className="h-3 w-24 animate-pulse rounded bg-[var(--muted)]" />
+        <div className="h-8 w-16 animate-pulse rounded bg-[var(--muted)]" />
+      </div>
+    </Card>
+  )
+}
+
+/* ── Dashboard page ───────────────────────────────────────────────── */
+export function DashboardPage() {
+  const [q, setQ] = useState("")
+  const [chartDays, setChartDays] = useState(30)
+  const { data, isLoading, isError } = useDashboard(chartDays)
 
   return (
     <div>
@@ -155,48 +293,62 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
         }
       />
 
+      {/* ── Stat cards ──────────────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          tone="tone-sky"
-          icon="users"
-          label="إجمالي الطلبات"
-          value="1,284"
-          sub="هذا الشهر"
-          trend="12%↑"
-        />
-        <StatCard
-          tone="tone-amber"
-          icon="clock"
-          label="قيد المراجعة"
-          value="42"
-          sub="بانتظار الرد"
-        />
-        <StatCard
-          tone="tone-emerald"
-          icon="calendar"
-          label="مقابلات مجدولة"
-          value="18"
-          sub="هذا الأسبوع"
-        />
-        <StatCard
-          tone="tone-rose"
-          icon="ban"
-          label="طلبات مرفوضة"
-          value="156"
-          sub="إجمالي الرفض"
-        />
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
+        ) : isError ? (
+          <div className="col-span-4 py-4 text-center text-[13px] text-[var(--muted-foreground)]">
+            تعذّر تحميل البيانات
+          </div>
+        ) : (
+          <>
+            <StatCard
+              tone="tone-sky"
+              icon="users"
+              label="إجمالي الطلبات"
+              value={data!.stats.totalRequests}
+              sub="هذا الشهر"
+              trend={data!.stats.totalRequestsTrend != null ? String(data!.stats.totalRequestsTrend) : null}
+            />
+            <StatCard
+              tone="tone-amber"
+              icon="clock"
+              label="قيد المراجعة"
+              value={data!.stats.underReview}
+              sub="بانتظار الرد"
+            />
+            <StatCard
+              tone="tone-emerald"
+              icon="calendar"
+              label="مقابلات مجدولة"
+              value={data!.stats.scheduledInterviews}
+              sub="إجمالي المقابلات"
+            />
+            <StatCard
+              tone="tone-rose"
+              icon="ban"
+              label="طلبات مرفوضة"
+              value={data!.stats.rejected}
+              sub="إجمالي الرفض"
+            />
+          </>
+        )}
       </div>
 
+      {/* ── Chart + departments ─────────────────────────────────────── */}
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <div>
               <CardTitle>توزيع الطلبات حسب الحالة</CardTitle>
-              <CardDesc>آخر 30 يوماً</CardDesc>
+              <CardDesc>
+                {chartDays === 7 ? "آخر 7 أيام" : chartDays === 30 ? "آخر 30 يوماً" : "آخر 3 أشهر"}
+              </CardDesc>
             </div>
             <DSelect
-              value="30"
-              onChange={() => {}}
+              value={String(chartDays)}
+              onChange={(v) => setChartDays(Number(v))}
               options={[
                 { value: "7", label: "آخر 7 أيام" },
                 { value: "30", label: "آخر 30 يوماً" },
@@ -206,7 +358,11 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
             />
           </CardHeader>
           <CardBody>
-            <BarChart />
+            {isLoading ? (
+              <div className="h-48 animate-pulse rounded-lg bg-[var(--muted)]" />
+            ) : (
+              <BarChart data={data?.chart ?? []} />
+            )}
           </CardBody>
         </Card>
 
@@ -217,36 +373,24 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
               <CardDesc>حسب حجم الطلبات المفتوحة</CardDesc>
             </div>
           </CardHeader>
-          <CardBody className="space-y-3">
-            {[
-              { name: "التطوير البرمجي", count: 486, pct: 38 },
-              { name: "التصميم", count: 312, pct: 24 },
-              { name: "التسويق", count: 218, pct: 17 },
-              { name: "إدارة المنتج", count: 164, pct: 13 },
-              { name: "العمليات", count: 104, pct: 8 },
-            ].map((d, i) => (
-              <div key={i}>
-                <div className="mb-1 flex items-center justify-between text-[12.5px]">
-                  <span>{d.name}</span>
-                  <span className="tabular text-[var(--muted-foreground)]">
-                    {d.count}
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-[var(--muted)]">
-                  <div
-                    className="h-full rounded-full bg-[var(--primary)]"
-                    style={{
-                      width: `${d.pct * 2}%`,
-                      opacity: 0.7 + (i === 0 ? 0.3 : 0),
-                    }}
-                  />
-                </div>
+          <CardBody>
+            {isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-1">
+                    <div className="h-3 w-32 animate-pulse rounded bg-[var(--muted)]" />
+                    <div className="h-2 w-full animate-pulse rounded-full bg-[var(--muted)]" />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <TopDepartments data={data?.topDepartments ?? []} />
+            )}
           </CardBody>
         </Card>
       </div>
 
+      {/* ── Recent requests ─────────────────────────────────────────── */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -268,67 +412,15 @@ export function DashboardPage({ applications, onOpenApp }: Props) {
             />
           </div>
         </CardHeader>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[580px]">
-            <thead>
-              <tr>
-                <Th>المتقدم</Th>
-                <Th>الوظيفة</Th>
-                <Th>المرفقات</Th>
-                <Th>الحالة</Th>
-                <Th>الإجراءات</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {recent.map((a) => (
-                <tr key={a.id} className="row">
-                  <Td>
-                    <div className="flex items-center gap-3">
-                      <Avatar name={a.name} tone={a.avatar as any} />
-                      <div>
-                        <div className="font-medium">{a.name}</div>
-                        <div className="text-[12px] text-[var(--muted-foreground)]">
-                          {a.email}
-                        </div>
-                      </div>
-                    </div>
-                  </Td>
-                  <Td>{a.job}</Td>
-                  <Td>
-                    <div className="flex items-center gap-1.5">
-                      {a.attachments.map((at, i) => (
-                        <AttachIcon key={i} type={at.type} />
-                      ))}
-                    </div>
-                  </Td>
-                  <Td>
-                    <Badge tone={STATUS_META[a.status].tone as any}>
-                      {STATUS_META[a.status].label}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <div className="flex items-center gap-1">
-                      <Btn
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => onOpenApp(a)}
-                      >
-                        <Icon name="eye" size={15} />
-                      </Btn>
-                      <Btn variant="ghost" size="iconSm">
-                        <Icon
-                          name="check"
-                          size={15}
-                          className="text-[oklch(0.5_0.13_155)]"
-                        />
-                      </Btn>
-                    </div>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-10 animate-pulse rounded-lg bg-[var(--muted)]" />
+            ))}
+          </div>
+        ) : (
+          <RecentRequests data={data?.recentRequests ?? []} q={q} />
+        )}
       </Card>
     </div>
   )

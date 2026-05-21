@@ -268,6 +268,45 @@ export interface CreateJobBody {
   deadline?: string | null;
 }
 
+/** Dashboard data from GET /api/dashboard */
+export interface DashboardStats {
+  totalRequests: number;
+  totalRequestsTrend: number | null;
+  underReview: number;
+  scheduledInterviews: number;
+  rejected: number;
+}
+
+export interface DashboardChartEntry {
+  date: string;
+  new: number;
+  shortlisted: number;
+  rejected: number;
+}
+
+export interface DashboardDepartment {
+  departmentId: string;
+  name: string;
+  count: number;
+}
+
+export interface DashboardRecentRequest {
+  id: string;
+  status: RequestStatus;
+  submissionType: "self" | "manual";
+  referenceNumber: string | null;
+  createdAt: string;
+  applicant: { id: string; name: string; email: string; phone: string };
+  jobAd: { id: string; adTitle: string } | null;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  chart: DashboardChartEntry[];
+  topDepartments: DashboardDepartment[];
+  recentRequests: DashboardRecentRequest[];
+}
+
 /** Body for POST /contact (public) */
 export interface SubmitContactBody {
   fullName: string;

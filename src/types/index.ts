@@ -1,4 +1,4 @@
-export type StatusKey = 'new' | 'review' | 'shortlisted' | 'interview' | 'rejected';
+export type StatusKey = 'new' | 'review' | 'shortlisted' | 'interview' | 'rejected' | 'hired';
 
 export type ToneKey = 'sky' | 'amber' | 'emerald' | 'rose' | 'violet' | 'slate' | 'neutral' | 'success';
 
