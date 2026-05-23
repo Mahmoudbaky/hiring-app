@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, useSearchParams, Link } from "react-router-dom"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,6 +28,8 @@ type LoginValues = z.infer<typeof loginSchema>
 export function LoginPage() {
   const { login } = useApp()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const justVerified = searchParams.get("verified") === "1"
   const [showPw, setShowPw] = useState(false)
 
   const form = useForm<LoginValues>({
@@ -211,10 +213,27 @@ export function LoginPage() {
                   )}
                 />
 
+                {/* Verified success banner */}
+                {justVerified && !errors.root && (
+                  <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    <Icon name="check" size={13} /> تم تأكيد بريدك بنجاح، سجّل الدخول للمتابعة.
+                  </div>
+                )}
+
                 {/* Root / server error */}
                 {errors.root && (
-                  <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
-                    <Icon name="info" size={13} /> {errors.root.message}
+                  <div className="rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
+                    <div className="flex items-center gap-2">
+                      <Icon name="info" size={13} /> {errors.root.message}
+                    </div>
+                    {errors.root.message?.includes("تأكيد") && (
+                      <Link
+                        to={`/verify-otp?email=${encodeURIComponent(form.getValues("email"))}`}
+                        className="mt-1.5 block text-[12px] font-medium text-[oklch(0.45_0.15_25)] underline underline-offset-2"
+                      >
+                        تأكيد بريدك الإلكتروني الآن ←
+                      </Link>
+                    )}
                   </div>
                 )}
 

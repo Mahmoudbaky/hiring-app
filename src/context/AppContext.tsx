@@ -132,11 +132,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (data: RegisterCompanyData) => {
-    const res = await api.post('/register-company', data);
-    const { user: u, company } = res.data;
-    // Auto-login after registration
-    await login(data.email, data.password);
-    void u; void company;
+    await api.post('/register-company', data);
+    // No auto-login — user must verify company email via OTP first
   };
 
   const refreshProfile = async () => {

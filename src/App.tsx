@@ -19,6 +19,7 @@ import { AdminLoginPage } from "@/pages/AdminLoginPage"
 import { ProfilePage } from "@/pages/ProfilePage"
 import { HomePage } from "@/pages/HomePage"
 import { ContactPage } from "@/pages/ContactPage"
+import { VerifyOtpPage } from "@/pages/VerifyOtpPage"
 import { ContactMessagesPage } from "@/pages/ContactMessagesPage"
 import { ManualApplyPage } from "@/pages/ManualApplyPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
@@ -298,6 +299,9 @@ export default function App() {
           }
         />
       </Route>
+
+      {/* OTP verification — public, no auth guard */}
+      <Route path="/verify-otp" element={<VerifyOtpPage />} />
 
       {/* Public routes — pages are self-contained */}
       <Route path="/careers" element={<CareersPage />} />

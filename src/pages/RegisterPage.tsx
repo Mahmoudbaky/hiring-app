@@ -60,7 +60,7 @@ export function RegisterPage() {
           ? `${userDialCode}${userPhoneNumber}`
           : undefined,
       })
-      navigate("/incoming", { replace: true })
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع")
     } finally {
