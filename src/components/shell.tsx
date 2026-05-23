@@ -280,28 +280,47 @@ function UniqueCodeBadge({ code }: { code: string }) {
     setTimeout(() => setCopied(false), 1800)
   }
 
+  const share = () => {
+    if (navigator.share) {
+      navigator.share({ title: "كود المكتب", text: code })
+    } else {
+      navigator.clipboard.writeText(code)
+    }
+  }
+
   return (
-    <div className="mt-3 flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] bg-[var(--muted)]/40 px-2.5 py-1.5">
-      <div>
-        <div className="text-[10px] text-[var(--muted-foreground)]">
-          كود الشركة
-        </div>
-        <div className="font-mono text-[13px] font-semibold tracking-widest text-[var(--foreground)]">
-          {code}
-        </div>
+    <div
+      dir="rtl"
+      className="mt-3 rounded-xl bg-[#1b2b4b] px-3.5 pt-2.5 pb-2"
+    >
+      <p className="mb-1 text-right text-[10px] font-medium text-[#8ba3c7]">
+        الكود الفريد للمكتب
+      </p>
+      <p className="font-mono text-[22px] font-bold tracking-widest text-white">
+        {code}
+      </p>
+      <div className="mt-2.5 flex gap-2">
+        <button
+          type="button"
+          onClick={copy}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2e4470] bg-[#243460] py-1 text-[12px] font-medium text-[#c8d8f0] transition-colors hover:bg-[#2e4470]"
+        >
+          {copied ? (
+            <Icon name="check" size={12} className="text-green-400" />
+          ) : (
+            <Icon name="copy" size={12} />
+          )}
+          {copied ? "تم النسخ" : "نسخ"}
+        </button>
+        <button
+          type="button"
+          onClick={share}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#2e4470] bg-[#243460] py-1 text-[12px] font-medium text-[#c8d8f0] transition-colors hover:bg-[#2e4470]"
+        >
+          <Icon name="link" size={12} />
+          مشاركة
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={copy}
-        title="نسخ الكود"
-        className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-      >
-        {copied ? (
-          <Icon name="check" size={13} className="text-[var(--primary)]" />
-        ) : (
-          <Icon name="link" size={13} />
-        )}
-      </button>
     </div>
   )
 }
