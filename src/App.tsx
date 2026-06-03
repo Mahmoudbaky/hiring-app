@@ -239,7 +239,8 @@ function JobsRoute() {
 /* ── Root ─────────────────────────────────────────────────────────── */
 export default function App() {
   const { loggedIn, authLoading, user } = useApp()
-  const defaultHome = user?.role === "client_company_user" ? "/client-applicants" : "/incoming"
+  const defaultHome =
+    user?.role === "client_company_user" ? "/client-applicants" : "/incoming"
 
   // While the session check is in-flight, block rendering to avoid flicker
   if (authLoading) return <AuthLoadingScreen />
@@ -252,7 +253,9 @@ export default function App() {
       {/* Redirect already-logged-in users away from auth pages */}
       <Route
         path="/login"
-        element={loggedIn ? <Navigate to={defaultHome} replace /> : <LoginPage />}
+        element={
+          loggedIn ? <Navigate to={defaultHome} replace /> : <LoginPage />
+        }
       />
       <Route
         path="/register"
@@ -269,15 +272,7 @@ export default function App() {
 
       {/* Protected admin routes */}
       <Route element={<AdminLayout />}>
-        <Route
-          path="/dashboard"
-          element={
-            <>
-              <SuperAdminOnly />
-              <DashboardRoute />
-            </>
-          }
-        />
+        <Route path="/dashboard" element={<DashboardRoute />} />
         <Route path="/incoming" element={<IncomingRoute />} />
         <Route path="/manual-apply" element={<ManualApplyPage />} />
         <Route

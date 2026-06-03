@@ -8,4 +8,11 @@ export const dashboardService = {
     });
     return res.data.data;
   },
+
+  async getForCompany(days = 30): Promise<DashboardData> {
+    const res = await api.get<ApiResponse<DashboardData>>("/dashboard/company", {
+      params: { days },
+    });
+    return res.data.data;
+  },
 };

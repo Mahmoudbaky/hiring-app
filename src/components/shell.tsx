@@ -355,7 +355,7 @@ const allNavItems: {
     key: "dashboard",
     label: "لوحة المعلومات",
     icon: "chart",
-    roles: ["super_admin"],
+    roles: ["super_admin", "company_user"],
   },
   {
     key: "contact-messages",
