@@ -62,7 +62,9 @@ export function RegisterPage() {
           ? `${userDialCode}${userPhoneNumber}`
           : undefined,
       })
-      navigate(`/verify-otp?email=${encodeURIComponent(email)}`, { replace: true })
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`, {
+        replace: true,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع")
     } finally {
@@ -135,7 +137,7 @@ export function RegisterPage() {
 
             {/* Company type toggle */}
             <div className="mt-7">
-              <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-3">
+              <p className="mb-3 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
                 نوع الحساب
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -167,7 +169,9 @@ export function RegisterPage() {
                 >
                   <div className="flex items-center gap-2">
                     <Icon name="users" size={14} />
-                    <span className="text-[13px] font-semibold">شركة باحثة</span>
+                    <span className="text-[13px] font-semibold">
+                      شركة باحثة
+                    </span>
                   </div>
                   <span className="text-[11px] leading-relaxed opacity-80">
                     تتصفح المرشحين وتختار المناسبين

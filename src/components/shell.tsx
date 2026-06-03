@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
@@ -22,51 +22,53 @@ export function BrandLogo({
   logo?: string | null
 }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="shrink-0 overflow-hidden rounded-[9px]"
-        style={{ width: size, height: size }}
-      >
-        {logo ? (
-          <img
-            src={logo}
-            alt={companyName ?? "شعار"}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <svg viewBox="0 0 40 40" width={size} height={size}>
-            <defs>
-              <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
-                <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
-              </linearGradient>
-            </defs>
-            <rect
-              x="2"
-              y="2"
-              width="36"
-              height="36"
-              rx="9"
-              fill="url(#lg-brand)"
+    <Link to="/">
+      <div className="flex items-center gap-2.5">
+        <div
+          className="shrink-0 overflow-hidden rounded-[9px]"
+          style={{ width: size, height: size }}
+        >
+          {logo ? (
+            <img
+              src={logo}
+              alt={companyName ?? "شعار"}
+              className="h-full w-full object-cover"
             />
-            <path
-              d="M12 14 L12 26 L20 26 A6 6 0 0 0 20 14 Z"
-              fill="#fff"
-              opacity="0.96"
-            />
-            <circle cx="27" cy="20" r="2.6" fill="#fff" opacity="0.9" />
-          </svg>
-        )}
-      </div>
-      <div className="leading-tight">
-        <div className="text-[16px] font-bold tracking-tight text-[var(--foreground)]">
-          {companyName ?? "ضم"}
+          ) : (
+            <svg viewBox="0 0 40 40" width={size} height={size}>
+              <defs>
+                <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
+                  <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="2"
+                y="2"
+                width="36"
+                height="36"
+                rx="9"
+                fill="url(#lg-brand)"
+              />
+              <path
+                d="M12 14 L12 26 L20 26 A6 6 0 0 0 20 14 Z"
+                fill="#fff"
+                opacity="0.96"
+              />
+              <circle cx="27" cy="20" r="2.6" fill="#fff" opacity="0.9" />
+            </svg>
+          )}
         </div>
-        <div className="-mt-0.5 text-[11.5px] text-muted-foreground">
-          نظام التوظيف
+        <div className="leading-tight">
+          <div className="text-[16px] font-bold tracking-tight">
+            {companyName ?? "ضم"}
+          </div>
+          <div className="-mt-0.5 text-[11.5px] text-muted-foreground">
+            نظام التوظيف
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -289,10 +291,7 @@ function UniqueCodeBadge({ code }: { code: string }) {
   }
 
   return (
-    <div
-      dir="rtl"
-      className="mt-3 rounded-xl bg-[#1b2b4b] px-3.5 pt-2.5 pb-2"
-    >
+    <div dir="rtl" className="mt-3 rounded-xl bg-[#1b2b4b] px-3.5 pt-2.5 pb-2">
       <p className="mb-1 text-right text-[10px] font-medium text-[#8ba3c7]">
         الكود الفريد للمكتب
       </p>
@@ -412,7 +411,11 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {allNavItems
-          .filter((n) => n.roles.includes("all") || n.roles.includes((user?.role ?? "company_user") as NavRole))
+          .filter(
+            (n) =>
+              n.roles.includes("all") ||
+              n.roles.includes((user?.role ?? "company_user") as NavRole)
+          )
           .map((n) => {
             const active = page === n.key
             return (
