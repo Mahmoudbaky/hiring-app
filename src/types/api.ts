@@ -258,6 +258,23 @@ export interface CreateQualificationTypeBody {
   name: string;
 }
 
+/** Body for POST /settings/departments */
+export interface CreateDepartmentBody {
+  name: string;
+}
+
+/** Body for POST /settings/professional-grades */
+export interface CreateProfessionalGradeBody {
+  name: string;
+  departmentId: string;
+}
+
+/** Body for POST /settings/general-specialties */
+export interface CreateGeneralSpecialtyBody {
+  name: string;
+  departmentId: string;
+}
+
 /** Body for POST /jobs (super_admin only) */
 export interface CreateJobBody {
   adTitle: string;

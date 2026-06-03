@@ -9,6 +9,12 @@ import type {
   CreateJobTitleBody,
   QualificationType,
   CreateQualificationTypeBody,
+  Department,
+  CreateDepartmentBody,
+  ProfessionalGrade,
+  CreateProfessionalGradeBody,
+  GeneralSpecialty,
+  CreateGeneralSpecialtyBody,
 } from '@/types/api';
 
 export const settingsService = {
@@ -75,5 +81,60 @@ export const settingsService = {
   },
   async deleteQualificationType(id: string): Promise<void> {
     await api.delete(`/settings/qualification-types/${id}`);
+  },
+
+  // Departments
+  async listDepartments(): Promise<Department[]> {
+    const res = await api.get<ApiResponse<Department[]>>('/settings/departments');
+    return res.data.data;
+  },
+  async createDepartment(body: CreateDepartmentBody): Promise<Department> {
+    const res = await api.post<ApiResponse<Department>>('/settings/departments', body);
+    return res.data.data;
+  },
+  async toggleDepartment(id: string, isActive: boolean): Promise<Department> {
+    const res = await api.patch<ApiResponse<Department>>(`/settings/departments/${id}`, { isActive });
+    return res.data.data;
+  },
+  async deleteDepartment(id: string): Promise<void> {
+    await api.delete(`/settings/departments/${id}`);
+  },
+
+  // Professional Grades
+  async listProfessionalGrades(departmentId?: string): Promise<ProfessionalGrade[]> {
+    const res = await api.get<ApiResponse<ProfessionalGrade[]>>('/settings/professional-grades', {
+      params: departmentId ? { departmentId } : undefined,
+    });
+    return res.data.data;
+  },
+  async createProfessionalGrade(body: CreateProfessionalGradeBody): Promise<ProfessionalGrade> {
+    const res = await api.post<ApiResponse<ProfessionalGrade>>('/settings/professional-grades', body);
+    return res.data.data;
+  },
+  async toggleProfessionalGrade(id: string, isActive: boolean): Promise<ProfessionalGrade> {
+    const res = await api.patch<ApiResponse<ProfessionalGrade>>(`/settings/professional-grades/${id}`, { isActive });
+    return res.data.data;
+  },
+  async deleteProfessionalGrade(id: string): Promise<void> {
+    await api.delete(`/settings/professional-grades/${id}`);
+  },
+
+  // General Specialties
+  async listGeneralSpecialties(departmentId?: string): Promise<GeneralSpecialty[]> {
+    const res = await api.get<ApiResponse<GeneralSpecialty[]>>('/settings/general-specialties', {
+      params: departmentId ? { departmentId } : undefined,
+    });
+    return res.data.data;
+  },
+  async createGeneralSpecialty(body: CreateGeneralSpecialtyBody): Promise<GeneralSpecialty> {
+    const res = await api.post<ApiResponse<GeneralSpecialty>>('/settings/general-specialties', body);
+    return res.data.data;
+  },
+  async toggleGeneralSpecialty(id: string, isActive: boolean): Promise<GeneralSpecialty> {
+    const res = await api.patch<ApiResponse<GeneralSpecialty>>(`/settings/general-specialties/${id}`, { isActive });
+    return res.data.data;
+  },
+  async deleteGeneralSpecialty(id: string): Promise<void> {
+    await api.delete(`/settings/general-specialties/${id}`);
   },
 };
