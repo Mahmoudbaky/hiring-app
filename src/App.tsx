@@ -23,6 +23,8 @@ import { VerifyOtpPage } from "@/pages/VerifyOtpPage"
 import { ContactMessagesPage } from "@/pages/ContactMessagesPage"
 import { ManualApplyPage } from "@/pages/ManualApplyPage"
 import { ClientApplicantsPage } from "@/pages/ClientApplicantsPage"
+import { CompaniesPage } from "@/pages/CompaniesPage"
+import { UsersPage } from "@/pages/UsersPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -285,6 +287,16 @@ export default function App() {
           }
         />
         <Route path="/client-applicants" element={<ClientApplicantsPage />} />
+        <Route
+          path="/companies"
+          element={
+            <>
+              <SuperAdminOnly />
+              <CompaniesPage />
+            </>
+          }
+        />
+        <Route path="/users" element={<UsersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route

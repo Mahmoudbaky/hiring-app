@@ -358,6 +358,18 @@ const allNavItems: {
     roles: ["super_admin", "company_user"],
   },
   {
+    key: "companies",
+    label: "الشركات",
+    icon: "briefcase",
+    roles: ["super_admin"],
+  },
+  {
+    key: "users",
+    label: "المستخدمون",
+    icon: "users",
+    roles: ["super_admin", "company_user"],
+  },
+  {
     key: "contact-messages",
     label: "رسائل التواصل",
     icon: "mail",
