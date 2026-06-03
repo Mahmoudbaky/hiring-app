@@ -10,6 +10,7 @@ export function RegisterPage() {
   const { register } = useApp()
   const navigate = useNavigate()
 
+  const [companyType, setCompanyType] = useState<"hiring" | "client">("hiring")
   const [companyName, setCompanyName] = useState("")
   const [address, setAddress] = useState("")
   const [managerName, setManagerName] = useState("")
@@ -49,6 +50,7 @@ export function RegisterPage() {
     setLoading(true)
     try {
       await register({
+        companyType,
         companyName,
         address: address || undefined,
         managerName: managerName || undefined,
@@ -131,8 +133,51 @@ export function RegisterPage() {
               أدخل بيانات شركتك ومعلومات المسؤول لإنشاء الحساب.
             </p>
 
+            {/* Company type toggle */}
+            <div className="mt-7">
+              <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-3">
+                نوع الحساب
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCompanyType("hiring")}
+                  className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-start transition-colors ${
+                    companyType === "hiring"
+                      ? "border-primary bg-[oklch(0.97_0.03_30)] text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon name="briefcase" size={14} />
+                    <span className="text-[13px] font-semibold">جهة توظيف</span>
+                  </div>
+                  <span className="text-[11px] leading-relaxed opacity-80">
+                    تنشر وظائف وتستقبل طلبات التوظيف
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompanyType("client")}
+                  className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-start transition-colors ${
+                    companyType === "client"
+                      ? "border-primary bg-[oklch(0.97_0.03_30)] text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon name="users" size={14} />
+                    <span className="text-[13px] font-semibold">شركة باحثة</span>
+                  </div>
+                  <span className="text-[11px] leading-relaxed opacity-80">
+                    تتصفح المرشحين وتختار المناسبين
+                  </span>
+                </button>
+              </div>
+            </div>
+
             {/* Company section */}
-            <div className="mt-7 space-y-4">
+            <div className="mt-5 space-y-4">
               <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
                 معلومات الشركة
               </p>

@@ -326,48 +326,49 @@ function UniqueCodeBadge({ code }: { code: string }) {
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
-const allNavItems = [
-  // {
-  //   key: "profile",
-  //   label: "الملف الشخصي",
-  //   icon: "users",
-  //   superAdminOnly: false,
-  // },
+type NavRole = "super_admin" | "company_user" | "client_company_user" | "all"
+
+const allNavItems: {
+  key: string
+  label: string
+  icon: string
+  roles: NavRole[]
+}[] = [
   {
     key: "incoming",
     label: "طلبات التوظيف",
     icon: "briefcase",
-    superAdminOnly: false,
+    roles: ["super_admin", "company_user"],
   },
   {
     key: "manual-apply",
     label: "إضافة طلب يدوي",
     icon: "userPlus",
-    superAdminOnly: false,
+    roles: ["super_admin", "company_user"],
   },
-  // {
-  //   key: "jobs",
-  //   label: "الوظائف المتاحة",
-  //   icon: "globe",
-  //   superAdminOnly: true,
-  // },
+  {
+    key: "client-applicants",
+    label: "قاعدة المرشحين",
+    icon: "users",
+    roles: ["client_company_user"],
+  },
   {
     key: "dashboard",
     label: "لوحة المعلومات",
     icon: "chart",
-    superAdminOnly: true,
+    roles: ["super_admin"],
   },
   {
     key: "contact-messages",
     label: "رسائل التواصل",
     icon: "mail",
-    superAdminOnly: true,
+    roles: ["super_admin"],
   },
   {
     key: "settings",
     label: "الإعدادات",
     icon: "settings",
-    superAdminOnly: false,
+    roles: ["all"],
   },
 ]
 
@@ -411,7 +412,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {allNavItems
-          .filter((n) => !n.superAdminOnly || user?.role === "super_admin")
+          .filter((n) => n.roles.includes("all") || n.roles.includes((user?.role ?? "company_user") as NavRole))
           .map((n) => {
             const active = page === n.key
             return (

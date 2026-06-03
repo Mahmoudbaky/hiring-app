@@ -22,6 +22,7 @@ import { ContactPage } from "@/pages/ContactPage"
 import { VerifyOtpPage } from "@/pages/VerifyOtpPage"
 import { ContactMessagesPage } from "@/pages/ContactMessagesPage"
 import { ManualApplyPage } from "@/pages/ManualApplyPage"
+import { ClientApplicantsPage } from "@/pages/ClientApplicantsPage"
 import { DashboardLayout } from "@/layouts/DashboardLayout"
 import { STATUS_META } from "@/data"
 import { useApp } from "@/context/AppContext"
@@ -237,7 +238,8 @@ function JobsRoute() {
 
 /* ── Root ─────────────────────────────────────────────────────────── */
 export default function App() {
-  const { loggedIn, authLoading } = useApp()
+  const { loggedIn, authLoading, user } = useApp()
+  const defaultHome = user?.role === "client_company_user" ? "/client-applicants" : "/incoming"
 
   // While the session check is in-flight, block rendering to avoid flicker
   if (authLoading) return <AuthLoadingScreen />
@@ -250,12 +252,12 @@ export default function App() {
       {/* Redirect already-logged-in users away from auth pages */}
       <Route
         path="/login"
-        element={loggedIn ? <Navigate to="/incoming" replace /> : <LoginPage />}
+        element={loggedIn ? <Navigate to={defaultHome} replace /> : <LoginPage />}
       />
       <Route
         path="/register"
         element={
-          loggedIn ? <Navigate to="/incoming" replace /> : <RegisterPage />
+          loggedIn ? <Navigate to={defaultHome} replace /> : <RegisterPage />
         }
       />
       <Route
@@ -287,6 +289,7 @@ export default function App() {
             </>
           }
         />
+        <Route path="/client-applicants" element={<ClientApplicantsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route
@@ -313,7 +316,7 @@ export default function App() {
       {/* Fallback */}
       <Route
         path="*"
-        element={<Navigate to={loggedIn ? "/incoming" : "/"} replace />}
+        element={<Navigate to={loggedIn ? defaultHome : "/"} replace />}
       />
     </Routes>
   )

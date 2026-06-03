@@ -96,11 +96,12 @@ export interface JobRequest {
   department: { id: string; name: string } | null;
   professionalGrade: { id: string; name: string } | null;
   generalSpecialty: { id: string; name: string } | null;
+  assignedClientCompany: { id: string; companyName: string } | null;
   qualifications: { id: string; name: string }[];
 }
 
 /** Full request detail returned by GET /requests/:id (includes qualifications) */
-export interface JobRequestDetail extends Omit<JobRequest, "applicant" | "qualifications"> {
+export interface JobRequestDetail extends Omit<JobRequest, "applicant" | "qualifications" | "assignedClientCompany"> {
   applicant: JobRequest["applicant"] & {
     dateOfBirth: string | null;
     nationality: string | null;
@@ -110,6 +111,7 @@ export interface JobRequestDetail extends Omit<JobRequest, "applicant" | "qualif
   department: { id: string; name: string } | null;
   professionalGrade: { id: string; name: string } | null;
   generalSpecialty: { id: string; name: string } | null;
+  assignedClientCompany: { id: string; companyName: string } | null;
   qualifications: {
     id: string;
     yearObtained: number | null;

@@ -8,8 +8,9 @@ export interface AuthUser {
   name: string;
   email: string;
   image: string | null;
-  role: 'super_admin' | 'company_user';
+  role: 'super_admin' | 'company_user' | 'client_company_user';
   hiringCompanyId: string | null;
+  clientCompanyId: string | null;
   companyName: string | null;
   uniqueCode: string | null;
   companyLogo: string | null;
@@ -20,6 +21,7 @@ export interface AuthUser {
 }
 
 export interface RegisterCompanyData {
+  companyType?: 'hiring' | 'client';
   companyName: string;
   phoneNumber?: string;
   address?: string;
@@ -57,6 +59,16 @@ interface CompanyInfo {
   companyCreatedAt: string | null;
 }
 
+const emptyCompanyInfo: CompanyInfo = {
+  companyName: null,
+  uniqueCode: null,
+  companyLogo: null,
+  companyAddress: null,
+  companyPhone: null,
+  companyManagerName: null,
+  companyCreatedAt: null,
+};
+
 function toAuthUser(
   u: Record<string, unknown>,
   company: Partial<CompanyInfo> = {},
@@ -68,6 +80,7 @@ function toAuthUser(
     image: (u.image as string) ?? null,
     role: (u.role as AuthUser['role']) ?? 'company_user',
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
+    clientCompanyId: (u.clientCompanyId as string) ?? null,
     companyName: company.companyName ?? null,
     uniqueCode: company.uniqueCode ?? null,
     companyLogo: company.companyLogo ?? null,
@@ -78,10 +91,7 @@ function toAuthUser(
   };
 }
 
-async function fetchCompanyInfo(companyId: string | null): Promise<CompanyInfo> {
-  if (!companyId) return { companyName: null, uniqueCode: null, companyLogo: null, companyAddress: null, companyPhone: null, companyManagerName: null, companyCreatedAt: null };
-  const res = await api.get('/companies/mine');
-  const d = res.data?.data;
+function mapCompanyData(d: Record<string, unknown>): CompanyInfo {
   return {
     companyName: (d?.companyName as string) ?? null,
     uniqueCode: (d?.uniqueCode as string) ?? null,
@@ -93,28 +103,46 @@ async function fetchCompanyInfo(companyId: string | null): Promise<CompanyInfo> 
   };
 }
 
+async function fetchCompanyInfo(
+  role: string,
+  hiringCompanyId: string | null,
+  clientCompanyId: string | null,
+): Promise<CompanyInfo> {
+  if (role === 'client_company_user' && clientCompanyId) {
+    const res = await api.get('/client-applicants/company/mine');
+    return mapCompanyData(res.data?.data ?? {});
+  }
+  if (hiringCompanyId) {
+    const res = await api.get('/companies/mine');
+    return mapCompanyData(res.data?.data ?? {});
+  }
+  return emptyCompanyInfo;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser]                 = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading]   = useState(true);
   const [applications, setApplications] = useState<Application[]>(SEED_APPLICATIONS);
   const [viewing, setViewing]           = useState<Application | null>(null);
 
-  // Restore session from cookie on first load
   useEffect(() => {
     api.get('/auth/get-session')
       .then(async (res) => {
         if (res.data?.user) {
           const u = res.data.user;
           try {
-            const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+            const company = await fetchCompanyInfo(
+              u.role ?? 'company_user',
+              u.hiringCompanyId ?? null,
+              u.clientCompanyId ?? null,
+            );
             setUser(toAuthUser(u, company));
           } catch {
-            // Company frozen or inaccessible — invalidate the session
             await api.post('/auth/sign-out').catch(() => {});
           }
         }
       })
-      .catch(() => { /* no session — stay logged out */ })
+      .catch(() => {})
       .finally(() => setAuthLoading(false));
   }, []);
 
@@ -122,10 +150,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
     const u = res.data.user;
     try {
-      const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+      const company = await fetchCompanyInfo(
+        u.role ?? 'company_user',
+        u.hiringCompanyId ?? null,
+        u.clientCompanyId ?? null,
+      );
       setUser(toAuthUser(u, company));
     } catch (err) {
-      // Company frozen — clean up the session and surface the error to the caller
       await api.post('/auth/sign-out').catch(() => {});
       throw err;
     }
@@ -133,13 +164,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (data: RegisterCompanyData) => {
     await api.post('/register-company', data);
-    // No auto-login — user must verify company email via OTP first
   };
 
   const refreshProfile = async () => {
     const res = await api.get('/profile/me');
     const u = res.data.data;
-    const company = await fetchCompanyInfo(u.hiringCompanyId ?? null);
+    const company = await fetchCompanyInfo(
+      u.role ?? 'company_user',
+      u.hiringCompanyId ?? null,
+      u.clientCompanyId ?? null,
+    );
     setUser(toAuthUser(u, company));
   };
 

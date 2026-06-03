@@ -272,6 +272,13 @@ function RequestDetailDialog({
                   label="تاريخ التقديم"
                   value={new Date(data.createdAt).toLocaleDateString("ar-SA")}
                 />
+                {data.assignedClientCompany && (
+                  <InfoItem
+                    icon="users"
+                    label="الشركة الباحثة"
+                    value={data.assignedClientCompany.companyName}
+                  />
+                )}
               </div>
               {data.notes && (
                 <div className="mt-3 rounded-md bg-muted/40 px-3 py-2">
@@ -1156,7 +1163,28 @@ export function IncomingPage() {
         },
       }),
 
-      /* ── 7. الشركة (super_admin only) ── */
+      /* ── 7. الشركة الباحثة ── */
+      col.display({
+        id: "clientCompany",
+        header: "الشركة الباحثة",
+        cell: ({ row }) => {
+          const cc = row.original.assignedClientCompany
+          return cc ? (
+            <div className="flex items-center gap-1.5">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-100 text-[10px] font-bold text-violet-600">
+                {cc.companyName.charAt(0)}
+              </span>
+              <span className="max-w-[130px] truncate text-[12.5px] font-medium text-violet-700">
+                {cc.companyName}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[12px] text-muted-foreground">—</span>
+          )
+        },
+      }),
+
+      /* ── 8. الشركة (super_admin only) ── */
       ...(isSuperAdmin
         ? [
             col.accessor((r) => r.company.companyName, {
