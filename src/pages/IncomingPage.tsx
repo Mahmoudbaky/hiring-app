@@ -15,7 +15,11 @@ import {
   type Row,
 } from "@tanstack/react-table"
 import * as XLSX from "xlsx"
+import jsPDF from "jspdf"
+import html2canvas from "html2canvas-pro"
+import { useQueryClient } from "@tanstack/react-query"
 import { useApp } from "@/context/AppContext"
+import { requestsService } from "@/services/requests.service"
 import {
   useRequests,
   useRequestDetail,
@@ -33,7 +37,7 @@ import { DDialog } from "@/components/ui/ddialog"
 import { Btn, Th, Td, PageHeader } from "@/components/shell"
 import { DSelect } from "@/components/ui/dselect"
 import { cn } from "@/lib/utils"
-import type { JobRequest, RequestStatus } from "@/types/api"
+import type { JobRequest, JobRequestDetail, RequestStatus } from "@/types/api"
 
 /* ── Status metadata ─────────────────────────────────────────────── */
 const STATUS_META: Record<
@@ -147,6 +151,192 @@ function InfoItem({
       <div>
         <div className="text-[11px] text-muted-foreground">{label}</div>
         <div className="text-[13px] font-medium">{value || "—"}</div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Printable PDF card (rendered off-screen, captured to image) ─── */
+function PrintField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] font-medium text-[#888]">{label}</span>
+      <span className="text-[13px] font-medium text-[#1a1a1a]">
+        {value || "—"}
+      </span>
+    </div>
+  )
+}
+
+function PrintSection({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="border-t border-[#e5e5e5] px-6 py-4 first:border-t-0">
+      <h3 className="mb-3 text-[11px] font-bold tracking-wide text-[#666]">
+        {title}
+      </h3>
+      {children}
+    </div>
+  )
+}
+
+function PrintableRequestCard({ data }: { data: JobRequest | JobRequestDetail }) {
+  const dob =
+    "dateOfBirth" in data.applicant ? data.applicant.dateOfBirth : null
+  const additionalInfo =
+    "additionalInfo" in data ? data.additionalInfo : null
+
+  return (
+    <div
+      dir="rtl"
+      className="w-[700px] bg-white"
+      style={{ fontFamily: "'Geist Variable', sans-serif" }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#e5e5e5] px-6 py-5">
+        <div>
+          <h2 className="text-[18px] font-bold text-[#1a1a1a]">
+            {data.applicant.name}
+          </h2>
+          <p className="text-[12px] text-[#888]">{data.applicant.email}</p>
+        </div>
+        <span className="rounded-full bg-[#f3f0ff] px-3 py-1 text-[12px] font-semibold text-[#6d4fd1]">
+          {STATUS_META[data.status].label}
+        </span>
+      </div>
+
+      {/* Personal info */}
+      <PrintSection title="البيانات الشخصية">
+        <div className="grid grid-cols-2 gap-4">
+          <PrintField label="الجوال" value={data.applicant.phone} />
+          <PrintField
+            label="الجنس"
+            value={
+              data.applicant.gender === "male"
+                ? "ذكر"
+                : data.applicant.gender === "female"
+                  ? "أنثى"
+                  : "—"
+            }
+          />
+          {dob && <PrintField label="تاريخ الميلاد" value={dob} />}
+          <PrintField
+            label="الجنسية"
+            value={data.applicant.nationality ?? "—"}
+          />
+          <PrintField
+            label="مكان العمل الحالي"
+            value={data.applicant.currentJobLocation ?? "—"}
+          />
+        </div>
+      </PrintSection>
+
+      {/* Application info */}
+      <PrintSection title="تفاصيل الطلب">
+        <div className="grid grid-cols-2 gap-4">
+          <PrintField label="الوظيفة" value={data.jobAd?.adTitle ?? "—"} />
+          <PrintField label="الشركة" value={data.company.companyName} />
+          <PrintField
+            label="نوع التقديم"
+            value={data.submissionType === "self" ? "ذاتي" : "يدوي"}
+          />
+          <PrintField
+            label="تاريخ التقديم"
+            value={new Date(data.createdAt).toLocaleDateString("ar-SA")}
+          />
+          {data.referenceNumber && (
+            <PrintField label="الرقم المرجعي" value={data.referenceNumber} />
+          )}
+          {data.assignedClientCompany && (
+            <PrintField
+              label="الشركة الباحثة"
+              value={data.assignedClientCompany.companyName}
+            />
+          )}
+        </div>
+        {data.notes && (
+          <div className="mt-3 rounded-md bg-[#f7f7f7] px-3 py-2">
+            <p className="mb-1 text-[10px] text-[#888]">ملاحظات</p>
+            <p className="text-[12.5px] text-[#1a1a1a]">{data.notes}</p>
+          </div>
+        )}
+      </PrintSection>
+
+      {/* Job profile */}
+      {(data.department ||
+        data.professionalGrade ||
+        data.generalSpecialty ||
+        data.yearsOfExperience) && (
+        <PrintSection title="بيانات الوظيفة المطلوبة">
+          <div className="grid grid-cols-2 gap-4">
+            {data.department && (
+              <PrintField label="القطاع" value={data.department.name} />
+            )}
+            {data.professionalGrade && (
+              <PrintField
+                label="الدرجة المهنية"
+                value={data.professionalGrade.name}
+              />
+            )}
+            {data.generalSpecialty && (
+              <PrintField
+                label="التخصص العام"
+                value={data.generalSpecialty.name}
+              />
+            )}
+            {data.yearsOfExperience && (
+              <PrintField
+                label="سنوات الخبرة"
+                value={data.yearsOfExperience}
+              />
+            )}
+          </div>
+          {additionalInfo && (
+            <div className="mt-3 rounded-md bg-[#f7f7f7] px-3 py-2">
+              <p className="mb-1 text-[10px] text-[#888]">معلومات إضافية</p>
+              <p className="text-[12.5px] text-[#1a1a1a]">{additionalInfo}</p>
+            </div>
+          )}
+        </PrintSection>
+      )}
+
+      {/* Qualifications */}
+      <PrintSection title="المؤهلات الأكاديمية">
+        {data.qualifications.length === 0 ? (
+          <p className="text-[12px] text-[#888]">لا توجد مؤهلات مسجلة</p>
+        ) : (
+          <div className="space-y-1.5">
+            {data.qualifications.map((q) => {
+              const isDetailQ = "typeName" in q
+              const label = isDetailQ ? (q.typeName ?? "مؤهل أكاديمي") : q.name
+              const meta = isDetailQ
+                ? [q.yearObtained, q.instituteName].filter(Boolean).join(" · ")
+                : ""
+              return (
+                <div
+                  key={q.id}
+                  className="flex items-center justify-between rounded-md border border-[#e5e5e5] px-3 py-2"
+                >
+                  <span className="text-[12.5px] font-medium text-[#1a1a1a]">
+                    {label}
+                  </span>
+                  {meta && (
+                    <span className="text-[11px] text-[#888]">{meta}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </PrintSection>
+
+      <div className="px-6 py-3 text-center text-[10px] text-[#aaa]">
+        تم الإنشاء بتاريخ {new Date().toLocaleDateString("ar-SA")}
       </div>
     </div>
   )
@@ -792,6 +982,7 @@ export function IncomingPage() {
   const { user } = useApp()
   const isSuperAdmin = user?.role === "super_admin"
 
+  const queryClient = useQueryClient()
   const { data: requests = [], isLoading } = useRequests()
   const { data: jobs = [] } = useJobs()
   const activeJobsCount = jobs.filter((j) => j.isPublished).length
@@ -1282,7 +1473,13 @@ export function IncomingPage() {
                   <Icon name="pdf" size={14} className="opacity-25" />
                 </Btn>
               )}
-              <Btn variant="ghost" size="iconSm" title="طباعة">
+              <Btn
+                variant="ghost"
+                size="iconSm"
+                title="تصدير PDF"
+                disabled={isExportingPdf}
+                onClick={() => exportRequestToPdf(id)}
+              >
                 <Icon name="download" size={14} />
               </Btn>
             </div>
@@ -1348,6 +1545,88 @@ export function IncomingPage() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "طلبات التوظيف")
     XLSX.writeFile(wb, "job-requests.xlsx")
+  }
+
+  /* PDF export — renders hidden cards off-screen, captures each, builds PDF */
+  const printRef = useRef<HTMLDivElement>(null)
+  const [printItems, setPrintItems] = useState<
+    (JobRequest | JobRequestDetail)[] | null
+  >(null)
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
+
+  useEffect(() => {
+    if (!printItems || !printRef.current) return
+    const container = printRef.current
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const cards = Array.from(container.children) as HTMLElement[]
+        const pdf = new jsPDF({ unit: "px", format: "a4" })
+        const pageWidth = pdf.internal.pageSize.getWidth()
+        const pageHeight = pdf.internal.pageSize.getHeight()
+
+        for (let i = 0; i < cards.length; i++) {
+          const canvas = await html2canvas(cards[i], {
+            scale: 2,
+            backgroundColor: "#ffffff",
+          })
+          const imgData = canvas.toDataURL("image/png")
+          let w = pageWidth
+          let h = (canvas.height * w) / canvas.width
+          if (h > pageHeight) {
+            h = pageHeight
+            w = (canvas.width * h) / canvas.height
+          }
+          if (i > 0) pdf.addPage()
+          pdf.addImage(imgData, "PNG", (pageWidth - w) / 2, 0, w, h)
+        }
+
+        if (!cancelled) {
+          pdf.save(
+            cards.length === 1 ? "job-request.pdf" : "job-requests.pdf"
+          )
+        }
+      } catch {
+        if (!cancelled)
+          toast({ title: "فشل إنشاء ملف PDF", tone: "error" })
+      } finally {
+        if (!cancelled) {
+          setPrintItems(null)
+          setIsExportingPdf(false)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [printItems, toast])
+
+  const exportSelectedToPdf = () => {
+    if (isExportingPdf) return
+    const rows: Row<JobRequest>[] =
+      Object.keys(rowSelection).length > 0
+        ? table.getSelectedRowModel().rows
+        : table.getFilteredRowModel().rows
+    if (rows.length === 0) return
+    setIsExportingPdf(true)
+    setPrintItems(rows.map((row) => row.original))
+  }
+
+  const exportRequestToPdf = async (id: string) => {
+    if (isExportingPdf) return
+    setIsExportingPdf(true)
+    try {
+      const detail = await queryClient.fetchQuery({
+        queryKey: ["requests", id],
+        queryFn: () => requestsService.getById(id),
+      })
+      setPrintItems([detail])
+    } catch {
+      toast({ title: "فشل تحميل بيانات الطلب", tone: "error" })
+      setIsExportingPdf(false)
+    }
   }
 
   const selectedCount = Object.keys(rowSelection).length
@@ -1477,6 +1756,15 @@ export function IncomingPage() {
           <Btn variant="outline" size="sm" onClick={exportToExcel}>
             <Icon name="download" size={13} />
             Excel
+          </Btn>
+          <Btn
+            variant="outline"
+            size="sm"
+            disabled={isExportingPdf}
+            onClick={exportSelectedToPdf}
+          >
+            <Icon name="pdf" size={13} />
+            {isExportingPdf ? "جاري التصدير…" : "PDF"}
           </Btn>
           {/* Unviewed toggle — super_admin only */}
           {isSuperAdmin && (
@@ -1821,7 +2109,18 @@ export function IncomingPage() {
                 ))}
               </select>
               <Btn variant="outline" size="sm" onClick={exportToExcel}>
-                <Icon name="download" size={13} /> تصدير ({selectedCount})
+                <Icon name="download" size={13} /> Excel ({selectedCount})
+              </Btn>
+              <Btn
+                variant="outline"
+                size="sm"
+                disabled={isExportingPdf}
+                onClick={exportSelectedToPdf}
+              >
+                <Icon name="pdf" size={13} />
+                {isExportingPdf
+                  ? "جاري التصدير…"
+                  : `PDF (${selectedCount})`}
               </Btn>
               <button
                 type="button"
@@ -1981,6 +2280,17 @@ export function IncomingPage() {
         id={selectedId}
         onClose={() => setSelectedId(null)}
       />
+
+      {/* Off-screen printable cards for PDF export */}
+      <div
+        ref={printRef}
+        className="pointer-events-none fixed top-0 left-[-10000px] flex flex-col gap-0"
+        aria-hidden
+      >
+        {printItems?.map((item) => (
+          <PrintableRequestCard key={item.id} data={item} />
+        ))}
+      </div>
     </div>
   )
 }
