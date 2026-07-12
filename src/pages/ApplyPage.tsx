@@ -3,11 +3,16 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
-import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Btn, BrandLogo, DInput } from "@/components/shell"
+import { Btn, BrandLogo, DInput, DTextarea } from "@/components/shell"
 import { Combobox } from "@/components/ui/combobox"
+import { DSelect } from "@/components/ui/dselect"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover"
 import {
   Form,
   FormControl,
@@ -17,7 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import {
-  useQualificationTypes,
+  // useQualificationTypes,
   useDepartments,
   useProfessionalGrades,
   useGeneralSpecialties,
@@ -55,46 +60,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-/* ── Native select helper ─────────────────────────────────────────── */
-function NativeSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-  disabled = false,
-  className = "",
-}: {
-  value: string
-  onChange: (v: string) => void
-  options: { value: string; label: string }[]
-  placeholder?: string
-  disabled?: boolean
-  className?: string
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className={`focus-ring h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] text-foreground disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-    >
-      {placeholder && <option value="">{placeholder}</option>}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-const YEARS_OF_EXPERIENCE = [
-  { value: "less_than_1", label: "أقل من سنة" },
-  { value: "1_3", label: "1 - 3 سنوات" },
-  { value: "3_5", label: "3 - 5 سنوات" },
-  { value: "5_10", label: "5 - 10 سنوات" },
-  { value: "more_than_10", label: "أكثر من 10 سنوات" },
-]
+// const YEARS_OF_EXPERIENCE = [
+//   { value: "less_than_1", label: "أقل من سنة" },
+//   { value: "1_3", label: "1 - 3 سنوات" },
+//   { value: "3_5", label: "3 - 5 سنوات" },
+//   { value: "5_10", label: "5 - 10 سنوات" },
+//   { value: "more_than_10", label: "أكثر من 10 سنوات" },
+// ]
 
 const NATIONALITIES = [
   { value: "سعودي", label: "سعودي" },
@@ -128,10 +100,10 @@ const NATIONALITIES = [
   { value: "أخرى", label: "أخرى" },
 ]
 
-const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
-  const year = new Date().getFullYear() - i
-  return { value: String(year), label: String(year) }
-})
+// const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
+//   const year = new Date().getFullYear() - i
+//   return { value: String(year), label: String(year) }
+// })
 
 /* ── Section heading ──────────────────────────────────────────────── */
 function SectionHeading({
@@ -168,14 +140,14 @@ export function ApplyPage() {
   const [params] = useSearchParams()
   const preselectedCode = params.get("code") ?? ""
 
-  const { data: qualTypes = [] } = useQualificationTypes()
+  // const { data: qualTypes = [] } = useQualificationTypes()
   const { data: departments = [] } = useDepartments()
   const {
     mutate: submit,
     isPending,
     isSuccess,
     data: submitData,
-    error: submitError,
+    // error: submitError,
   } = useSubmitApplication()
 
   // Capture resolved label names at submission time for the success card
@@ -236,13 +208,13 @@ export function ApplyPage() {
   const onSubmit = (values: FormValues) => {
     const qualifications = values.qualificationTypeId
       ? [
-          {
-            qualificationTypeId: values.qualificationTypeId,
-            yearObtained: values.qualificationYear
-              ? parseInt(values.qualificationYear, 10)
-              : undefined,
-          },
-        ]
+        {
+          qualificationTypeId: values.qualificationTypeId,
+          yearObtained: values.qualificationYear
+            ? parseInt(values.qualificationYear, 10)
+            : undefined,
+        },
+      ]
       : []
 
     const dept = departments.find(
@@ -290,21 +262,24 @@ export function ApplyPage() {
 
     return (
       <div
-        className="flex min-h-screen items-start justify-center bg-muted/30 px-4 py-10"
+        className="flex min-h-screen items-start justify-center bg-linear-to-b from-primary/6 to-background px-4 py-10"
         dir="rtl"
       >
         <div className="w-full max-w-[520px]">
-          <p className="mb-4 text-center text-[13px] font-medium text-muted-foreground">
-            منصة التوظيف
-          </p>
+          <div className="mb-5 flex items-center justify-center gap-2.5">
+            <BrandLogo size={28} />
+            <span className="text-[13px] font-medium text-muted-foreground">
+              منصة التوظيف
+            </span>
+          </div>
           <Card className="overflow-hidden shadow-lg">
             <div className="px-8 pt-10 pb-6 text-center">
               {/* Check circle */}
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-red-100 bg-red-50">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-950/40">
                 <Icon
                   name="check"
                   size={28}
-                  className="text-muted-foreground"
+                  className="text-emerald-600 dark:text-emerald-400"
                 />
               </div>
 
@@ -316,11 +291,11 @@ export function ApplyPage() {
               </p>
 
               {/* Reference number box */}
-              <div className="mt-6 rounded-xl border border-border bg-muted/30 px-6 py-4">
+              <div className="mt-6 rounded-xl border border-primary/15 bg-primary/5 px-6 py-4">
                 <p className="mb-1 text-[11.5px] text-muted-foreground">
                   رقمك المرجعي
                 </p>
-                <p className="text-[22px] font-bold tracking-wide text-destructive">
+                <p className="text-[22px] font-bold tracking-wide text-primary">
                   {submitData.referenceNumber ?? "—"}
                 </p>
               </div>
@@ -346,7 +321,7 @@ export function ApplyPage() {
               {submittedInfo?.jobLabel && (
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">الوظيفة</span>
-                  <span className="font-semibold text-destructive">
+                  <span className="font-semibold text-primary">
                     {submittedInfo.jobLabel}
                   </span>
                 </div>
@@ -354,7 +329,7 @@ export function ApplyPage() {
               {submittedInfo?.specialtyLabel && (
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-muted-foreground">التخصص</span>
-                  <span className="font-semibold text-destructive">
+                  <span className="font-semibold text-primary">
                     {submittedInfo.specialtyLabel}
                   </span>
                 </div>
@@ -372,10 +347,7 @@ export function ApplyPage() {
 
             {/* Actions */}
             <div className="flex flex-col gap-3 px-6 pb-8">
-              <Btn
-                className="w-full bg-destructive text-white hover:bg-destructive/90"
-                onClick={() => navigate("/careers")}
-              >
+              <Btn className="w-full" onClick={() => navigate("/careers")}>
                 <Icon name="search" size={15} /> تتبع حالة طلبي
               </Btn>
               <Btn
@@ -394,23 +366,24 @@ export function ApplyPage() {
 
   /* ── Form ───────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div
+      className="min-h-screen bg-linear-to-b from-primary/5 via-background to-background"
+      dir="rtl"
+    >
       <div className="mx-auto max-w-[860px] px-6 py-10">
         {/* Header */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BrandLogo size={36} />
-            <div>
-              <div className="text-[17px] font-bold">منصة التوظيف</div>
-            </div>
+        <div className="mb-8 flex items-center justify-between border-b border-border pb-5">
+          <BrandLogo size={36} />
+          <div className="text-[13px] font-medium text-muted-foreground">
+            منصة التوظيف
           </div>
-          <Badge tone="sky" className="h-7 text-[11.5px]">
-            لا يلزم إنشاء حساب ✓
-          </Badge>
         </div>
 
         {/* Page title */}
-        <div className="mb-6 text-center">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Icon name="userPlus" size={22} />
+          </div>
           <h1 className="text-[26px] font-bold">
             تسجيل <span className="text-primary">طلب</span> جديد
           </h1>
@@ -424,7 +397,7 @@ export function ApplyPage() {
             {/* ── Company card ────────────────────────────────────── */}
             <Card className="space-y-5 p-6">
               <SectionHeading
-                icon="briefcase"
+                icon="building2"
                 title="معلومات الطلب"
                 subtitle="أدخل كود الشركة للمتابعة"
                 tone="amber"
@@ -535,7 +508,46 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel>تاريخ الميلاد</FormLabel>
                       <FormControl>
-                        <DInput type="date" {...field} />
+                        <Popover>
+                          <PopoverTrigger
+                            render={
+                              <button
+                                type="button"
+                                className={cn(
+                                  "focus-ring flex h-10 w-full items-center gap-2 rounded-md border border-input bg-card px-3 text-[13.5px] transition-colors",
+                                  field.value
+                                    ? "text-foreground"
+                                    : "text-muted-foreground"
+                                )}
+                              />
+                            }
+                          >
+                            <CalendarIcon
+                              size={14}
+                              className="shrink-0 text-muted-foreground"
+                            />
+                            {field.value
+                              ? format(new Date(field.value), "dd/MM/yyyy")
+                              : "اختر تاريخ الميلاد"}
+                          </PopoverTrigger>
+                          <PopoverPopup align="start">
+                            <Calendar
+                              mode="single"
+                              captionLayout="dropdown"
+                              startMonth={new Date(1950, 0)}
+                              endMonth={new Date()}
+                              selected={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              defaultMonth={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onSelect={(d) =>
+                                field.onChange(d ? format(d, "yyyy-MM-dd") : "")
+                              }
+                            />
+                          </PopoverPopup>
+                        </Popover>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -549,24 +561,19 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel>الجنس</FormLabel>
                       <FormControl>
-                        <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
+                        <div className="flex h-10 items-center gap-1 rounded-md border border-input bg-card p-1">
                           {(["male", "female"] as const).map((val) => (
-                            <label
+                            <button
                               key={val}
-                              className="flex cursor-pointer items-center gap-2"
+                              type="button"
+                              onClick={() => field.onChange(val)}
+                              className={`h-full flex-1 rounded-sm text-[13px] font-medium transition-colors ${field.value === val
+                                ? "bg-primary text-white"
+                                : "text-muted-foreground hover:bg-accent"
+                                }`}
                             >
-                              <input
-                                type="radio"
-                                name="gender"
-                                value={val}
-                                checked={field.value === val}
-                                onChange={() => field.onChange(val)}
-                                className="accent-primary"
-                              />
-                              <span className="text-[13.5px]">
-                                {val === "male" ? "ذكر" : "أنثى"}
-                              </span>
-                            </label>
+                              {val === "male" ? "ذكر" : "أنثى"}
+                            </button>
                           ))}
                         </div>
                       </FormControl>
@@ -575,7 +582,7 @@ export function ApplyPage() {
                   )}
                 />
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="qualificationTypeId"
                   render={({ field }) => (
@@ -595,9 +602,9 @@ export function ApplyPage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="qualificationYear"
                   render={({ field }) => (
@@ -614,7 +621,7 @@ export function ApplyPage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
               </div>
             </Card>
 
@@ -642,7 +649,7 @@ export function ApplyPage() {
                         القطاع
                       </FormLabel>
                       <FormControl>
-                        <NativeSelect
+                        <DSelect
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="اختر القطاع"
@@ -670,7 +677,7 @@ export function ApplyPage() {
                         الدرجة المهنية
                       </FormLabel>
                       <FormControl>
-                        <NativeSelect
+                        <DSelect
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="اختر الدرجة"
@@ -699,7 +706,7 @@ export function ApplyPage() {
                         التخصص العام
                       </FormLabel>
                       <FormControl>
-                        <NativeSelect
+                        <DSelect
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="اختر التخصص"
@@ -717,7 +724,7 @@ export function ApplyPage() {
               </div>
 
               {/* Years of experience */}
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="jobProfile.yearsOfExperience"
                 render={({ field }) => (
@@ -734,7 +741,7 @@ export function ApplyPage() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               {/* Additional info */}
               <FormField
@@ -744,11 +751,11 @@ export function ApplyPage() {
                   <FormItem>
                     <FormLabel>أخرى (معلومات إضافية اختيارية)</FormLabel>
                     <FormControl>
-                      <textarea
+                      <DTextarea
                         {...field}
                         rows={3}
                         placeholder="أي معلومات إضافية تود إضافتها مثل شهادات، مهارات، أو ملاحظات خاصة..."
-                        className="focus-ring w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-[13.5px] text-foreground placeholder:text-muted-foreground"
+                        className="min-h-0 resize-none"
                       />
                     </FormControl>
                     <FormMessage />
@@ -780,7 +787,7 @@ export function ApplyPage() {
             </Card>
 
             {/* ── Terms & errors ───────────────────────────────────── */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <FormField
                 control={form.control}
                 name="agreedToTerms"
@@ -816,14 +823,15 @@ export function ApplyPage() {
                     : "حدث خطأ غير متوقع، يرجى المحاولة مجدداً."}
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* ── Actions ──────────────────────────────────────────── */}
             <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
               <Btn
                 type="submit"
                 disabled={isPending}
-                className="flex-1 sm:flex-none sm:px-10"
+                size="lg"
+                className="w-full sm:w-auto sm:px-10"
               >
                 {isPending ? (
                   <>
@@ -847,21 +855,20 @@ export function ApplyPage() {
                   </>
                 ) : (
                   <>
-                    <Icon name="send" size={14} /> مراجعة البيانات وإرسال الطلب
-                    ✓
+                    إرسال الطلب <Icon name="chevLeft" size={14} />
                   </>
                 )}
               </Btn>
-              <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+              {/* <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
                 <span>🔒 بياناتك محفوظة</span>
                 <span>✨ مجاني تماماً</span>
                 <span>✓ لا يلزم إنشاء حساب</span>
-              </div>
+              </div> */}
             </div>
           </form>
         </Form>
 
-        <div className="mt-6 text-center text-[11.5px] text-muted-foreground">
+        <div className="mt-8 border-t border-border pt-6 text-center text-[11.5px] text-muted-foreground">
           © 2026 جميع الحقوق محفوظة — منصة التوظيف
         </div>
       </div>

@@ -268,7 +268,7 @@ export function HomePage() {
         <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-9 sm:flex-row sm:items-center">
           <button
             onClick={() => navigate("/apply")}
-            className="flex h-[60px] w-full items-center gap-4 rounded-xl bg-[var(--primary)] px-6 text-white shadow-[0_8px_24px_-8px_oklch(0.55_0.18_30/0.5)] transition-colors hover:bg-[var(--primary-hover)] sm:h-[68px] sm:w-auto sm:min-w-[280px]"
+            className="flex h-[60px] w-full items-center gap-4 rounded-xl bg-[var(--primary)] px-6 text-white shadow-[0_8px_24px_-8px_rgba(107,71,245,0.5)] transition-colors hover:bg-[var(--primary-hover)] sm:h-[68px] sm:w-auto sm:min-w-[280px]"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 sm:h-10 sm:w-10">
               <Icon name="upload" size={17} />

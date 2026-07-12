@@ -4,7 +4,7 @@ import { Icon } from "@/components/icons"
 import { BrandLogo } from "@/components/shell"
 import { useTheme } from "@/components/theme-provider"
 import { useSubmitContact } from "@/hooks/useContact"
-import { cn } from "@/lib/utils"
+
 
 /* ── Theme toggle ─────────────────────────────────────────────────── */
 function ThemeToggle() {
@@ -25,36 +25,36 @@ function ThemeToggle() {
 }
 
 /* ── Info card ─────────────────────────────────────────────────────── */
-function InfoCard({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: string
-  label: string
-  value: string
-  tone: "sky" | "emerald" | "rose" | "violet"
-}) {
-  const toneClass = {
-    sky: "tone-sky",
-    emerald: "tone-emerald",
-    rose: "tone-rose",
-    violet: "tone-violet",
-  }[tone]
+// function InfoCard({
+//   icon,
+//   label,
+//   value,
+//   tone,
+// }: {
+//   icon: string
+//   label: string
+//   value: string
+//   tone: "sky" | "emerald" | "rose" | "violet"
+// }) {
+//   const toneClass = {
+//     sky: "tone-sky",
+//     emerald: "tone-emerald",
+//     rose: "tone-rose",
+//     violet: "tone-violet",
+//   }[tone]
 
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", toneClass)}>
-        <Icon name={icon} size={17} />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11.5px] text-[var(--muted-foreground)]">{label}</div>
-        <div className="truncate text-[13.5px] font-medium text-[var(--foreground)]">{value}</div>
-      </div>
-    </div>
-  )
-}
+//   return (
+//     <div className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+//       <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", toneClass)}>
+//         <Icon name={icon} size={17} />
+//       </div>
+//       <div className="min-w-0">
+//         <div className="text-[11.5px] text-[var(--muted-foreground)]">{label}</div>
+//         <div className="truncate text-[13.5px] font-medium text-[var(--foreground)]">{value}</div>
+//       </div>
+//     </div>
+//   )
+// }
 
 /* ── Field wrapper ────────────────────────────────────────────────── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -143,7 +143,7 @@ export function ContactPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* ── Contact info ── */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+            {/* <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
               <h2 className="mb-5 text-[17px] font-bold text-[var(--foreground)]">
                 معلومات التواصل
               </h2>
@@ -173,10 +173,10 @@ export function ContactPage() {
                   tone="violet"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Map placeholder */}
-            <div className="flex items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--muted)]/40 px-4 py-6">
+            {/* <div className="flex items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--muted)]/40 px-4 py-6">
               <a
                 href="https://maps.google.com"
                 target="_blank"
@@ -186,7 +186,7 @@ export function ContactPage() {
                 <Icon name="globe" size={15} />
                 عرض العنوان على الخريطة
               </a>
-            </div>
+            </div> */}
           </div>
 
           {/* ── Contact form ── */}
