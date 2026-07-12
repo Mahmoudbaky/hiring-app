@@ -110,20 +110,14 @@ function SectionHeading({
   icon,
   title,
   subtitle,
-  tone = "sky",
 }: {
   icon: string
   title: string
   subtitle?: string
-  tone?: string
 }) {
   return (
     <div className="flex items-center gap-3 border-b border-border pb-4">
-      <div
-        className={`tone-${tone} flex h-10 w-10 items-center justify-center rounded-lg`}
-      >
-        <Icon name={icon as never} size={18} />
-      </div>
+      <Icon name={icon as never} size={28} className="shrink-0 text-primary" />
       <div>
         <h2 className="text-[16px] font-bold">{title}</h2>
         {subtitle && (
@@ -381,9 +375,9 @@ export function ApplyPage() {
 
         {/* Page title */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Icon name="userPlus" size={22} />
-          </div>
+          {/* <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl  text-primary">
+            <Icon name="userPlus" size={28} />
+          </div> */}
           <h1 className="text-[26px] font-bold">
             تسجيل <span className="text-primary">طلب</span> جديد
           </h1>
@@ -400,7 +394,6 @@ export function ApplyPage() {
                 icon="building2"
                 title="معلومات الطلب"
                 subtitle="أدخل كود الشركة للمتابعة"
-                tone="amber"
               />
               <FormField
                 control={form.control}
@@ -423,7 +416,6 @@ export function ApplyPage() {
                 icon="user"
                 title="البيانات الشخصية"
                 subtitle="معلومات أساسية للتواصل"
-                tone="sky"
               />
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField
@@ -631,7 +623,6 @@ export function ApplyPage() {
                 icon="briefcase"
                 title="بيانات الوظيفة المطلوبة"
                 subtitle="حدد قطاعك ودرجتك وتخصصك بدقة"
-                tone="violet"
               />
 
               {/* Cascading selects row */}
@@ -770,7 +761,6 @@ export function ApplyPage() {
                 icon="upload"
                 title="السيرة الذاتية"
                 subtitle="ارفع ملف سيرتك الذاتية"
-                tone="emerald"
               />
               <FormField
                 control={form.control}
