@@ -2,27 +2,8 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Icon } from "@/components/icons"
 import { BrandLogo } from "@/components/shell"
-import { useTheme } from "@/components/theme-provider"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useSubmitContact } from "@/hooks/useContact"
-
-
-/* ── Theme toggle ─────────────────────────────────────────────────── */
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  return (
-    <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label="تبديل الوضع"
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] transition-colors hover:border-[var(--primary)]"
-    >
-      <Icon name={isDark ? "sun" : "moon"} size={15} className="text-[var(--muted-foreground)]" />
-    </button>
-  )
-}
 
 /* ── Info card ─────────────────────────────────────────────────────── */
 // function InfoCard({

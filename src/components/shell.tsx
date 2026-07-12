@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
@@ -21,6 +21,7 @@ export function BrandLogo({
   companyName?: string | null
   logo?: string | null
 }) {
+  const gradientId = `lg-brand-${useId()}`
   return (
     <Link to="/">
       <div className="flex items-center gap-2.5">
@@ -37,7 +38,7 @@ export function BrandLogo({
           ) : (
             <svg viewBox="0 0 40 40" width={size} height={size}>
               <defs>
-                <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
+                <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0" stopColor="#896cf7" />
                   <stop offset="1" stopColor="#6b47f5" />
                 </linearGradient>
@@ -48,7 +49,7 @@ export function BrandLogo({
                 width="36"
                 height="36"
                 rx="9"
-                fill="url(#lg-brand)"
+                fill={`url(#${gradientId})`}
               />
               <path
                 d="M12 14 L12 26 L20 26 A6 6 0 0 0 20 14 Z"

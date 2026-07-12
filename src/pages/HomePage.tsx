@@ -1,145 +1,97 @@
 import { useNavigate } from "react-router-dom"
 import { Icon } from "@/components/icons"
 import { BrandLogo } from "@/components/shell"
-import { useTheme } from "@/components/theme-provider"
-import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
-/* ── Dark mode toggle ─────────────────────────────────────────────── */
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-
-  return (
-    <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label="تبديل الوضع"
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] transition-colors hover:border-[var(--primary)]"
-    >
-      {isDark ? (
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-[var(--primary)]"
-        >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-        </svg>
-      ) : (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-[var(--muted-foreground)]"
-        >
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-        </svg>
-      )}
-    </button>
-  )
-}
 
 /* ── Path card ────────────────────────────────────────────────────── */
-type Tone = "rose" | "sky" | "emerald" | "violet"
+// type Tone = "rose" | "sky" | "emerald" | "violet"
 
-const TONE_CLASSES: Record<
-  Tone,
-  { bg: string; bgDark: string; text: string; textDark: string }
-> = {
-  rose: {
-    bg: "bg-[oklch(0.97_0.03_25)]",
-    bgDark: "dark:bg-[oklch(0.25_0.04_25)]",
-    text: "text-[oklch(0.55_0.17_25)]",
-    textDark: "dark:text-[oklch(0.78_0.15_25)]",
-  },
-  sky: {
-    bg: "bg-[oklch(0.97_0.03_230)]",
-    bgDark: "dark:bg-[oklch(0.25_0.04_230)]",
-    text: "text-[oklch(0.5_0.13_230)]",
-    textDark: "dark:text-[oklch(0.72_0.12_230)]",
-  },
-  emerald: {
-    bg: "bg-[oklch(0.97_0.04_155)]",
-    bgDark: "dark:bg-[oklch(0.25_0.05_155)]",
-    text: "text-[oklch(0.5_0.13_155)]",
-    textDark: "dark:text-[oklch(0.72_0.13_155)]",
-  },
-  violet: {
-    bg: "bg-[oklch(0.97_0.03_295)]",
-    bgDark: "dark:bg-[oklch(0.25_0.04_295)]",
-    text: "text-[oklch(0.55_0.14_295)]",
-    textDark: "dark:text-[oklch(0.75_0.13_295)]",
-  },
-}
+// const TONE_CLASSES: Record<
+//   Tone,
+//   { bg: string; bgDark: string; text: string; textDark: string }
+// > = {
+//   rose: {
+//     bg: "bg-[oklch(0.97_0.03_25)]",
+//     bgDark: "dark:bg-[oklch(0.25_0.04_25)]",
+//     text: "text-[oklch(0.55_0.17_25)]",
+//     textDark: "dark:text-[oklch(0.78_0.15_25)]",
+//   },
+//   sky: {
+//     bg: "bg-[oklch(0.97_0.03_230)]",
+//     bgDark: "dark:bg-[oklch(0.25_0.04_230)]",
+//     text: "text-[oklch(0.5_0.13_230)]",
+//     textDark: "dark:text-[oklch(0.72_0.12_230)]",
+//   },
+//   emerald: {
+//     bg: "bg-[oklch(0.97_0.04_155)]",
+//     bgDark: "dark:bg-[oklch(0.25_0.05_155)]",
+//     text: "text-[oklch(0.5_0.13_155)]",
+//     textDark: "dark:text-[oklch(0.72_0.13_155)]",
+//   },
+//   violet: {
+//     bg: "bg-[oklch(0.97_0.03_295)]",
+//     bgDark: "dark:bg-[oklch(0.25_0.04_295)]",
+//     text: "text-[oklch(0.55_0.14_295)]",
+//     textDark: "dark:text-[oklch(0.75_0.13_295)]",
+//   },
+// }
 
-function PathCard({
-  num,
-  title,
-  desc,
-  cta,
-  tone,
-  icon,
-  onClick,
-}: {
-  num: string
-  title: string
-  desc: string
-  cta: string
-  tone: Tone
-  icon: string
-  onClick: () => void
-}) {
-  const t = TONE_CLASSES[tone]
-  return (
-    <button
-      onClick={onClick}
-      className="group w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-[0_12px_30px_-15px_oklch(0.2_0.01_260/0.2)] sm:p-5 dark:hover:shadow-[0_12px_30px_-15px_oklch(0_0_0/0.4)]"
-    >
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div
-          className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12",
-            t.bg,
-            t.bgDark,
-            t.text,
-            t.textDark
-          )}
-        >
-          <Icon name={icon as any} size={18} />
-        </div>
-        <div
-          className={cn(
-            "text-end text-[14px] leading-snug font-bold sm:text-[16px]",
-            t.text,
-            t.textDark
-          )}
-        >
-          {num}. {title}
-        </div>
-      </div>
-      <p className="mb-4 min-h-[56px] text-[12px] leading-[1.85] text-[var(--muted-foreground)] sm:text-[12.5px]">
-        {desc}
-      </p>
-      <div className="flex items-center justify-between gap-1.5 border-t border-[var(--border)] pt-3 text-[12.5px] font-medium text-[var(--primary)] sm:text-[13px]">
-        <Icon name="chevLeft" size={13} />
-        <span>{cta}</span>
-      </div>
-    </button>
-  )
-}
+// function PathCard({
+//   num,
+//   title,
+//   desc,
+//   cta,
+//   tone,
+//   icon,
+//   onClick,
+// }: {
+//   num: string
+//   title: string
+//   desc: string
+//   cta: string
+//   tone: Tone
+//   icon: string
+//   onClick: () => void
+// }) {
+//   const t = TONE_CLASSES[tone]
+//   return (
+//     <button
+//       onClick={onClick}
+//       className="group w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-[0_12px_30px_-15px_oklch(0.2_0.01_260/0.2)] sm:p-5 dark:hover:shadow-[0_12px_30px_-15px_oklch(0_0_0/0.4)]"
+//     >
+//       <div className="mb-3 flex items-start justify-between gap-2">
+//         <div
+//           className={cn(
+//             "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12",
+//             t.bg,
+//             t.bgDark,
+//             t.text,
+//             t.textDark
+//           )}
+//         >
+//           <Icon name={icon as any} size={18} />
+//         </div>
+//         <div
+//           className={cn(
+//             "text-end text-[14px] leading-snug font-bold sm:text-[16px]",
+//             t.text,
+//             t.textDark
+//           )}
+//         >
+//           {num}. {title}
+//         </div>
+//       </div>
+//       <p className="mb-4 min-h-[56px] text-[12px] leading-[1.85] text-[var(--muted-foreground)] sm:text-[12.5px]">
+//         {desc}
+//       </p>
+//       <div className="flex items-center justify-between gap-1.5 border-t border-[var(--border)] pt-3 text-[12.5px] font-medium text-[var(--primary)] sm:text-[13px]">
+//         <Icon name="chevLeft" size={13} />
+//         <span>{cta}</span>
+//       </div>
+//     </button>
+//   )
+// }
 
 // /* ── QR icon ──────────────────────────────────────────────────────── */
 // function QrIcon() {
@@ -303,15 +255,15 @@ export function HomePage() {
       </section>
 
       {/* ── Choose your path ──────────────────────────────────────── */}
-      <section className="relative z-10 mx-auto max-w-[1200px] px-4 pb-10 sm:px-6 sm:pb-12">
-        <div className="mb-6 text-center sm:mb-8">
+      {/* <section className="relative z-10 mx-auto max-w-[1200px] px-4 pb-10 sm:px-6 sm:pb-12"> */}
+      {/* <div className="mb-6 text-center sm:mb-8">
           <h2 className="inline-flex items-center gap-2 text-[20px] font-bold text-[var(--foreground)] sm:text-[24px]">
             اختر <span className="text-[var(--primary)]">مسارك</span>
           </h2>
-        </div>
+        </div> */}
 
-        {/* 1 col mobile → 2 col tablet → 3 col desktop */}
-        <div className="mx-auto grid w-full max-w-[900px] grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+      {/* 1 col mobile → 2 col tablet → 3 col desktop */}
+      {/* <div className="mx-auto grid w-full max-w-[900px] grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5">
           <PathCard
             num="1"
             title="مكاتب التوظيف"
@@ -338,8 +290,8 @@ export function HomePage() {
             tone="emerald"
             icon="user"
             onClick={() => navigate("/apply")}
-          />
-          {/* <PathCard
+          /> */}
+      {/* <PathCard
             num="4"
             title="الأدمن"
             desc="إدارة المنصة والمستخدمين ومراقبة جميع العمليات والإعدادات"
@@ -348,8 +300,8 @@ export function HomePage() {
             icon="settings"
             onClick={() => navigate("/login")}
           /> */}
-        </div>
-      </section>
+      {/* </div> */}
+      {/* </section> */}
 
       {/* ── Contact CTA ───────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-[1200px] px-4 pb-10 sm:px-6 sm:pb-12">
@@ -392,6 +344,6 @@ export function HomePage() {
           </div>
         </div>
       </section> */}
-    </div>
+    </div >
   )
 }

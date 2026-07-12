@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { BrandLogo, Btn, DInput } from "@/components/shell"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Form,
   FormControl,
@@ -104,6 +105,12 @@ export function LoginPage() {
 
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
+        {/* Mobile-only brand header (left panel is hidden below lg) */}
+        <div className="flex items-center justify-between px-8 pt-6 lg:hidden">
+          <BrandLogo size={32} />
+          <ThemeToggle />
+        </div>
+
         <div className="flex flex-1 items-center px-8 lg:px-12">
           <Form {...form}>
             <form
