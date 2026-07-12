@@ -1,8 +1,6 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { Icon } from "@/components/icons"
 import { BrandLogo } from "@/components/shell"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { useSubmitContact } from "@/hooks/useContact"
 
 /* ── Info card ─────────────────────────────────────────────────────── */
@@ -56,7 +54,6 @@ const textareaCls =
 
 /* ── Page ─────────────────────────────────────────────────────────── */
 export function ContactPage() {
-  const navigate = useNavigate()
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -88,26 +85,16 @@ export function ContactPage() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[var(--background)]">
-      {/* ── Navbar ── */}
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <button onClick={() => navigate("/")} className="focus-ring rounded-md">
-            <BrandLogo />
-          </button>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <button
-              onClick={() => navigate("/login")}
-              className="focus-ring h-9 rounded-md border border-[var(--border)] bg-[var(--card)] px-4 text-[13px] font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]"
-            >
-              تسجيل الدخول
-            </button>
+    <div dir="rtl" className="min-h-screen bg-white dark:bg-background">
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between border-b border-border pb-5">
+          <BrandLogo size={36} />
+          <div className="text-[13px] font-medium text-muted-foreground">
+            منصة التوظيف
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         {/* ── Section header ── */}
         <div className="mb-10 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -171,7 +158,7 @@ export function ContactPage() {
           </div>
 
           {/* ── Contact form ── */}
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
+          <div className="rounded-2xl bg-[var(--card)] p-6">
             {sent ? (
               <div className="flex flex-col items-center gap-4 py-10 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.97_0.04_155)] dark:bg-[oklch(0.25_0.05_155)]">
@@ -213,7 +200,6 @@ export function ContactPage() {
                       onChange={handleChange}
                       placeholder="البريد الإلكتروني"
                       className={inputCls}
-                      dir="ltr"
                     />
                   </Field>
                   <Field label="رقم الهاتف">
@@ -223,7 +209,6 @@ export function ContactPage() {
                       onChange={handleChange}
                       placeholder="رقم الهاتف"
                       className={inputCls}
-                      dir="ltr"
                     />
                   </Field>
                 </div>
