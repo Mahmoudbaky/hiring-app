@@ -8,6 +8,7 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { Card } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { Btn, BrandLogo, DInput, DTextarea } from "@/components/shell"
 import { Combobox } from "@/components/ui/combobox"
 import { DSelect } from "@/components/ui/dselect"
@@ -256,7 +257,7 @@ export function ApplyPage() {
 
     return (
       <div
-        className="flex min-h-screen items-start justify-center bg-linear-to-b from-primary/6 to-background px-4 py-10"
+        className="flex min-h-screen items-start justify-center bg-white px-4 py-10 dark:bg-background"
         dir="rtl"
       >
         <div className="w-full max-w-[520px]">
@@ -266,7 +267,7 @@ export function ApplyPage() {
               منصة التوظيف
             </span>
           </div>
-          <Card className="overflow-hidden shadow-lg">
+          <Card className="overflow-hidden border-0 shadow-none!">
             <div className="px-8 pt-10 pb-6 text-center">
               {/* Check circle */}
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-950/40">
@@ -361,7 +362,7 @@ export function ApplyPage() {
   /* ── Form ───────────────────────────────────────────────────────── */
   return (
     <div
-      className="min-h-screen bg-linear-to-b from-primary/5 via-background to-background"
+      className="min-h-screen bg-white dark:bg-background"
       dir="rtl"
     >
       <div className="mx-auto max-w-[860px] px-6 py-10">
@@ -389,7 +390,7 @@ export function ApplyPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* ── Company card ────────────────────────────────────── */}
-            <Card className="space-y-5 p-6">
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
               <SectionHeading
                 icon="building2"
                 title="معلومات الطلب"
@@ -410,8 +411,10 @@ export function ApplyPage() {
               />
             </Card>
 
+            <Separator />
+
             {/* ── Personal info card ──────────────────────────────── */}
-            <Card className="space-y-5 p-6">
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
               <SectionHeading
                 icon="user"
                 title="البيانات الشخصية"
@@ -617,8 +620,10 @@ export function ApplyPage() {
               </div>
             </Card>
 
+            <Separator />
+
             {/* ── Job profile card ────────────────────────────────── */}
-            <Card className="space-y-5 p-6">
+            <Card className="space-y-5 border-0 p-6 !shadow-none">
               <SectionHeading
                 icon="briefcase"
                 title="بيانات الوظيفة المطلوبة"
@@ -755,8 +760,10 @@ export function ApplyPage() {
               />
             </Card>
 
+            <Separator />
+
             {/* ── CV Upload card ───────────────────────────────────── */}
-            <Card className="space-y-5 p-6">
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
               <SectionHeading
                 icon="upload"
                 title="السيرة الذاتية"
