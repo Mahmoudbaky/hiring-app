@@ -357,7 +357,7 @@ export function JobDetailPage() {
               </div>
 
               {salary && (
-                <div className="mt-5 rounded-lg border border-[oklch(0.92_0.06_30)] bg-[oklch(0.97_0.03_30)] p-3">
+                <div className="mt-5 rounded-lg border border-primary/25 bg-primary/10 p-3">
                   <div className="mb-0.5 text-[12px] text-[var(--muted-foreground)]">
                     الراتب الشهري
                   </div>

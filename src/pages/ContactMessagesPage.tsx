@@ -145,7 +145,7 @@ export function ContactMessagesPage() {
                   onClick={() => openMessage(msg)}
                   className={cn(
                     "cursor-pointer transition-colors hover:bg-[var(--accent)]",
-                    !msg.isRead && "bg-[oklch(0.98_0.02_30)] dark:bg-[oklch(0.2_0.03_30)]"
+                    !msg.isRead && "bg-primary/10"
                   )}
                 >
                   <Td>

@@ -110,7 +110,7 @@ export function ContactPage() {
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         {/* ── Section header ── */}
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[oklch(0.97_0.03_30)] dark:bg-[oklch(0.25_0.04_30)]">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
             <Icon name="mail" size={22} className="text-[var(--primary)]" />
           </div>
           <h1 className="text-[28px] font-bold tracking-tight text-[var(--foreground)] sm:text-[32px]">

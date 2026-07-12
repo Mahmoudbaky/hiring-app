@@ -160,7 +160,7 @@ function AddJobDialog({ open, onClose }: { open: boolean; onClose: () => void })
                             className={cn(
                               'h-10 rounded-md border text-[13.5px] transition-colors focus-ring font-medium',
                               field.value === t.value
-                                ? 'border-primary bg-[oklch(0.97_0.03_30)] text-primary'
+                                ? 'border-primary bg-primary/10 text-primary'
                                 : 'border-border bg-white hover:bg-accent',
                             )}
                           >

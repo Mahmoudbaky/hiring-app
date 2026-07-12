@@ -116,25 +116,25 @@ export function VerifyOtpPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_520px]" dir="rtl">
       {/* Left dark panel */}
-      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_30)] text-white lg:block">
+      <div className="relative hidden overflow-hidden bg-[#0a0d2e] text-white lg:block">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 0% 100%, oklch(0.55 0.22 30 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 350 / 0.35), transparent 55%)",
+              "radial-gradient(120% 80% at 0% 100%, rgba(47,53,129,0.55), transparent 60%), radial-gradient(80% 60% at 100% 0%, rgba(70,76,143,0.4), transparent 55%)",
           }}
         />
         <div className="relative flex h-full flex-col p-12">
           <BrandLogo size={36} />
           <div className="flex max-w-[480px] flex-1 flex-col justify-center">
-            <Badge tone="rose" className="mb-5 w-fit border-white/15 bg-white/10 text-white">
+            <Badge tone="violet" className="mb-5 w-fit border-white/15 bg-white/10 text-white">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               تأكيد الحساب
             </Badge>
             <h1 className="text-[42px] leading-[1.15] font-bold tracking-tight text-balance">
               خطوة واحدة
               <br />
-              لتفعيل <span className="text-[oklch(0.78_0.18_30)]">شركتك</span>.
+              لتفعيل <span className="text-[#9aa0da]">شركتك</span>.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-white/70">
               أرسلنا رمز تحقق إلى بريدك الإلكتروني. أدخله لتأكيد حساب شركتك وبدء استخدام المنصة.

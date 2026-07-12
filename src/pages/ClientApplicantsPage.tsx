@@ -493,7 +493,7 @@ function ApplicantDetailDialog({
                       key={q.id}
                       className="flex items-center gap-3 rounded-lg border border-border px-4 py-3"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[oklch(0.97_0.03_30)] text-primary">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Icon name="sparkles" size={16} />
                       </div>
                       <div>
@@ -1082,7 +1082,7 @@ export function ClientApplicantsPage() {
 
         {/* Bulk actions */}
         {selectedCount > 0 && (
-          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-[oklch(0.97_0.03_30)] px-5 py-2.5 dark:bg-[oklch(0.22_0.03_30)]">
+          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-primary/10 px-5 py-2.5">
             <span className="text-[13px] font-medium text-primary">
               ✓ تم تحديد {selectedCount}{" "}
               {selectedCount === 1 ? "مرشح" : "مرشحين"}
@@ -1181,8 +1181,7 @@ export function ClientApplicantsPage() {
                     key={row.id}
                     className={cn(
                       "row",
-                      row.getIsSelected() &&
-                        "bg-[oklch(0.97_0.03_30)] dark:bg-[oklch(0.25_0.03_30)]"
+                      row.getIsSelected() && "bg-primary/10"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (

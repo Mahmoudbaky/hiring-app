@@ -39,8 +39,8 @@ export function BrandLogo({
             <svg viewBox="0 0 40 40" width={size} height={size}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor="#896cf7" />
-                  <stop offset="1" stopColor="#6b47f5" />
+                  <stop offset="0" stopColor="#464c8f" />
+                  <stop offset="1" stopColor="#181f73" />
                 </linearGradient>
               </defs>
               <rect
@@ -439,7 +439,7 @@ export function Sidebar({ page, onCloseMobile, isOpen = false }: SidebarProps) {
                 className={cn(
                   "focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13.5px] transition-colors",
                   active
-                    ? "bg-[oklch(0.97_0.03_30)] font-medium text-[var(--primary)]"
+                    ? "bg-primary/10 font-medium text-[var(--primary)]"
                     : "text-[var(--foreground)] hover:bg-[var(--accent)]"
                 )}
               >
