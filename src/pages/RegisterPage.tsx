@@ -78,12 +78,12 @@ export function RegisterPage() {
       dir="rtl"
     >
       {/* ── Left dark panel ──────────────────────────────────────── */}
-      <div className="relative hidden overflow-hidden bg-[#0a0d2e] text-white lg:block">
+      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_30)] text-white lg:block">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 0% 100%, rgba(47,53,129,0.55), transparent 60%), radial-gradient(80% 60% at 100% 0%, rgba(70,76,143,0.4), transparent 55%)",
+              "radial-gradient(120% 80% at 0% 100%, oklch(0.55 0.22 30 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 350 / 0.35), transparent 55%)",
           }}
         />
         <div
@@ -100,7 +100,7 @@ export function RegisterPage() {
 
           <div className="flex max-w-[480px] flex-1 flex-col justify-center">
             <Badge
-              tone="violet"
+              tone="rose"
               className="mb-5 w-fit border-white/15 bg-white/10 text-white"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
@@ -110,7 +110,7 @@ export function RegisterPage() {
             <h1 className="text-[42px] leading-[1.15] font-bold tracking-tight text-balance">
               ابدأ رحلة التوظيف
               <br />
-              مع <span className="text-[#9aa0da]">شركتك</span>.
+              مع <span className="text-[oklch(0.78_0.18_30)]">شركتك</span>.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-white/70">
               أنشئ حساب شركتك في دقيقتين. راجع المتقدمين، صنّف السير الذاتية،

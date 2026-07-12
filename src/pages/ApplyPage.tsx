@@ -117,7 +117,7 @@ function SectionHeading({
   subtitle?: string
 }) {
   return (
-    <div className="flex items-center gap-3 border-b border-border pb-4">
+    <div className="flex items-center gap-3 pb-4">
       <Icon name={icon as never} size={28} className="shrink-0 text-primary" />
       <div>
         <h2 className="text-[16px] font-bold">{title}</h2>

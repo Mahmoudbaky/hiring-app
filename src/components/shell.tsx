@@ -39,8 +39,8 @@ export function BrandLogo({
             <svg viewBox="0 0 40 40" width={size} height={size}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor="#464c8f" />
-                  <stop offset="1" stopColor="#181f73" />
+                  <stop offset="0" stopColor="oklch(0.68 0.19 30)" />
+                  <stop offset="1" stopColor="oklch(0.55 0.18 20)" />
                 </linearGradient>
               </defs>
               <rect
