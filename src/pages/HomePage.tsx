@@ -118,7 +118,7 @@ export function HomePage() {
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden bg-[var(--background)]"
+      className="relative min-h-screen overflow-hidden bg-white"
       dir="rtl"
     >
       {/* Decorative dots — hidden on small screens to reduce noise */}
