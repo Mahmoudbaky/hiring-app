@@ -2,7 +2,13 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { useTheme } from "@/components/theme-provider"
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
+export function ThemeToggle({
+  className = "",
+  size = 15,
+}: {
+  className?: string
+  size?: number
+}) {
   const { theme, setTheme } = useTheme()
   const isDark =
     theme === "dark" ||
@@ -20,7 +26,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     >
       <Icon
         name={isDark ? "sun" : "moon"}
-        size={15}
+        size={size}
         className={isDark ? "text-primary" : "text-muted-foreground"}
       />
     </button>

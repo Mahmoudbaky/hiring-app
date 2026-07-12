@@ -168,7 +168,7 @@ export function HomePage() {
             >
               <Icon
                 name="briefcase"
-                size={14}
+                size={17}
                 className="text-[var(--primary)]"
               />
               <span className="hidden text-[13.5px] font-medium md:inline">
@@ -195,13 +195,13 @@ export function HomePage() {
               onClick={() => navigate("/contact")}
               className="flex h-10 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 text-[var(--foreground)] transition-colors hover:border-[var(--primary)] md:px-5"
             >
-              <Icon name="mail" size={14} className="text-[var(--primary)]" />
+              <Icon name="mail" size={17} className="text-[var(--primary)]" />
               <span className="hidden text-[13.5px] font-medium md:inline">
                 اتصل بنا
               </span>
             </button>
 
-            <ThemeToggle />
+            <ThemeToggle size={17} />
           </div>
         </div>
       </header>
@@ -216,15 +216,13 @@ export function HomePage() {
           بسهولة وكفاءة
         </p>
 
-        {/* Two CTAs */}
-        <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-9 sm:flex-row sm:items-center">
+        {/* Three CTAs */}
+        <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-9 lg:flex-row lg:items-center">
           <button
             onClick={() => navigate("/apply")}
-            className="flex h-[60px] w-full items-center gap-4 rounded-xl bg-[var(--primary)] px-6 text-white shadow-[0_8px_24px_-8px_rgba(107,71,245,0.5)] transition-colors hover:bg-[var(--primary-hover)] sm:h-[68px] sm:w-auto sm:min-w-[280px]"
+            className="flex h-[60px] w-full items-center gap-4 rounded-xl bg-[var(--primary)] px-6 text-white shadow-[0_8px_24px_-8px_rgba(107,71,245,0.5)] transition-colors hover:bg-[var(--primary-hover)] sm:h-[68px] lg:w-auto lg:min-w-[240px]"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 sm:h-10 sm:w-10">
-              <Icon name="upload" size={17} />
-            </div>
+            <Icon name="upload" size={24} className="shrink-0" />
             <div className="flex-1 text-start">
               <div className="text-[15px] font-bold sm:text-[16px]">
                 رفع السيرة الذاتية
@@ -237,17 +235,30 @@ export function HomePage() {
 
           <button
             onClick={() => navigate("/login")}
-            className="flex h-[60px] w-full items-center gap-4 rounded-xl border-2 border-[var(--primary)] bg-[var(--card)] px-6 text-[var(--primary)] transition-colors hover:bg-[var(--accent)] sm:h-[68px] sm:w-auto sm:min-w-[280px]"
+            className="flex h-[60px] w-full items-center gap-4 rounded-xl border-2 border-[var(--primary)] bg-[var(--card)] px-6 text-[var(--primary)] transition-colors hover:bg-[var(--accent)] sm:h-[68px] lg:w-auto lg:min-w-[240px]"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[oklch(0.97_0.03_25)] sm:h-10 sm:w-10 dark:bg-[oklch(0.25_0.04_25)]">
-              <Icon name="briefcase" size={17} />
-            </div>
+            <Icon name="briefcase" size={24} className="shrink-0" />
             <div className="flex-1 text-start">
               <div className="text-[15px] font-bold sm:text-[16px]">
                 تسجيل جهة توظيف
               </div>
               <div className="mt-0.5 text-[11px] text-[var(--muted-foreground)] sm:text-[11.5px]">
-                لشركات ومكاتب التوظيف
+                لمكاتب التوظيف
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate("/login")}
+            className="flex h-[60px] w-full items-center gap-4 rounded-xl border-2 border-[var(--primary)] bg-[var(--card)] px-6 text-[var(--primary)] transition-colors hover:bg-[var(--accent)] sm:h-[68px] lg:w-auto lg:min-w-[240px]"
+          >
+            <Icon name="building2" size={24} className="shrink-0" />
+            <div className="flex-1 text-start">
+              <div className="text-[15px] font-bold sm:text-[16px]">
+                الشركات العميلة
+              </div>
+              <div className="mt-0.5 text-[11px] text-[var(--muted-foreground)] sm:text-[11.5px]">
+                ابحث عن أفضل الكفاءات لشركتك
               </div>
             </div>
           </button>
@@ -318,7 +329,7 @@ export function HomePage() {
             onClick={() => navigate("/contact")}
             className="flex shrink-0 items-center gap-2.5 rounded-xl bg-white px-6 py-3 text-[14px] font-bold text-[var(--primary)] transition-opacity hover:opacity-90"
           >
-            <Icon name="mail" size={16} />
+            <Icon name="mail" size={17} />
             اتصل بنا
           </button>
         </div>

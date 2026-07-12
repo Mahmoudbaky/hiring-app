@@ -60,7 +60,7 @@ export function BrandLogo({
             </svg>
           )}
         </div>
-        <div className="leading-tight">
+        <div className="leading-tight space-y-1">
           <div className="text-[16px] font-bold tracking-tight">
             {companyName ?? "ضم"}
           </div>
@@ -334,55 +334,55 @@ const allNavItems: {
   icon: string
   roles: NavRole[]
 }[] = [
-  {
-    key: "incoming",
-    label: "طلبات التوظيف",
-    icon: "briefcase",
-    roles: ["super_admin", "company_user"],
-  },
-  {
-    key: "manual-apply",
-    label: "إضافة طلب يدوي",
-    icon: "userPlus",
-    roles: ["super_admin", "company_user"],
-  },
-  {
-    key: "client-applicants",
-    label: "قاعدة المرشحين",
-    icon: "users",
-    roles: ["client_company_user"],
-  },
-  {
-    key: "dashboard",
-    label: "لوحة المعلومات",
-    icon: "chart",
-    roles: ["super_admin", "company_user"],
-  },
-  {
-    key: "companies",
-    label: "الشركات",
-    icon: "briefcase",
-    roles: ["super_admin"],
-  },
-  {
-    key: "users",
-    label: "المستخدمون",
-    icon: "users",
-    roles: ["super_admin", "company_user"],
-  },
-  {
-    key: "contact-messages",
-    label: "رسائل التواصل",
-    icon: "mail",
-    roles: ["super_admin"],
-  },
-  {
-    key: "settings",
-    label: "الإعدادات",
-    icon: "settings",
-    roles: ["all"],
-  },
-]
+    {
+      key: "incoming",
+      label: "طلبات التوظيف",
+      icon: "briefcase",
+      roles: ["super_admin", "company_user"],
+    },
+    {
+      key: "manual-apply",
+      label: "إضافة طلب يدوي",
+      icon: "userPlus",
+      roles: ["super_admin", "company_user"],
+    },
+    {
+      key: "client-applicants",
+      label: "قاعدة المرشحين",
+      icon: "users",
+      roles: ["client_company_user"],
+    },
+    {
+      key: "dashboard",
+      label: "لوحة المعلومات",
+      icon: "chart",
+      roles: ["super_admin", "company_user"],
+    },
+    {
+      key: "companies",
+      label: "الشركات",
+      icon: "briefcase",
+      roles: ["super_admin"],
+    },
+    {
+      key: "users",
+      label: "المستخدمون",
+      icon: "users",
+      roles: ["super_admin", "company_user"],
+    },
+    {
+      key: "contact-messages",
+      label: "رسائل التواصل",
+      icon: "mail",
+      roles: ["super_admin"],
+    },
+    {
+      key: "settings",
+      label: "الإعدادات",
+      icon: "settings",
+      roles: ["all"],
+    },
+  ]
 
 interface SidebarProps {
   page: Page
