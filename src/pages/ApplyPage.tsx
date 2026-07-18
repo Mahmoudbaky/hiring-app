@@ -54,9 +54,6 @@ const schema = z.object({
     })
     .optional(),
   cvUrl: z.string().optional(),
-  agreedToTerms: z
-    .boolean()
-    .refine((v) => v === true, "يجب الموافقة على الشروط"),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -159,7 +156,6 @@ export function ApplyPage() {
       cvUrl: "",
       qualificationTypeId: "",
       qualificationYear: "",
-      agreedToTerms: false,
       applicant: {
         name: "",
         email: "",
@@ -261,11 +257,8 @@ export function ApplyPage() {
         dir="rtl"
       >
         <div className="w-full max-w-[520px]">
-          <div className="mb-5 flex items-center justify-center gap-2.5">
-            <BrandLogo size={28} />
-            <span className="text-[13px] font-medium text-muted-foreground">
-              منصة التوظيف
-            </span>
+          <div className="mb-6 flex justify-center">
+            <BrandLogo size={36} />
           </div>
           <Card className="overflow-hidden border-0 shadow-none!">
             <div className="px-8 pt-10 pb-6 text-center">
@@ -342,9 +335,9 @@ export function ApplyPage() {
 
             {/* Actions */}
             <div className="flex flex-col gap-3 px-6 pb-8">
-              <Btn className="w-full" onClick={() => navigate("/careers")}>
+              {/* <Btn className="w-full" onClick={() => navigate("/careers")}>
                 <Icon name="search" size={15} /> تتبع حالة طلبي
-              </Btn>
+              </Btn> */}
               <Btn
                 variant="outline"
                 className="w-full"

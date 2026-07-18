@@ -194,7 +194,7 @@ export function Btn({
   return (
     <button
       className={cn(
-        "focus-ring inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50",
+        "cursor-pointer focus-ring inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50",
         btnVariants[variant],
         btnSizes[size],
         className
