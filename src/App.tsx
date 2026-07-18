@@ -314,8 +314,8 @@ export default function App() {
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
 
       {/* Public routes — pages are self-contained */}
-      <Route path="/careers" element={<CareersPage />} />
-      <Route path="/careers/:id" element={<JobDetailPage />} />
+      {/* <Route path="/careers" element={<CareersPage />} /> */}
+      {/* <Route path="/careers/:id" element={<JobDetailPage />} /> */}
       <Route path="/apply" element={<ApplyPage />} />
       <Route path="/company/:code" element={<CompanyCardPage />} />
       <Route path="/contact" element={<ContactPage />} />
