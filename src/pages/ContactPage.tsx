@@ -110,7 +110,7 @@ export function ContactPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* ── Contact info ── */}
-          <div className="flex flex-col gap-4">
+          {/* <div className="flex flex-col gap-4"> */}
             {/* <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6">
               <h2 className="mb-5 text-[17px] font-bold text-[var(--foreground)]">
                 معلومات التواصل
@@ -155,7 +155,7 @@ export function ContactPage() {
                 عرض العنوان على الخريطة
               </a>
             </div> */}
-          </div>
+          {/* </div> */}
 
           {/* ── Contact form ── */}
           <div className="rounded-2xl bg-[var(--card)] p-6">

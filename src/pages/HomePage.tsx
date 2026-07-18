@@ -220,14 +220,14 @@ export function HomePage() {
         <div className="mt-8 flex flex-col items-stretch justify-center gap-4 sm:mt-10 lg:flex-row lg:items-center">
           <button
             onClick={() => navigate("/apply")}
-            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl bg-[var(--primary)] px-7 text-white shadow-[0_10px_30px_-10px_oklch(0.55_0.18_30/0.55)] transition-all hover:-translate-y-0.5 hover:bg-[var(--primary-hover)] hover:shadow-[0_16px_36px_-12px_oklch(0.55_0.18_30/0.6)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
+            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border border-[var(--primary)] bg-white px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
           >
             <Icon name="upload" size={28} className="shrink-0" />
             <div className="flex-1 text-start">
               <div className="text-[16px] font-bold sm:text-[18px]">
                 رفع السيرة الذاتية
               </div>
-              <div className="mt-0.5 text-[12px] text-white/80 sm:text-[12.5px]">
+              <div className="mt-0.5 text-[12px] text-[var(--muted-foreground)] sm:text-[12.5px]">
                 للأفراد الباحثين عن عمل
               </div>
             </div>
@@ -240,7 +240,7 @@ export function HomePage() {
 
           <button
             onClick={() => navigate("/login")}
-            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border-2 border-[var(--primary)] bg-[var(--card)] px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
+            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border border-[var(--primary)] bg-white px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
           >
             <Icon name="briefcase" size={28} className="shrink-0" />
             <div className="flex-1 text-start">
@@ -260,7 +260,7 @@ export function HomePage() {
 
           <button
             onClick={() => navigate("/login")}
-            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border-2 border-[var(--primary)] bg-[var(--card)] px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
+            className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border border-[var(--primary)] bg-white px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
           >
             <Icon name="building2" size={28} className="shrink-0" />
             <div className="flex-1 text-start">

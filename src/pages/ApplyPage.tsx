@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { Card } from "@/components/ui/card"
@@ -509,7 +509,7 @@ export function ApplyPage() {
                               <button
                                 type="button"
                                 className={cn(
-                                  "focus-ring flex h-10 w-full items-center gap-2 rounded-md border border-input bg-card px-3 text-[13.5px] transition-colors",
+                                  "focus-ring flex h-11 w-full items-center gap-2 rounded-md border border-input bg-card px-3 text-[13.5px] transition-colors",
                                   field.value
                                     ? "text-foreground"
                                     : "text-muted-foreground"
@@ -556,19 +556,24 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel>الجنس</FormLabel>
                       <FormControl>
-                        <div className="flex h-10 items-center gap-1 rounded-md border border-input bg-card p-1">
-                          {(["male", "female"] as const).map((val) => (
-                            <button
-                              key={val}
-                              type="button"
-                              onClick={() => field.onChange(val)}
-                              className={`h-full flex-1 rounded-sm text-[13px] font-medium transition-colors ${field.value === val
-                                ? "bg-primary text-white"
-                                : "text-muted-foreground hover:bg-accent"
-                                }`}
-                            >
-                              {val === "male" ? "ذكر" : "أنثى"}
-                            </button>
+                        <div className="flex h-11 items-center rounded-md border border-input bg-card p-1">
+                          {(["male", "female"] as const).map((val, i) => (
+                            <>
+                              {i === 1 && (
+                                <div key="sep" className="mx-1 h-9 w-px shrink-0 bg-border" />
+                              )}
+                              <button
+                                key={val}
+                                type="button"
+                                onClick={() => field.onChange(val)}
+                                className={`h-full flex-1 rounded-sm text-[13px] font-medium transition-colors ${field.value === val
+                                  ? "bg-primary text-white"
+                                  : "text-muted-foreground hover:bg-accent"
+                                  }`}
+                              >
+                                {val === "male" ? "ذكر" : "أنثى"}
+                              </button>
+                            </>
                           ))}
                         </div>
                       </FormControl>
@@ -828,26 +833,11 @@ export function ApplyPage() {
                 type="submit"
                 disabled={isPending}
                 size="lg"
-                className="w-full sm:w-auto sm:px-10"
+                className="h-11 px-10"
               >
                 {isPending ? (
                   <>
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      className="animate-spin"
-                    >
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeDasharray="30 60"
-                      />
-                    </svg>
+                    <Loader2 size={16} className="animate-spin" />
                     جاري الإرسال…
                   </>
                 ) : (
@@ -866,7 +856,7 @@ export function ApplyPage() {
         </Form>
 
         <div className="mt-8 border-t border-border pt-6 text-center text-[11.5px] text-muted-foreground">
-          © 2026 جميع الحقوق محفوظة — منصة التوظيف
+          © {new Date().getFullYear()} جميع الحقوق محفوظة — منصة التوظيف
         </div>
       </div>
     </div>

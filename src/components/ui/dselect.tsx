@@ -38,7 +38,7 @@ export function DSelect({ value, onChange, options, placeholder, className = '',
         type="button"
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
-        className={cn("h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] flex items-center justify-between focus-ring disabled:cursor-not-allowed disabled:opacity-50", triggerClassName)}
+        className={cn("h-11 w-full rounded-md border border-input bg-card px-3 text-[13.5px] flex items-center justify-between focus-ring disabled:cursor-not-allowed disabled:opacity-50", triggerClassName)}
       >
         <span className={selected ? '' : 'text-[var(--muted-foreground)]'}>
           {selected ? selected.label : placeholder ?? 'اختر…'}

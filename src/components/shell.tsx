@@ -221,7 +221,7 @@ export function DInput({ icon, className = "", ...rest }: InputProps) {
       )}
       <input
         className={cn(
-          "h-10 w-full rounded-md border border-[var(--input)] bg-[var(--card)] text-[13.5px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]",
+          "h-11 w-full rounded-md border border-[var(--input)] bg-[var(--card)] text-[13.5px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]",
           "focus-ring px-3 transition-shadow",
           icon ? "ps-9" : "",
           className
