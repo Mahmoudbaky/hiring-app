@@ -5,6 +5,7 @@ import { Icon } from "@/components/icons"
 export interface ComboboxOption {
   value: string
   label: string
+  icon?: React.ReactNode
 }
 
 interface ComboboxProps {
@@ -60,8 +61,14 @@ export function Combobox({
         }}
         className="focus-ring h-10 w-full rounded-md border border-input bg-card px-3 text-[13.5px] flex items-center justify-between"
       >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
-          {selected ? selected.label : placeholder}
+        <span
+          className={cn(
+            "flex min-w-0 items-center gap-2",
+            selected ? "text-foreground" : "text-muted-foreground"
+          )}
+        >
+          {selected?.icon}
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
         </span>
         <Icon name="chevDown" size={14} className="text-muted-foreground shrink-0" />
       </button>
@@ -95,9 +102,12 @@ export function Combobox({
                     o.value === value && "bg-accent",
                   )}
                 >
-                  <span>{o.label}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    {o.icon}
+                    <span className="truncate">{o.label}</span>
+                  </span>
                   {o.value === value && (
-                    <Icon name="check" size={14} className="text-primary" />
+                    <Icon name="check" size={14} className="text-primary shrink-0" />
                   )}
                 </button>
               ))
