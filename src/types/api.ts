@@ -131,6 +131,7 @@ export interface QualificationType {
 export interface Department {
   id: string;
   name: string;
+  hasExtraSpecialties: boolean;
   isActive: boolean;
   createdAt: string;
 }
@@ -261,6 +262,7 @@ export interface CreateQualificationTypeBody {
 /** Body for POST /settings/departments */
 export interface CreateDepartmentBody {
   name: string;
+  hasExtraSpecialties?: boolean;
 }
 
 /** Body for POST /settings/professional-grades */

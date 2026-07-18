@@ -96,6 +96,10 @@ export const settingsService = {
     const res = await api.patch<ApiResponse<Department>>(`/settings/departments/${id}`, { isActive });
     return res.data.data;
   },
+  async updateDepartment(id: string, body: Partial<CreateDepartmentBody>): Promise<Department> {
+    const res = await api.patch<ApiResponse<Department>>(`/settings/departments/${id}`, body);
+    return res.data.data;
+  },
   async deleteDepartment(id: string): Promise<void> {
     await api.delete(`/settings/departments/${id}`);
   },

@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils"
 import { useApp } from "@/context/AppContext"
 import { PageHeader, Btn, DInput, DLabel, Th, Td } from "@/components/shell"
 import { DDialog } from "@/components/ui/ddialog"
+import { DSwitch } from "@/components/ui/dswitch"
 import { Icon } from "@/components/icons"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
@@ -14,6 +15,7 @@ import {
   useDeleteQualificationType,
   useDepartmentsSettings,
   useCreateDepartment,
+  useUpdateDepartment,
   useDeleteDepartment,
   useProfessionalGradesSettings,
   useCreateProfessionalGrade,
@@ -72,6 +74,7 @@ function AddNameDialog({
   placeholder,
   onSubmit,
   isPending,
+  extra,
 }: {
   open: boolean
   onClose: () => void
@@ -80,6 +83,7 @@ function AddNameDialog({
   placeholder: string
   onSubmit: (name: string) => void
   isPending: boolean
+  extra?: React.ReactNode
 }) {
   const [name, setName] = useState("")
   const [error, setError] = useState("")
@@ -111,6 +115,7 @@ function AddNameDialog({
               autoFocus
             />
           </div>
+          {extra}
         </div>
         <div className="flex justify-end gap-2 border-t border-border p-4">
           <Btn type="button" variant="outline" size="sm" onClick={onClose}>
@@ -269,12 +274,15 @@ function DepartmentsTab() {
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [addDeptOpen, setAddDeptOpen] = useState(false)
+  const [newDeptHasExtraSpecialties, setNewDeptHasExtraSpecialties] = useState(false)
   const [addGradeForDept, setAddGradeForDept] = useState<string | null>(null)
   const [addSpecialtyForDept, setAddSpecialtyForDept] = useState<string | null>(null)
 
-  const { mutate: createDept, isPending: isDeptPending } = useCreateDepartment(() =>
+  const { mutate: createDept, isPending: isDeptPending } = useCreateDepartment(() => {
     setAddDeptOpen(false)
-  )
+    setNewDeptHasExtraSpecialties(false)
+  })
+  const { mutate: updateDept } = useUpdateDepartment()
   const { mutate: removeDept } = useDeleteDepartment()
   const { mutate: createGrade, isPending: isGradePending } = useCreateProfessionalGrade(() =>
     setAddGradeForDept(null)
@@ -358,14 +366,28 @@ function DepartmentsTab() {
                       {grades.length} درجة · {specialties.length} تخصص
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); removeDept(dept.id) }}
-                    className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
-                    aria-label="حذف القسم"
-                  >
-                    <Icon name="trash" size={14} />
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex items-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="text-[12px] text-muted-foreground">
+                        تخصصات إضافية
+                      </span>
+                      <DSwitch
+                        on={dept.hasExtraSpecialties}
+                        onChange={(v) => updateDept({ id: dept.id, hasExtraSpecialties: v })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeDept(dept.id) }}
+                      className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+                      aria-label="حذف القسم"
+                    >
+                      <Icon name="trash" size={14} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* ── Expanded body ── */}
@@ -456,12 +478,23 @@ function DepartmentsTab() {
       {/* Add Department */}
       <AddNameDialog
         open={addDeptOpen}
-        onClose={() => setAddDeptOpen(false)}
+        onClose={() => { setAddDeptOpen(false); setNewDeptHasExtraSpecialties(false) }}
         title="إضافة قسم"
         label="اسم القسم"
         placeholder="مثال: الموارد البشرية"
-        onSubmit={(name) => createDept({ name })}
+        onSubmit={(name) =>
+          createDept({ name, hasExtraSpecialties: newDeptHasExtraSpecialties })
+        }
         isPending={isDeptPending}
+        extra={
+          <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5">
+            <span className="text-[13px]">تخصصات إضافية</span>
+            <DSwitch
+              on={newDeptHasExtraSpecialties}
+              onChange={setNewDeptHasExtraSpecialties}
+            />
+          </div>
+        }
       />
 
       {/* Add Professional Grade */}

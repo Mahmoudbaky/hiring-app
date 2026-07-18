@@ -18,8 +18,7 @@ export function RegisterPage() {
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [userDialCode, setUserDialCode] = useState("+966")
-  const [userPhoneNumber, setUserPhoneNumber] = useState("")
+  const [userPhone, setUserPhone] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPw, setShowPw] = useState(false)
@@ -58,9 +57,7 @@ export function RegisterPage() {
         name,
         email,
         password,
-        userPhoneNumber: userPhoneNumber
-          ? `${userDialCode}${userPhoneNumber}`
-          : undefined,
+        userPhoneNumber: userPhone || undefined,
       })
       navigate(`/verify-otp?email=${encodeURIComponent(email)}`, {
         replace: true,
@@ -215,12 +212,7 @@ export function RegisterPage() {
 
               <div className="space-y-1.5">
                 <DLabel>رقم الهاتف</DLabel>
-                <PhoneInput
-                  dialCode={userDialCode}
-                  onDialCodeChange={setUserDialCode}
-                  number={userPhoneNumber}
-                  onNumberChange={setUserPhoneNumber}
-                />
+                <PhoneInput value={userPhone} onChange={setUserPhone} />
               </div>
 
               <div className="space-y-1.5">

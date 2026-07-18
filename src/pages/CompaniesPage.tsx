@@ -18,7 +18,6 @@ export function CompaniesPage() {
     companyName: "",
     companyRecord: "",
     managerName: "",
-    dialCode: "+966",
     phoneNumber: "",
     address: "",
   }
@@ -42,14 +41,11 @@ export function CompaniesPage() {
       setError("اسم الشركة مطلوب")
       return
     }
-    const phone = form.phoneNumber
-      ? `${form.dialCode}${form.phoneNumber}`
-      : undefined
     create({
       companyName: form.companyName.trim(),
       companyRecord: form.companyRecord || undefined,
       managerName: form.managerName || undefined,
-      phoneNumber: phone,
+      phoneNumber: form.phoneNumber || undefined,
       address: form.address || undefined,
     })
   }
@@ -215,14 +211,8 @@ export function CompaniesPage() {
               <div className="space-y-1.5">
                 <DLabel>رقم الهاتف</DLabel>
                 <PhoneInput
-                  dialCode={form.dialCode}
-                  onDialCodeChange={(v) =>
-                    setForm((f) => ({ ...f, dialCode: v }))
-                  }
-                  number={form.phoneNumber}
-                  onNumberChange={(v) =>
-                    setForm((f) => ({ ...f, phoneNumber: v }))
-                  }
+                  value={form.phoneNumber}
+                  onChange={(v) => setForm((f) => ({ ...f, phoneNumber: v }))}
                 />
               </div>
               <div className="space-y-1.5">

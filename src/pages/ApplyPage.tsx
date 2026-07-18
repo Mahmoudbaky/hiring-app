@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Btn, BrandLogo, DInput, DTextarea } from "@/components/shell"
 import { Combobox } from "@/components/ui/combobox"
 import { DSelect } from "@/components/ui/dselect"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover"
 import {
@@ -176,6 +177,10 @@ export function ApplyPage() {
 
   const selectedDepartmentId =
     form.watch("jobProfile.departmentId") || undefined
+  const selectedDepartment = departments.find(
+    (d) => d.id === selectedDepartmentId
+  )
+  const hasExtraSpecialties = selectedDepartment?.hasExtraSpecialties ?? false
   const { data: professionalGrades = [] } =
     useProfessionalGrades(selectedDepartmentId)
   const { data: generalSpecialties = [] } =
@@ -439,10 +444,9 @@ export function ApplyPage() {
                     <FormItem>
                       <FormLabel required>رقم الجوال</FormLabel>
                       <FormControl>
-                        <DInput
-                          icon={<Icon name="phone" size={14} />}
-                          placeholder="+966 5XX XXX XXXX"
-                          {...field}
+                        <PhoneInput
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -658,63 +662,67 @@ export function ApplyPage() {
                   )}
                 />
 
-                {/* Professional grade */}
-                <FormField
-                  control={form.control}
-                  name="jobProfile.professionalGradeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
-                          2
-                        </span>
-                        الدرجة المهنية
-                      </FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                          placeholder="اختر الدرجة"
-                          disabled={!selectedDepartmentId}
-                          options={professionalGrades.map((g) => ({
-                            value: g.id,
-                            label: g.name,
-                          }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Professional grade & general specialty — only for departments with extra specialties */}
+                {hasExtraSpecialties && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="jobProfile.professionalGradeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
+                              2
+                            </span>
+                            الدرجة المهنية
+                          </FormLabel>
+                          <FormControl>
+                            <DSelect
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              placeholder="اختر الدرجة"
+                              disabled={!selectedDepartmentId}
+                              options={professionalGrades.map((g) => ({
+                                value: g.id,
+                                label: g.name,
+                              }))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                {/* General specialty */}
-                <FormField
-                  control={form.control}
-                  name="jobProfile.generalSpecialtyId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
-                          3
-                        </span>
-                        التخصص العام
-                      </FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                          placeholder="اختر التخصص"
-                          disabled={!selectedDepartmentId}
-                          options={generalSpecialties.map((s) => ({
-                            value: s.id,
-                            label: s.name,
-                          }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    {/* General specialty */}
+                    <FormField
+                      control={form.control}
+                      name="jobProfile.generalSpecialtyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <span className="me-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">
+                              3
+                            </span>
+                            التخصص العام
+                          </FormLabel>
+                          <FormControl>
+                            <DSelect
+                              value={field.value ?? ""}
+                              onChange={field.onChange}
+                              placeholder="اختر التخصص"
+                              disabled={!selectedDepartmentId}
+                              options={generalSpecialties.map((s) => ({
+                                value: s.id,
+                                label: s.name,
+                              }))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </div>
 
               {/* Years of experience */}

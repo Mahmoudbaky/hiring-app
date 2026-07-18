@@ -32,7 +32,6 @@ export function UsersPage() {
     name: "",
     email: "",
     password: "",
-    dialCode: "+966",
     phoneNumber: "",
     hiringCompanyId: isSuperAdmin ? "" : (me?.hiringCompanyId ?? ""),
   }
@@ -63,9 +62,7 @@ export function UsersPage() {
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
-      phoneNumber: form.phoneNumber
-        ? `${form.dialCode}${form.phoneNumber}`
-        : undefined,
+      phoneNumber: form.phoneNumber || undefined,
       hiringCompanyId: form.hiringCompanyId || undefined,
     })
   }
@@ -343,14 +340,8 @@ export function UsersPage() {
             <div className="space-y-1.5">
               <DLabel>رقم الهاتف</DLabel>
               <PhoneInput
-                dialCode={form.dialCode}
-                onDialCodeChange={(v) =>
-                  setForm((f) => ({ ...f, dialCode: v }))
-                }
-                number={form.phoneNumber}
-                onNumberChange={(v) =>
-                  setForm((f) => ({ ...f, phoneNumber: v }))
-                }
+                value={form.phoneNumber}
+                onChange={(v) => setForm((f) => ({ ...f, phoneNumber: v }))}
               />
             </div>
             <div className="space-y-1.5">

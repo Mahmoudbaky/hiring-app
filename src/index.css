@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Only used for flag icon sizing (.PhoneInputCountryIcon); layout classes are overridden by our own components. */
+@import "react-phone-number-input/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -142,6 +144,12 @@
   .focus-ring:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  /* Country flag icons (react-phone-number-input) */
+  :root {
+    --PhoneInputCountryFlag-height: 1.15em;
+    --PhoneInputCountryFlag-borderColor: var(--border);
   }
 
   /* Hairline shadows */

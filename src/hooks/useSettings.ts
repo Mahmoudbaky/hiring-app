@@ -138,6 +138,14 @@ export function useToggleDepartment() {
     onSuccess: () => qc.invalidateQueries({ queryKey: DEPARTMENTS_QUERY_KEY }),
   });
 }
+export function useUpdateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: { id: string } & Partial<CreateDepartmentBody>) =>
+      settingsService.updateDepartment(id, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: DEPARTMENTS_QUERY_KEY }),
+  });
+}
 export function useDeleteDepartment() {
   const qc = useQueryClient();
   return useMutation({
