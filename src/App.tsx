@@ -15,6 +15,8 @@ import { CompanyCardPage } from "@/pages/CompanyCardPage"
 import { ApplyPage } from "@/pages/ApplyPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { RegisterPage } from "@/pages/RegisterPage"
+import { ClientLoginPage } from "@/pages/ClientLoginPage"
+import { ClientRegisterPage } from "@/pages/ClientRegisterPage"
 import { AdminLoginPage } from "@/pages/AdminLoginPage"
 import { ProfilePage } from "@/pages/ProfilePage"
 import { HomePage } from "@/pages/HomePage"
@@ -263,6 +265,22 @@ export default function App() {
         path="/register"
         element={
           loggedIn ? <Navigate to={defaultHome} replace /> : <RegisterPage />
+        }
+      />
+      <Route
+        path="/client/login"
+        element={
+          loggedIn ? <Navigate to={defaultHome} replace /> : <ClientLoginPage />
+        }
+      />
+      <Route
+        path="/client/register"
+        element={
+          loggedIn ? (
+            <Navigate to={defaultHome} replace />
+          ) : (
+            <ClientRegisterPage />
+          )
         }
       />
       <Route

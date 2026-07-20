@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams, Link } from "react-router-dom"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/icons"
 import { BrandLogo, Btn, DInput } from "@/components/shell"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Form,
   FormControl,
@@ -25,9 +26,11 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>
 
-export function AdminLoginPage() {
+export function ClientLoginPage() {
   const { login } = useApp()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const justVerified = searchParams.get("verified") === "1"
   const [showPw, setShowPw] = useState(false)
 
   const form = useForm<LoginValues>({
@@ -39,8 +42,8 @@ export function AdminLoginPage() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      await login("admin", values.email, values.password, values.remember)
-      navigate("/dashboard", { replace: true })
+      await login("client", values.email, values.password, values.remember)
+      navigate("/client-applicants", { replace: true })
     } catch (err) {
       form.setError("root", {
         message: err instanceof Error ? err.message : "حدث خطأ غير متوقع",
@@ -54,12 +57,12 @@ export function AdminLoginPage() {
       dir="rtl"
     >
       {/* ── Left dark panel ──────────────────────────────────────── */}
-      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_250)] text-white lg:block">
+      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_280)] text-white lg:block">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 0% 100%, oklch(0.45 0.2 250 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.35 0.15 280 / 0.35), transparent 55%)",
+              "radial-gradient(120% 80% at 0% 100%, oklch(0.5 0.2 300 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 260 / 0.35), transparent 55%)",
           }}
         />
 
@@ -68,21 +71,21 @@ export function AdminLoginPage() {
 
           <div className="flex max-w-[480px] flex-1 flex-col justify-center">
             <Badge
-              tone="success"
+              tone="rose"
               className="mb-5 w-fit border-white/15 bg-white/10 text-white"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              لوحة تحكم المشرف العام
+              <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.72_0.18_300)]" />
+              بوابة الشركات الباحثة
             </Badge>
 
             <h1 className="text-[42px] leading-[1.15] font-bold tracking-tight text-balance">
-              مرحباً بك في
+              تصفّح أفضل
               <br />
-              <span className="text-[oklch(0.72_0.18_250)]">مركز الإدارة</span>.
+              <span className="text-[oklch(0.78_0.18_300)]">المرشحين</span>.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-white/70">
-              أدر الشركات والوظائف والمتقدمين من مكان واحد. هذه الواجهة مخصصة
-              للمشرفين العامين فقط.
+              استعرض قاعدة المرشحين المشتركة، واختر من يناسب احتياجات شركتك،
+              وتابع حالة كل مرشح من واجهة واحدة.
             </p>
           </div>
 
@@ -94,6 +97,12 @@ export function AdminLoginPage() {
 
       {/* ── Right form panel ─────────────────────────────────────── */}
       <div className="flex flex-col bg-background">
+        {/* Mobile-only brand header (left panel is hidden below lg) */}
+        <div className="flex items-center justify-between px-8 pt-6 lg:hidden">
+          <BrandLogo size={32} />
+          <ThemeToggle />
+        </div>
+
         <div className="flex flex-1 items-center px-8 lg:px-12">
           <Form {...form}>
             <form
@@ -101,10 +110,10 @@ export function AdminLoginPage() {
               className="mx-auto w-full max-w-[400px]"
             >
               <h2 className="text-[26px] font-bold tracking-tight">
-                دخول المشرف العام
+                دخول الشركات الباحثة
               </h2>
               <p className="mt-1 text-[13.5px] text-muted-foreground">
-                هذه الصفحة مخصصة للمشرفين العامين فقط.
+                أدخل بيانات حساب شركتك الباحثة للمتابعة.
               </p>
 
               <div className="my-5" />
@@ -121,7 +130,7 @@ export function AdminLoginPage() {
                         <DInput
                           icon={<Icon name="mail" size={14} />}
                           type="email"
-                          placeholder="admin@example.com"
+                          placeholder="name@company.com"
                           {...field}
                         />
                       </FormControl>
@@ -136,7 +145,15 @@ export function AdminLoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel required>كلمة المرور</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel required>كلمة المرور</FormLabel>
+                        <button
+                          type="button"
+                          className="text-[12px] text-[var(--primary)] hover:underline"
+                        >
+                          نسيت كلمة المرور؟
+                        </button>
+                      </div>
                       <FormControl>
                         <div className="relative">
                           <DInput
@@ -195,10 +212,27 @@ export function AdminLoginPage() {
                   )}
                 />
 
+                {/* Verified success banner */}
+                {justVerified && !errors.root && (
+                  <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    <Icon name="check" size={13} /> تم تأكيد بريدك بنجاح، سجّل الدخول للمتابعة.
+                  </div>
+                )}
+
                 {/* Root / server error */}
                 {errors.root && (
-                  <div className="flex items-center gap-2 rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
-                    <Icon name="info" size={13} /> {errors.root.message}
+                  <div className="rounded-md border border-[oklch(0.9_0.05_25)] bg-[oklch(0.97_0.03_25)] px-3 py-2 text-[12.5px] text-[oklch(0.5_0.15_25)]">
+                    <div className="flex items-center gap-2">
+                      <Icon name="info" size={13} /> {errors.root.message}
+                    </div>
+                    {errors.root.message?.includes("تأكيد") && (
+                      <Link
+                        to={`/verify-otp?email=${encodeURIComponent(form.getValues("email"))}&type=client`}
+                        className="mt-1.5 block text-[12px] font-medium text-[oklch(0.45_0.15_25)] underline underline-offset-2"
+                      >
+                        تأكيد بريدك الإلكتروني الآن ←
+                      </Link>
+                    )}
                   </div>
                 )}
 
@@ -230,10 +264,30 @@ export function AdminLoginPage() {
                     </>
                   ) : (
                     <>
-                      دخول <Icon name="chevLeft" size={14} />
+                      تسجيل الدخول <Icon name="chevLeft" size={14} />
                     </>
                   )}
                 </Btn>
+
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <span className="text-[12.5px] text-muted-foreground">
+                    ليس لديك حساب؟
+                  </span>
+                  <Link to="/client/register">
+                    <Btn variant="outline" size="sm">
+                      إنشاء حساب
+                    </Btn>
+                  </Link>
+                </div>
+
+                <div className="pt-1 text-center">
+                  <Link
+                    to="/login"
+                    className="text-[12px] text-muted-foreground hover:text-foreground"
+                  >
+                    جهة توظيف؟ سجّل الدخول من هنا ←
+                  </Link>
+                </div>
               </div>
             </form>
           </Form>

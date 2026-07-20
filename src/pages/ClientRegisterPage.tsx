@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { useApp } from "@/context/AppContext"
 import { PhoneInput } from "@/components/ui/phone-input"
 
-export function RegisterPage() {
+export function ClientRegisterPage() {
   const { register } = useApp()
   const navigate = useNavigate()
 
@@ -48,7 +48,7 @@ export function RegisterPage() {
     setLoading(true)
     try {
       await register({
-        companyType: "hiring",
+        companyType: "client",
         companyName,
         address: address || undefined,
         managerName: managerName || undefined,
@@ -58,7 +58,7 @@ export function RegisterPage() {
         password,
         userPhoneNumber: userPhone || undefined,
       })
-      navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=hiring`, {
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=client`, {
         replace: true,
       })
     } catch (err) {
@@ -74,12 +74,12 @@ export function RegisterPage() {
       dir="rtl"
     >
       {/* ── Left dark panel ──────────────────────────────────────── */}
-      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_30)] text-white lg:block">
+      <div className="relative hidden overflow-hidden bg-[oklch(0.18_0.02_280)] text-white lg:block">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(120% 80% at 0% 100%, oklch(0.55 0.22 30 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 350 / 0.35), transparent 55%)",
+              "radial-gradient(120% 80% at 0% 100%, oklch(0.5 0.2 300 / 0.5), transparent 60%), radial-gradient(80% 60% at 100% 0%, oklch(0.45 0.18 260 / 0.35), transparent 55%)",
           }}
         />
         <div
@@ -99,18 +99,18 @@ export function RegisterPage() {
               tone="rose"
               className="mb-5 w-fit border-white/15 bg-white/10 text-white"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
-              منصة إدارة التوظيف
+              <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.72_0.18_300)]" />
+              بوابة الشركات الباحثة
             </Badge>
 
             <h1 className="text-[42px] leading-[1.15] font-bold tracking-tight text-balance">
-              ابدأ رحلة التوظيف
+              ابدأ في اختيار
               <br />
-              مع <span className="text-[oklch(0.78_0.18_30)]">شركتك</span>.
+              <span className="text-[oklch(0.78_0.18_300)]">فريقك</span>.
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-white/70">
-              أنشئ حساب شركتك في دقيقتين. راجع المتقدمين، صنّف السير الذاتية،
-              وانشر الوظائف الجديدة من واجهة واحدة بسيطة.
+              أنشئ حساب شركتك الباحثة في دقيقتين، وابدأ بتصفح المرشحين واختيار
+              الأنسب لاحتياجاتك من واجهة واحدة بسيطة.
             </p>
           </div>
 
@@ -125,7 +125,7 @@ export function RegisterPage() {
         <div className="flex flex-1 items-start justify-center overflow-y-auto px-8 py-8 lg:px-12">
           <form onSubmit={submit} className="w-full max-w-[400px]">
             <h2 className="text-[26px] font-bold tracking-tight">
-              إنشاء حساب جديد
+              إنشاء حساب شركة باحثة
             </h2>
             <p className="mt-1 text-[13.5px] text-muted-foreground">
               أدخل بيانات شركتك ومعلومات المسؤول لإنشاء الحساب.
@@ -140,7 +140,7 @@ export function RegisterPage() {
               <div className="space-y-1.5">
                 <DLabel required>اسم الجهة</DLabel>
                 <DInput
-                  placeholder="مثال: مجمع الصاعدي الطبي"
+                  placeholder="مثال: شركة الأفق للتوظيف"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                 />
@@ -296,7 +296,7 @@ export function RegisterPage() {
                 <span className="text-[12.5px] text-muted-foreground">
                   لديك حساب بالفعل؟
                 </span>
-                <Link to="/login">
+                <Link to="/client/login">
                   <Btn variant="outline" size="sm">
                     تسجيل الدخول
                   </Btn>
@@ -305,10 +305,10 @@ export function RegisterPage() {
 
               <div className="text-center">
                 <Link
-                  to="/client/register"
+                  to="/register"
                   className="text-[12px] text-muted-foreground hover:text-foreground"
                 >
-                  شركة باحثة عن موظفين؟ أنشئ حساباً من هنا ←
+                  جهة توظيف؟ أنشئ حساباً من هنا ←
                 </Link>
               </div>
             </div>

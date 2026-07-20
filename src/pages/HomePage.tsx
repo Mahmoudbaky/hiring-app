@@ -259,13 +259,13 @@ export function HomePage() {
           </button>
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/client/login")}
             className="group cursor-pointer flex h-[72px] w-full items-center gap-5 rounded-2xl border border-[var(--primary)] bg-white dark:bg-card px-7 text-[var(--primary)] transition-all hover:-translate-y-0.5 hover:bg-[var(--accent)] hover:shadow-[0_16px_36px_-16px_oklch(0.55_0.18_30/0.35)] sm:h-[84px] lg:w-auto lg:min-w-[260px]"
           >
             <Icon name="building2" size={28} className="shrink-0" />
             <div className="flex-1 text-start">
               <div className="text-[16px] font-bold sm:text-[18px]">
-                الشركات العميلة
+                الشركات الباحثة
               </div>
               <div className="mt-0.5 text-[12px] text-[var(--muted-foreground)] sm:text-[12.5px]">
                 ابحث عن أفضل الكفاءات لشركتك

@@ -16,6 +16,10 @@ export function VerifyOtpPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const email = params.get("email") ?? ""
+  // Which portal registered — decides where to send the user after verifying.
+  const isClient = params.get("type") === "client"
+  const loginPath = isClient ? "/client/login" : "/login"
+  const registerPath = isClient ? "/client/register" : "/register"
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const inputRefs = useRef<Array<HTMLInputElement | null>>([])
@@ -77,7 +81,7 @@ export function VerifyOtpPage() {
     setError("")
     try {
       await otpService.verify(email, otpValue)
-      navigate("/login?verified=1", { replace: true })
+      navigate(`${loginPath}?verified=1`, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : "حدث خطأ غير متوقع")
       setOtp(["", "", "", "", "", ""])
@@ -108,7 +112,7 @@ export function VerifyOtpPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4" dir="rtl">
         <p className="text-muted-foreground">رابط غير صالح.</p>
-        <Link to="/register"><Btn variant="outline">إنشاء حساب</Btn></Link>
+        <Link to={registerPath}><Btn variant="outline">إنشاء حساب</Btn></Link>
       </div>
     )
   }
@@ -224,7 +228,7 @@ export function VerifyOtpPage() {
             </div>
 
             <div className="mt-4 flex items-center justify-center gap-2">
-              <Link to="/register" className="text-[12.5px] text-muted-foreground hover:text-foreground">
+              <Link to={registerPath} className="text-[12.5px] text-muted-foreground hover:text-foreground">
                 ← العودة للتسجيل
               </Link>
             </div>

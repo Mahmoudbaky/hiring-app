@@ -1,14 +1,27 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import api from '@/lib/api';
 import { SEED_APPLICATIONS } from '@/data';
 import type { Application } from '@/types';
+
+export type Portal = 'admin' | 'hiring' | 'client';
+
+type Role = 'super_admin' | 'company_user' | 'client_company_user';
+
+// Role is implied by which portal (auth instance) the session belongs to.
+const ROLE_BY_PORTAL: Record<Portal, Role> = {
+  admin: 'super_admin',
+  hiring: 'company_user',
+  client: 'client_company_user',
+};
+
+const ALL_PORTALS: Portal[] = ['admin', 'hiring', 'client'];
 
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
   image: string | null;
-  role: 'super_admin' | 'company_user' | 'client_company_user';
+  role: Role;
   hiringCompanyId: string | null;
   clientCompanyId: string | null;
   companyName: string | null;
@@ -37,7 +50,7 @@ interface AppCtx {
   user: AuthUser | null;
   loggedIn: boolean;
   authLoading: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  login: (portal: Portal, email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (data: RegisterCompanyData) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -71,6 +84,7 @@ const emptyCompanyInfo: CompanyInfo = {
 
 function toAuthUser(
   u: Record<string, unknown>,
+  role: Role,
   company: Partial<CompanyInfo> = {},
 ): AuthUser {
   return {
@@ -78,7 +92,7 @@ function toAuthUser(
     name: u.name as string,
     email: u.email as string,
     image: (u.image as string) ?? null,
-    role: (u.role as AuthUser['role']) ?? 'company_user',
+    role,
     hiringCompanyId: (u.hiringCompanyId as string) ?? null,
     clientCompanyId: (u.clientCompanyId as string) ?? null,
     companyName: company.companyName ?? null,
@@ -124,40 +138,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [authLoading, setAuthLoading]   = useState(true);
   const [applications, setApplications] = useState<Application[]>(SEED_APPLICATIONS);
   const [viewing, setViewing]           = useState<Application | null>(null);
+  // Which portal the current session belongs to — needed for sign-out.
+  const portalRef = useRef<Portal | null>(null);
 
   useEffect(() => {
-    api.get('/auth/get-session')
-      .then(async (res) => {
-        if (res.data?.user) {
-          const u = res.data.user;
+    // On load we don't know which portal the user belongs to, so probe all
+    // three get-session endpoints in parallel; each reads only its own cookie.
+    Promise.allSettled(
+      ALL_PORTALS.map((p) => api.get(`/auth/${p}/get-session`)),
+    )
+      .then(async (results) => {
+        for (let i = 0; i < ALL_PORTALS.length; i++) {
+          const portal = ALL_PORTALS[i];
+          const result = results[i];
+          if (result.status !== 'fulfilled') continue;
+          const u = result.value.data?.user;
+          if (!u) continue;
+
+          const role = ROLE_BY_PORTAL[portal];
           try {
             const company = await fetchCompanyInfo(
-              u.role ?? 'company_user',
+              role,
               u.hiringCompanyId ?? null,
               u.clientCompanyId ?? null,
             );
-            setUser(toAuthUser(u, company));
+            portalRef.current = portal;
+            setUser(toAuthUser(u, role, company));
           } catch {
-            await api.post('/auth/sign-out').catch(() => {});
+            await api.post(`/auth/${portal}/sign-out`).catch(() => {});
           }
+          return;
         }
       })
       .catch(() => {})
       .finally(() => setAuthLoading(false));
   }, []);
 
-  const login = async (email: string, password: string, rememberMe = false) => {
-    const res = await api.post('/auth/sign-in/email', { email, password, rememberMe });
+  const login = async (portal: Portal, email: string, password: string, rememberMe = false) => {
+    const res = await api.post(`/auth/${portal}/sign-in/email`, { email, password, rememberMe });
     const u = res.data.user;
+    const role = ROLE_BY_PORTAL[portal];
     try {
       const company = await fetchCompanyInfo(
-        u.role ?? 'company_user',
+        role,
         u.hiringCompanyId ?? null,
         u.clientCompanyId ?? null,
       );
-      setUser(toAuthUser(u, company));
+      portalRef.current = portal;
+      setUser(toAuthUser(u, role, company));
     } catch (err) {
-      await api.post('/auth/sign-out').catch(() => {});
+      await api.post(`/auth/${portal}/sign-out`).catch(() => {});
       throw err;
     }
   };
@@ -169,16 +199,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshProfile = async () => {
     const res = await api.get('/profile/me');
     const u = res.data.data;
+    const role = (u.role as Role) ?? 'company_user';
     const company = await fetchCompanyInfo(
-      u.role ?? 'company_user',
+      role,
       u.hiringCompanyId ?? null,
       u.clientCompanyId ?? null,
     );
-    setUser(toAuthUser(u, company));
+    setUser(toAuthUser(u, role, company));
   };
 
   const logout = async () => {
-    await api.post('/auth/sign-out');
+    const portal = portalRef.current ?? 'hiring';
+    await api.post(`/auth/${portal}/sign-out`);
+    portalRef.current = null;
     setUser(null);
   };
 

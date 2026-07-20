@@ -42,7 +42,7 @@ export function LoginPage() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      await login(values.email, values.password, values.remember)
+      await login("hiring", values.email, values.password, values.remember)
       navigate("/incoming", { replace: true })
     } catch (err) {
       form.setError("root", {
@@ -285,6 +285,15 @@ export function LoginPage() {
                     <Btn variant="outline" size="sm">
                       إنشاء حساب
                     </Btn>
+                  </Link>
+                </div>
+
+                <div className="pt-1 text-center">
+                  <Link
+                    to="/client/login"
+                    className="text-[12px] text-muted-foreground hover:text-foreground"
+                  >
+                    شركة باحثة عن موظفين؟ سجّل الدخول من هنا ←
                   </Link>
                 </div>
               </div>
