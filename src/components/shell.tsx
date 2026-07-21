@@ -273,6 +273,29 @@ export function DLabel({
   )
 }
 
+/* ── Section heading ──────────────────────────────────────────────── */
+export function SectionHeading({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: string
+  title: string
+  subtitle?: string
+}) {
+  return (
+    <div className="flex items-center gap-3 pb-4">
+      <Icon name={icon as never} size={28} className="shrink-0 text-primary" />
+      <div>
+        <h2 className="text-[16px] font-bold">{title}</h2>
+        {subtitle && (
+          <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ── Unique Code Badge ────────────────────────────────────────────── */
 function UniqueCodeBadge({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)

@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useApp } from "@/context/AppContext"
 import {
   useQualificationTypes,
@@ -14,7 +17,7 @@ import {
 import { useCompanies } from "@/hooks/useSettings"
 import { useToast } from "@/components/ui/toast"
 import { Icon } from "@/components/icons"
-import { Btn, PageHeader, DInput } from "@/components/shell"
+import { Btn, PageHeader, DInput, DTextarea, SectionHeading } from "@/components/shell"
 import {
   Form,
   FormControl,
@@ -27,6 +30,11 @@ import { CvUpload } from "@/components/cv-upload"
 import { DSelect } from "@/components/ui/dselect"
 import { Combobox } from "@/components/ui/combobox"
 import { Card } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { NATIONALITIES } from "@/lib/nationalities"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverPopup, PopoverTrigger } from "@/components/ui/popover"
 
 const manualSchema = z.object({
   hiringCompanyCode: z.string().min(1),
@@ -59,38 +67,6 @@ const YEARS_OF_EXPERIENCE = [
   { value: "3_5", label: "3 - 5 سنوات" },
   { value: "5_10", label: "5 - 10 سنوات" },
   { value: "more_than_10", label: "أكثر من 10 سنوات" },
-]
-
-const NATIONALITIES = [
-  { value: "سعودي", label: "سعودي" },
-  { value: "مصري", label: "مصري" },
-  { value: "أردني", label: "أردني" },
-  { value: "سوري", label: "سوري" },
-  { value: "لبناني", label: "لبناني" },
-  { value: "عراقي", label: "عراقي" },
-  { value: "يمني", label: "يمني" },
-  { value: "فلسطيني", label: "فلسطيني" },
-  { value: "ليبي", label: "ليبي" },
-  { value: "تونسي", label: "تونسي" },
-  { value: "جزائري", label: "جزائري" },
-  { value: "مغربي", label: "مغربي" },
-  { value: "سوداني", label: "سوداني" },
-  { value: "إماراتي", label: "إماراتي" },
-  { value: "كويتي", label: "كويتي" },
-  { value: "بحريني", label: "بحريني" },
-  { value: "قطري", label: "قطري" },
-  { value: "عُماني", label: "عُماني" },
-  { value: "موريتاني", label: "موريتاني" },
-  { value: "جيبوتي", label: "جيبوتي" },
-  { value: "صومالي", label: "صومالي" },
-  { value: "باكستاني", label: "باكستاني" },
-  { value: "هندي", label: "هندي" },
-  { value: "بنغلاديشي", label: "بنغلاديشي" },
-  { value: "فلبيني", label: "فلبيني" },
-  { value: "إندونيسي", label: "إندونيسي" },
-  { value: "نيجيري", label: "نيجيري" },
-  { value: "إثيوبي", label: "إثيوبي" },
-  { value: "أخرى", label: "أخرى" },
 ]
 
 const QUALIFICATION_YEARS = Array.from({ length: 40 }, (_, i) => {
@@ -137,6 +113,8 @@ export function ManualApplyPage() {
   })
 
   const selectedDepartmentId = form.watch("jobProfile.departmentId") || undefined
+  const selectedDepartment = departments.find((d) => d.id === selectedDepartmentId)
+  const hasExtraSpecialties = selectedDepartment?.hasExtraSpecialties ?? false
   const { data: professionalGrades = [] } = useProfessionalGrades(selectedDepartmentId)
   const { data: generalSpecialties = [] } = useGeneralSpecialties(selectedDepartmentId)
 
@@ -198,39 +176,50 @@ export function ManualApplyPage() {
         desc="تقديم طلب توظيف نيابةً عن المتقدم"
       />
 
-      <Card className="mx-auto max-w-3xl p-6">
+      <div className="mx-auto max-w-3xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
             {/* Company / code */}
-            {isSuperAdmin ? (
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
-                  الشركة
-                </label>
-                <DSelect
-                  value={selectedCompanyCode}
-                  onChange={(v) => setSelectedCompanyCode(String(v))}
-                  placeholder="اختر الشركة"
-                  options={companies.map((c) => ({
-                    value: c.uniqueCode,
-                    label: c.companyName,
-                  }))}
-                />
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium">كود الشركة</label>
-                <DInput value={companyCode} disabled />
-              </div>
-            )}
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
+              <SectionHeading
+                icon="building2"
+                title="معلومات الطلب"
+                subtitle="حدد الشركة التي سيتم تقديم الطلب نيابة عنها"
+              />
+              {isSuperAdmin ? (
+                <div className="max-w-sm space-y-1.5">
+                  <label className="text-[13px] font-medium after:mr-1 after:text-destructive after:content-['*']">
+                    الشركة
+                  </label>
+                  <DSelect
+                    value={selectedCompanyCode}
+                    onChange={(v) => setSelectedCompanyCode(String(v))}
+                    placeholder="اختر الشركة"
+                    options={companies.map((c) => ({
+                      value: c.uniqueCode,
+                      label: c.companyName,
+                    }))}
+                  />
+                </div>
+              ) : (
+                <div className="max-w-sm space-y-1.5">
+                  <label className="text-[13px] font-medium">كود الشركة</label>
+                  <DInput value={companyCode} disabled />
+                </div>
+              )}
+            </Card>
+
+            <Separator />
 
             {/* Personal info */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                البيانات الشخصية
-              </h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
+              <SectionHeading
+                icon="user"
+                title="البيانات الشخصية"
+                subtitle="معلومات أساسية للتواصل"
+              />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="applicant.name"
@@ -251,7 +240,7 @@ export function ManualApplyPage() {
                     <FormItem>
                       <FormLabel required>رقم الجوال</FormLabel>
                       <FormControl>
-                        <DInput icon={<Icon name="phone" size={14} />} placeholder="05xxxxxxxx" {...field} />
+                        <PhoneInput value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -296,7 +285,35 @@ export function ManualApplyPage() {
                     <FormItem>
                       <FormLabel>تاريخ الميلاد</FormLabel>
                       <FormControl>
-                        <DInput type="date" {...field} />
+                        <Popover>
+                          <PopoverTrigger
+                            render={
+                              <button
+                                type="button"
+                                className={cn(
+                                  "focus-ring flex h-11 w-full items-center gap-2 rounded-md border border-input bg-card px-3 text-[13.5px] transition-colors",
+                                  field.value ? "text-foreground" : "text-muted-foreground"
+                                )}
+                              />
+                            }
+                          >
+                            <CalendarIcon size={14} className="shrink-0 text-muted-foreground" />
+                            {field.value
+                              ? format(new Date(field.value), "dd/MM/yyyy")
+                              : "اختر تاريخ الميلاد"}
+                          </PopoverTrigger>
+                          <PopoverPopup align="start">
+                            <Calendar
+                              mode="single"
+                              captionLayout="dropdown"
+                              startMonth={new Date(1950, 0)}
+                              endMonth={new Date()}
+                              selected={field.value ? new Date(field.value) : undefined}
+                              defaultMonth={field.value ? new Date(field.value) : undefined}
+                              onSelect={(d) => field.onChange(d ? format(d, "yyyy-MM-dd") : "")}
+                            />
+                          </PopoverPopup>
+                        </Popover>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,19 +326,24 @@ export function ManualApplyPage() {
                     <FormItem>
                       <FormLabel>الجنس</FormLabel>
                       <FormControl>
-                        <div className="flex h-10 items-center gap-4 rounded-md border border-input px-3">
-                          {(["male", "female"] as const).map((val) => (
-                            <label key={val} className="flex cursor-pointer items-center gap-2">
-                              <input
-                                type="radio"
-                                name="gender"
-                                value={val}
-                                checked={field.value === val}
-                                onChange={() => field.onChange(val)}
-                                className="accent-primary"
-                              />
-                              <span className="text-[13.5px]">{val === "male" ? "ذكر" : "أنثى"}</span>
-                            </label>
+                        <div className="flex h-11 items-center rounded-md border border-input bg-card p-1">
+                          {(["male", "female"] as const).map((val, i) => (
+                            <>
+                              {i === 1 && (
+                                <div key="sep" className="mx-1 h-9 w-px shrink-0 bg-border" />
+                              )}
+                              <button
+                                key={val}
+                                type="button"
+                                onClick={() => field.onChange(val)}
+                                className={`h-full flex-1 rounded-sm text-[13px] font-medium transition-colors ${field.value === val
+                                  ? "bg-primary text-white"
+                                  : "text-muted-foreground hover:bg-accent"
+                                  }`}
+                              >
+                                {val === "male" ? "ذكر" : "أنثى"}
+                              </button>
+                            </>
                           ))}
                         </div>
                       </FormControl>
@@ -366,13 +388,17 @@ export function ManualApplyPage() {
                   )}
                 />
               </div>
-            </div>
+            </Card>
+
+            <Separator />
 
             {/* Job profile */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                بيانات الوظيفة المطلوبة
-              </h3>
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
+              <SectionHeading
+                icon="briefcase"
+                title="بيانات الوظيفة المطلوبة"
+                subtitle="حدد القطاع والدرجة والتخصص بدقة"
+              />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <FormField
                   control={form.control}
@@ -392,44 +418,48 @@ export function ManualApplyPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="jobProfile.professionalGradeId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الدرجة المهنية</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر الدرجة"
-                          disabled={!selectedDepartmentId}
-                          options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="jobProfile.generalSpecialtyId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>التخصص العام</FormLabel>
-                      <FormControl>
-                        <DSelect
-                          value={field.value ?? ""}
-                          onChange={(v) => field.onChange(String(v))}
-                          placeholder="اختر التخصص"
-                          disabled={!selectedDepartmentId}
-                          options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {hasExtraSpecialties && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="jobProfile.professionalGradeId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الدرجة المهنية</FormLabel>
+                          <FormControl>
+                            <DSelect
+                              value={field.value ?? ""}
+                              onChange={(v) => field.onChange(String(v))}
+                              placeholder="اختر الدرجة"
+                              disabled={!selectedDepartmentId}
+                              options={professionalGrades.map((g) => ({ value: g.id, label: g.name }))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="jobProfile.generalSpecialtyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>التخصص العام</FormLabel>
+                          <FormControl>
+                            <DSelect
+                              value={field.value ?? ""}
+                              onChange={(v) => field.onChange(String(v))}
+                              placeholder="اختر التخصص"
+                              disabled={!selectedDepartmentId}
+                              options={generalSpecialties.map((s) => ({ value: s.id, label: s.name }))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </div>
               <FormField
                 control={form.control}
@@ -456,30 +486,33 @@ export function ManualApplyPage() {
                   <FormItem>
                     <FormLabel>معلومات إضافية</FormLabel>
                     <FormControl>
-                      <textarea
+                      <DTextarea
                         {...field}
                         rows={3}
                         placeholder="أي معلومات إضافية تود إضافتها..."
-                        className="focus-ring w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-[13.5px] text-foreground placeholder:text-muted-foreground"
+                        className="min-h-0 resize-none"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
+            </Card>
+
+            <Separator />
 
             {/* CV upload */}
-            <div className="space-y-3">
-              <h3 className="text-[12px] font-semibold tracking-wide text-muted-foreground uppercase">
-                السيرة الذاتية
-              </h3>
+            <Card className="space-y-5 border-0 p-6 shadow-none!">
+              <SectionHeading
+                icon="upload"
+                title="السيرة الذاتية"
+                subtitle="ارفع ملف السيرة الذاتية"
+              />
               <FormField
                 control={form.control}
                 name="cvUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ملف السيرة الذاتية</FormLabel>
                     <FormControl>
                       <CvUpload value={field.value} onChange={field.onChange} />
                     </FormControl>
@@ -487,7 +520,7 @@ export function ManualApplyPage() {
                   </FormItem>
                 )}
               />
-            </div>
+            </Card>
 
             {/* Server error */}
             {submitError && (
@@ -521,7 +554,7 @@ export function ManualApplyPage() {
             </div>
           </form>
         </Form>
-      </Card>
+      </div>
     </div>
   )
 }
