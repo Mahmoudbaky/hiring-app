@@ -43,6 +43,7 @@ export function Icon({ name, size = 16, className = '', strokeWidth = 1.6 }: Ico
     mail:     <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></>,
     phone:    <><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></>,
     user:     <><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></>,
+    shield:   <><path d="M12 3 4 6v6c0 5 3.5 7.6 8 9 4.5-1.4 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></>,
     userPlus: <><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7"/><path d="M19 8v6M22 11h-6"/></>,
     cloud:    <><path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4.5 4.5 0 0 1 19 19H7Z"/></>,
     pdf:      <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 13h1a1.5 1.5 0 0 0 0-3H9v6M14 10v6h1a2.5 2.5 0 0 0 0-5H14Z"/></>,

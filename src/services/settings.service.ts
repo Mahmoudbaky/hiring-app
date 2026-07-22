@@ -5,6 +5,8 @@ import type {
   CreateCompanyBody,
   CompanyUser,
   CreateUserBody,
+  AdminUser,
+  CreateAdminBody,
   JobTitle,
   CreateJobTitleBody,
   QualificationType,
@@ -47,6 +49,23 @@ export const settingsService = {
   },
   async deleteUser(id: string): Promise<void> {
     await api.delete(`/users/${id}`);
+  },
+
+  // Admin users (super admin only)
+  async listAdmins(): Promise<AdminUser[]> {
+    const res = await api.get<ApiResponse<AdminUser[]>>('/admin-users');
+    return res.data.data;
+  },
+  async createAdmin(body: CreateAdminBody): Promise<AdminUser> {
+    const res = await api.post<ApiResponse<AdminUser>>('/admin-users', body);
+    return res.data.data;
+  },
+  async freezeAdmin(id: string, isFrozen: boolean): Promise<AdminUser> {
+    const res = await api.patch<ApiResponse<AdminUser>>(`/admin-users/${id}`, { isFrozen });
+    return res.data.data;
+  },
+  async deleteAdmin(id: string): Promise<void> {
+    await api.delete(`/admin-users/${id}`);
   },
 
   // Job Titles

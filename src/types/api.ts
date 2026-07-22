@@ -193,7 +193,6 @@ export interface HiringCompany {
   address: string | null;
   managerName: string | null;
   companyRecord: string | null;
-  isAdminCompany: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -228,15 +227,20 @@ export interface CreateCompanyBody {
   address?: string;
 }
 
-/** User from GET /users */
+/** User from GET /users.
+ *  Super admin gets the cross-portal shape (companyType/companyId/companyName/role);
+ *  a company user gets their own hiring users (hiringCompanyId, no role/companyType). */
 export interface CompanyUser {
   id: string;
   name: string;
   email: string;
   phoneNumber: string | null;
   isFrozen: boolean;
-  role: 'super_admin' | 'company_user';
-  hiringCompanyId: string | null;
+  role?: 'super_admin' | 'company_user' | 'client_company_user';
+  companyType?: 'hiring' | 'client';
+  companyId?: string | null;
+  companyName?: string | null;
+  hiringCompanyId?: string | null;
   createdAt: string;
 }
 
@@ -247,6 +251,22 @@ export interface CreateUserBody {
   password: string;
   phoneNumber?: string;
   hiringCompanyId?: string;
+}
+
+/** Admin (super admin) account from GET /admin-users */
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  isFrozen: boolean;
+  createdAt: string;
+}
+
+/** Body for POST /admin-users */
+export interface CreateAdminBody {
+  name: string;
+  email: string;
+  password: string;
 }
 
 /** Body for POST /settings/job-titles */

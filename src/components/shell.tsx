@@ -394,6 +394,12 @@ const allNavItems: {
       roles: ["super_admin", "company_user"],
     },
     {
+      key: "admins",
+      label: "المشرفون",
+      icon: "shield",
+      roles: ["super_admin"],
+    },
+    {
       key: "contact-messages",
       label: "رسائل التواصل",
       icon: "mail",

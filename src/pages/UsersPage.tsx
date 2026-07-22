@@ -67,21 +67,36 @@ export function UsersPage() {
     })
   }
 
+  // Company picker for the create dialog — hiring companies only.
   const companyOptions = companies.map((c) => ({
     value: c.id,
     label: c.companyName,
   }))
 
-  const resolveCompanyName = (hiringCompanyId: string | null) => {
-    if (!hiringCompanyId) return "—"
-    const found = companies.find((c) => c.id === hiringCompanyId)
-    if (found) return found.companyName
-    if (hiringCompanyId === me?.hiringCompanyId) return me?.companyName ?? "—"
-    return "—"
-  }
+  // Company filter for the table — built from the returned users so it covers
+  // both hiring and client companies present in the cross-portal list.
+  const companyFilterOptions = Array.from(
+    new Map(
+      users
+        .map((u) => [u.companyId ?? u.hiringCompanyId, u.companyName] as const)
+        .filter(([id]) => !!id)
+        .map(([id, name]) => [id as string, name ?? "—"])
+    ).entries()
+  ).map(([value, label]) => ({ value, label }))
 
-  const roleLabel = (role: string) =>
-    role === "super_admin" ? "مشرف عام" : "مستخدم شركة"
+  const roleLabel = (role?: string) =>
+    role === "super_admin"
+      ? "مشرف عام"
+      : role === "client_company_user"
+        ? "شركة باحثة"
+        : "جهة توظيف"
+
+  const roleBadge = (role?: string) =>
+    role === "super_admin"
+      ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400"
+      : role === "client_company_user"
+        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+        : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
 
   const q = search.trim().toLowerCase()
   const filtered = users.filter((u) => {
@@ -90,7 +105,8 @@ export function UsersPage() {
       u.name.toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
       (u.phoneNumber ?? "").toLowerCase().includes(q)
-    const matchCompany = !companyFilter || u.hiringCompanyId === companyFilter
+    const companyId = u.companyId ?? u.hiringCompanyId
+    const matchCompany = !companyFilter || companyId === companyFilter
     return matchSearch && matchCompany
   })
 
@@ -141,7 +157,7 @@ export function UsersPage() {
                   setCompanyFilter(String(v))
                   setPage(1)
                 }}
-                options={[{ value: "", label: "كل الشركات" }, ...companyOptions]}
+                options={[{ value: "", label: "كل الشركات" }, ...companyFilterOptions]}
                 placeholder="كل الشركات"
               />
             </div>
@@ -201,13 +217,13 @@ export function UsersPage() {
                     </Td>
                     <Td>
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${u.role === "super_admin" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"}`}
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${roleBadge(u.role)}`}
                       >
                         {roleLabel(u.role)}
                       </span>
                     </Td>
                     {isSuperAdmin && (
-                      <Td>{resolveCompanyName(u.hiringCompanyId)}</Td>
+                      <Td>{u.companyName ?? "—"}</Td>
                     )}
                     <Td>
                       <div className="flex items-center gap-1">
@@ -417,7 +433,7 @@ export function UsersPage() {
                     الدور
                   </p>
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${detailUser.role === "super_admin" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400" : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"}`}
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium ${roleBadge(detailUser.role)}`}
                   >
                     {roleLabel(detailUser.role)}
                   </span>
@@ -427,7 +443,7 @@ export function UsersPage() {
                     الشركة
                   </p>
                   <p className="font-medium">
-                    {resolveCompanyName(detailUser.hiringCompanyId)}
+                    {detailUser.companyName ?? "—"}
                   </p>
                 </div>
                 <div>

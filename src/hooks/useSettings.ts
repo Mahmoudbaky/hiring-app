@@ -3,6 +3,7 @@ import { settingsService } from '@/services/settings.service';
 import type {
   CreateCompanyBody,
   CreateUserBody,
+  CreateAdminBody,
   CreateJobTitleBody,
   CreateQualificationTypeBody,
   CreateDepartmentBody,
@@ -12,6 +13,7 @@ import type {
 
 export const COMPANIES_QUERY_KEY = ['settings', 'companies'] as const;
 export const USERS_QUERY_KEY = ['settings', 'users'] as const;
+export const ADMINS_QUERY_KEY = ['settings', 'admins'] as const;
 export const JOB_TITLES_QUERY_KEY = ['settings', 'job-titles'] as const;
 export const QUAL_TYPES_QUERY_KEY = ['settings', 'qualification-types'] as const;
 export const DEPARTMENTS_QUERY_KEY = ['settings', 'departments'] as const;
@@ -62,6 +64,33 @@ export function useDeleteUser(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (id: string) => settingsService.deleteUser(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: USERS_QUERY_KEY }); onSuccess?.(); },
+  });
+}
+
+// Admin users (super admin only)
+export function useAdmins() {
+  return useQuery({ queryKey: ADMINS_QUERY_KEY, queryFn: settingsService.listAdmins });
+}
+export function useCreateAdmin(onSuccess?: () => void) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateAdminBody) => settingsService.createAdmin(body),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ADMINS_QUERY_KEY }); onSuccess?.(); },
+  });
+}
+export function useFreezeAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isFrozen }: { id: string; isFrozen: boolean }) =>
+      settingsService.freezeAdmin(id, isFrozen),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ADMINS_QUERY_KEY }),
+  });
+}
+export function useDeleteAdmin(onSuccess?: () => void) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => settingsService.deleteAdmin(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ADMINS_QUERY_KEY }); onSuccess?.(); },
   });
 }
 
